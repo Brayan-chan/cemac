@@ -1,0 +1,31 @@
+.sidebar-expanded {
+    width: 180px;
+}
+
+.sidebar-collapsed {
+    width: 80px;
+}
+
+.main-expanded {
+    margin-left: 180px;
+}
+
+.main-collapsed {
+    margin-left: 80px;
+}
+
+.transition-all {
+    transition: all 0.3s ease;
+}
+
+.sidebar-text {
+    opacity: 1;
+    transition: opacity 0.2s ease;
+    white-space: nowrap;
+}
+
+.sidebar-collapsed .sidebar-text {
+    opacity: 0;
+    width: 0;
+    overflow: hidden;
+}
