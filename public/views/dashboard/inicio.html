@@ -86,22 +86,59 @@
                 
                 <!-- Header Actions -->
                 <div class="flex items-center space-x-4">
+                    <!-- Información del usuario -->
+                    <div id="welcome-message" class="hidden lg:block text-sm">
+                        <!-- Se llena dinámicamente con JavaScript -->
+                    </div>
+                    
+                    <!-- Notificaciones -->
                     <button class="p-2 text-gray-600 hover:bg-gray-100 rounded-lg">
                         <i class="fas fa-envelope text-lg"></i>
                     </button>
                     <button class="p-2 text-gray-600 hover:bg-gray-100 rounded-lg">
                         <i class="fas fa-bell text-lg"></i>
                     </button>
+                    
                     <div class="w-px h-6 bg-gray-300"></div>
-                    <button class="p-2 text-gray-600 hover:bg-gray-100 rounded-lg">
-                        <i class="fas fa-user text-lg"></i>
-                    </button>
+                    
+                    <!-- Menú de usuario -->
+                    <div class="relative">
+                        <button id="userMenuBtn" class="flex items-center space-x-2 p-2 text-gray-600 hover:bg-gray-100 rounded-lg">
+                            <i class="fas fa-user text-lg"></i>
+                            <span class="user-name text-sm font-medium hidden md:block">Usuario</span>
+                            <i class="fas fa-chevron-down text-xs"></i>
+                        </button>
+                        
+                        <!-- Dropdown menu -->
+                        <div id="userDropdown" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+                            <div class="py-2">
+                                <div class="px-4 py-2 border-b border-gray-100">
+                                    <p class="user-name text-sm font-medium text-gray-900">Usuario</p>
+                                    <p class="user-email text-xs text-gray-500">email@ejemplo.com</p>
+                                </div>
+                                <button class="logout-btn w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center space-x-2">
+                                    <i class="fas fa-sign-out-alt"></i>
+                                    <span>Cerrar Sesión</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </header>
 
         <!-- Main Content Area -->
         <main class="p-6 bg-gray-50">
+            <!-- Mensaje de bienvenida -->
+            <div id="welcome-message" class="mb-6">
+                <!-- Se llena dinámicamente con JavaScript -->
+            </div>
+            
+            <!-- Estadísticas del dashboard -->
+            <div id="dashboard-stats" class="mb-6">
+                <!-- Se llena dinámicamente con JavaScript -->
+            </div>
+            
             <!-- Calendar integrated into main layout -->
             <div class="flex gap-6">
                 <!-- Calendar Column (only when sidebar collapsed) -->
@@ -349,8 +386,13 @@
         </main>
     </div>
 
-    <script>
+    <!-- Scripts de autenticación -->
+    <script type="module" src="../../js/services/authService.js"></script>
+    <script type="module" src="../../js/utils/uiUtils.js"></script>
+    <script type="module" src="../../js/modules/dashboardHandler.js"></script>
+    <script src="../../js/examples.js"></script>
 
+    <script>
         // Sidebar toggle functionality
         const toggleBtn = document.getElementById('toggleSidebar');
         const sidebar = document.getElementById('sidebar');
