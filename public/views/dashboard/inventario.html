@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Inventario</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .sidebar-expanded {
+            width: 180px;
+        }
+        .sidebar-collapsed {
+            width: 80px;
+        }
+        .main-expanded {
+            margin-left: 180px;
+        }
+        .main-collapsed {
+            margin-left: 80px;
+        }
+        .transition-all {
+            transition: all 0.3s ease;
+        }
+        .sidebar-text {
+            opacity: 1;
+            transition: opacity 0.2s ease;
+            white-space: nowrap;
+        }
+        .sidebar-collapsed .sidebar-text {
+            opacity: 0;
+            width: 0;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body class="h-full bg-gray-100 dark:bg-gray-900">
+    <!-- Sidebar -->
+    <div id="sidebar" class="fixed left-0 top-0 h-full bg-sidebar transition-all z-40 sidebar-expanded">
+        <!-- Navigation -->
+        <nav class="mt-6">
+            <div class="px-4 space-y-2">
+                <!-- Inicio -->
+                <a href="inicio.html" class="flex items-center px-3 py-2 text-white/80 hover:bg-white/10 rounded-lg cursor-pointer transition-colors">
+                    <i class="fas fa-home text-white w-5"></i>
+                    <span class="sidebar-text ml-3">Inicio</span>
+                </a>
+                
+                <!-- Inventario - Active -->
+                <div class="flex items-center px-3 py-2 bg-white/20 rounded-lg">
+                    <i class="fas fa-boxes text-white w-5"></i>
+                    <span class="sidebar-text ml-3 text-white font-medium">Inventario</span>
+                </div>
+                
+                <!-- Análisis -->
+                <a href="analisis.html" class="flex items-center px-3 py-2 text-white/80 hover:bg-white/10 rounded-lg cursor-pointer transition-colors">
+                    <i class="fas fa-chart-line text-white w-5"></i>
+                    <span class="sidebar-text ml-3">Análisis</span>
+                </a>
+                
+                <!-- Sugerencias -->
+                <a href="sugerencias.html" class="flex items-center px-3 py-2 text-white/80 hover:bg-white/10 rounded-lg cursor-pointer transition-colors">
+                    <i class="fas fa-lightbulb text-white w-5"></i>
+                    <span class="sidebar-text ml-3">Sugerencias</span>
+                </a>
+                
+                <!-- Alertas -->
+                <a href="alertas.html" class="flex items-center px-3 py-2 text-white/80 hover:bg-white/10 rounded-lg cursor-pointer transition-colors">
+                    <i class="fas fa-bell text-white w-5"></i>
+                    <span class="sidebar-text ml-3">Alertas</span>
+                </a>
+                
+                <!-- Buscar -->
+                <a href="buscar.html" class="flex items-center px-3 py-2 text-white/80 hover:bg-white/10 rounded-lg cursor-pointer transition-colors">
+                    <i class="fas fa-search text-white w-5"></i>
+                    <span class="sidebar-text ml-3">Buscar</span>
+                </a>
+                
+                <!-- Salir -->
+                <a href="../../index.html" class="flex items-center px-3 py-2 text-white/80 hover:bg-white/10 rounded-lg cursor-pointer transition-colors">
+                    <i class="fas fa-sign-out-alt text-white w-5"></i>
+                    <span class="sidebar-text ml-3">Salir</span>
+                </a>
+            </div>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div id="mainContent" class="main-expanded transition-all">
+        <!-- Header -->
+        <header class="bg-white shadow-sm border-b border-gray-200 h-16">
+            <div class="flex items-center justify-between h-full px-6">
+                <!-- Toggle Button -->
+                <button id="toggleSidebar" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                    <i class="fas fa-bars text-gray-600 dark:text-gray-300"></i>
+                </button>
+                
+                <!-- Search Bar -->
+                <div class="flex-1 max-w-md mx-6">
+                    <div class="relative">
+                        <input type="text" placeholder="Search" class="w-full bg-gray-100 dark:bg-gray-700 border-0 rounded-full px-4 py-2 pl-10 text-base focus:outline-none focus:ring-2 focus:ring-primary">
+                        <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                        <button class="absolute right-3 top-1/2 transform -translate-y-1/2 w-6 h-6 bg-gray-300 dark:bg-gray-600 rounded-full flex items-center justify-center">
+                            <i class="fas fa-times text-xs text-gray-600 dark:text-gray-300"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Header Actions -->
+                <div class="flex items-center space-x-4">
+                    <button class="p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">
+                        <i class="fas fa-envelope text-lg"></i>
+                    </button>
+                    <button class="p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">
+                        <i class="fas fa-bell text-lg"></i>
+                    </button>
+                    <div class="w-px h-6 bg-gray-300 dark:bg-gray-600"></div>
+                    <button class="p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">
+                        <i class="fas fa-user text-lg"></i>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content Area -->
+        <main class="p-6 bg-gray-50">
+            <!-- Inventory List -->
+            <div class="max-w-4xl mx-auto">
+                <!-- List Items -->
+                <div class="space-y-4 mb-8">
+                    <!-- List Item 1 -->
+                    <div class="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
+                        <div class="flex items-center">
+                            <div class="w-12 h-12 bg-gray-300 dark:bg-gray-600 rounded-lg mr-4 flex items-center justify-center">
+                                <div class="w-6 h-6 bg-gray-400 dark:bg-gray-500 rounded"></div>
+                            </div>
+                            <div class="flex-1">
+                                <h3 class="font-medium text-gray-900 dark:text-white">List item</h3>
+                                <p class="text-sm text-gray-500 dark:text-gray-400">Category • $$ • 1.2 miles away</p>
+                                <p class="text-sm text-gray-600 dark:text-gray-300 mt-1">Supporting line text lorem ipsum dolor sit amet, consectetur.</p>
+                            </div>
+                            <div class="flex items-center space-x-2 ml-4">
+                                <div class="flex text-yellow-400">
+                                    <i class="fas fa-star text-xs"></i>
+                                    <i class="fas fa-star text-xs"></i>
+                                    <i class="fas fa-star text-xs"></i>
+                                    <i class="fas fa-star text-xs"></i>
+                                    <i class="fas fa-star text-xs"></i>
+                                </div>
+                                <button class="text-gray-400 hover:text-red-500">
+                                    <i class="fas fa-heart"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- List Item 2 -->
+                    <div class="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
+                        <div class="flex items-center">
+                            <div class="w-12 h-12 bg-gray-300 dark:bg-gray-600 rounded-lg mr-4 flex items-center justify-center">
+                                <div class="w-6 h-6 bg-gray-400 dark:bg-gray-500 rounded"></div>
+                            </div>
+                            <div class="flex-1">
+                                <h3 class="font-medium text-gray-900 dark:text-white">List item</h3>
+                                <p class="text-sm text-gray-500 dark:text-gray-400">Category • $$ • 1.2 miles away</p>
+                                <p class="text-sm text-gray-600 dark:text-gray-300 mt-1">Supporting line text lorem ipsum dolor sit amet, consectetur.</p>
+                            </div>
+                            <div class="flex items-center space-x-2 ml-4">
+                                <div class="flex text-yellow-400">
+                                    <i class="fas fa-star text-xs"></i>
+                                    <i class="fas fa-star text-xs"></i>
+                                    <i class="fas fa-star text-xs"></i>
+                                    <i class="fas fa-star text-xs"></i>
+                                    <i class="fas fa-star text-xs"></i>
+                                </div>
+                                <button class="text-gray-400 hover:text-red-500">
+                                    <i class="fas fa-heart"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- List Item 3 -->
+                    <div class="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
+                        <div class="flex items-center">
+                            <div class="w-12 h-12 bg-gray-300 dark:bg-gray-600 rounded-lg mr-4 flex items-center justify-center">
+                                <div class="w-6 h-6 bg-gray-400 dark:bg-gray-500 rounded"></div>
+                            </div>
+                            <div class="flex-1">
+                                <h3 class="font-medium text-gray-900 dark:text-white">List item</h3>
+                                <p class="text-sm text-gray-500 dark:text-gray-400">Category • $$ • 1.2 miles away</p>
+                                <p class="text-sm text-gray-600 dark:text-gray-300 mt-1">Supporting line text lorem ipsum dolor sit amet, consectetur.</p>
+                            </div>
+                            <div class="flex items-center space-x-2 ml-4">
+                                <div class="flex text-yellow-400">
+                                    <i class="fas fa-star text-xs"></i>
+                                    <i class="fas fa-star text-xs"></i>
+                                    <i class="fas fa-star text-xs"></i>
+                                    <i class="fas fa-star text-xs"></i>
+                                    <i class="fas fa-star text-xs"></i>
+                                </div>
+                                <button class="text-gray-400 hover:text-red-500">
+                                    <i class="fas fa-heart"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- List Item 4 -->
+                    <div class="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
+                        <div class="flex items-center">
+                            <div class="w-12 h-12 bg-gray-300 dark:bg-gray-600 rounded-lg mr-4 flex items-center justify-center">
+                                <div class="w-6 h-6 bg-gray-400 dark:bg-gray-500 rounded"></div>
+                            </div>
+                            <div class="flex-1">
+                                <h3 class="font-medium text-gray-900 dark:text-white">List item</h3>
+                                <p class="text-sm text-gray-500 dark:text-gray-400">Category • $$ • 1.2 miles away</p>
+                                <p class="text-sm text-gray-600 dark:text-gray-300 mt-1">Supporting line text lorem ipsum dolor sit amet, consectetur.</p>
+                            </div>
+                            <div class="flex items-center space-x-2 ml-4">
+                                <div class="flex text-yellow-400">
+                                    <i class="fas fa-star text-xs"></i>
+                                    <i class="fas fa-star text-xs"></i>
+                                    <i class="fas fa-star text-xs"></i>
+                                    <i class="fas fa-star text-xs"></i>
+                                    <i class="fas fa-star text-xs"></i>
+                                </div>
+                                <button class="text-gray-400 hover:text-red-500">
+                                    <i class="fas fa-heart"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- List Item 5 -->
+                    <div class="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
+                        <div class="flex items-center">
+                            <div class="w-12 h-12 bg-gray-300 dark:bg-gray-600 rounded-lg mr-4 flex items-center justify-center">
+                                <div class="w-6 h-6 bg-gray-400 dark:bg-gray-500 rounded"></div>
+                            </div>
+                            <div class="flex-1">
+                                <h3 class="font-medium text-gray-900 dark:text-white">List item</h3>
+                                <p class="text-sm text-gray-500 dark:text-gray-400">Category • $$ • 1.2 miles away</p>
+                                <p class="text-sm text-gray-600 dark:text-gray-300 mt-1">Supporting line text lorem ipsum dolor sit amet, consectetur.</p>
+                            </div>
+                            <div class="flex items-center space-x-2 ml-4">
+                                <div class="flex text-yellow-400">
+                                    <i class="fas fa-star text-xs"></i>
+                                    <i class="fas fa-star text-xs"></i>
+                                    <i class="fas fa-star text-xs"></i>
+                                    <i class="fas fa-star text-xs"></i>
+                                    <i class="fas fa-star text-xs"></i>
+                                </div>
+                                <button class="text-gray-400 hover:text-red-500">
+                                    <i class="fas fa-heart"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- List Item 6 -->
+                    <div class="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
+                        <div class="flex items-center">
+                            <div class="w-12 h-12 bg-gray-300 dark:bg-gray-600 rounded-lg mr-4 flex items-center justify-center">
+                                <div class="w-6 h-6 bg-gray-400 dark:bg-gray-500 rounded"></div>
+                            </div>
+                            <div class="flex-1">
+                                <h3 class="font-medium text-gray-900 dark:text-white">List item</h3>
+                                <p class="text-sm text-gray-500 dark:text-gray-400">Category • $$ • 1.2 miles away</p>
+                                <p class="text-sm text-gray-600 dark:text-gray-300 mt-1">Supporting line text lorem ipsum dolor sit amet, consectetur.</p>
+                            </div>
+                            <div class="flex items-center space-x-2 ml-4">
+                                <div class="flex text-yellow-400">
+                                    <i class="fas fa-star text-xs"></i>
+                                    <i class="fas fa-star text-xs"></i>
+                                    <i class="fas fa-star text-xs"></i>
+                                    <i class="fas fa-star text-xs"></i>
+                                    <i class="fas fa-star text-xs"></i>
+                                </div>
+                                <button class="text-gray-400 hover:text-red-500">
+                                    <i class="fas fa-heart"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pagination -->
+                <div class="flex items-center justify-center space-x-2">
+                    <button class="flex items-center px-3 py-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors">
+                        <i class="fas fa-chevron-left mr-2 text-sm"></i>
+                        Previous
+                    </button>
+                    
+                    <button class="w-10 h-10 bg-primary text-white rounded-lg font-medium hover:bg-primary/80 transition-colors">
+                        1
+                    </button>
+                    
+                    <button class="w-10 h-10 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
+                        2
+                    </button>
+                    
+                    <button class="w-10 h-10 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
+                        3
+                    </button>
+                    
+                    <span class="px-2 text-gray-500 dark:text-gray-400">...</span>
+                    
+                    <button class="w-10 h-10 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
+                        67
+                    </button>
+                    
+                    <button class="w-10 h-10 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
+                        68
+                    </button>
+                    
+                    <button class="flex items-center px-3 py-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors">
+                        Next
+                        <i class="fas fa-chevron-right ml-2 text-sm"></i>
+                    </button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Sidebar toggle functionality
+        const toggleBtn = document.getElementById('toggleSidebar');
+        const sidebar = document.getElementById('sidebar');
+        const mainContent = document.getElementById('mainContent');
+        const sidebarTexts = document.querySelectorAll('.sidebar-text');
+        
+        // Check localStorage for saved state
+        let isCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+        
+        // Apply initial state
+        function updateSidebarState() {
+            if (isCollapsed) {
+                sidebar.classList.remove('sidebar-expanded');
+                sidebar.classList.add('sidebar-collapsed');
+                mainContent.classList.remove('main-expanded');
+                mainContent.classList.add('main-collapsed');
+            } else {
+                sidebar.classList.remove('sidebar-collapsed');
+                sidebar.classList.add('sidebar-expanded');
+                mainContent.classList.remove('main-collapsed');
+                mainContent.classList.add('main-expanded');
+            }
+        }
+        
+        // Apply initial state on page load
+        updateSidebarState();
+
+        // Toggle button click handler
+        toggleBtn.addEventListener('click', () => {
+            isCollapsed = !isCollapsed;
+            localStorage.setItem('sidebarCollapsed', isCollapsed);
+            updateSidebarState();
+        });
+
+        // Pagination click handlers
+        document.querySelectorAll('[class*="w-10 h-10"]').forEach(button => {
+            button.addEventListener('click', function() {
+                // Remove active state from all pagination buttons
+                document.querySelectorAll('[class*="w-10 h-10"]').forEach(btn => {
+                    btn.classList.remove('bg-primary', 'text-white');
+                    btn.classList.add('text-gray-600', 'dark:text-gray-400', 'hover:bg-gray-100', 'dark:hover:bg-gray-700');
+                });
+                
+                // Add active state to clicked button
+                this.classList.add('bg-primary', 'text-white');
+                this.classList.remove('text-gray-600', 'dark:text-gray-400', 'hover:bg-gray-100', 'dark:hover:bg-gray-700');
+            });
+        });
+    </script>
+</body>
+</html>

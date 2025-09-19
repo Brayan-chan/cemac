@@ -1,0 +1,22 @@
+{
+  "name": "cemac",
+  "version": "1.0.0",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node --watch server/server.js",
+    "dev": "nodemon server/server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.2",
+    "express": "^5.1.0",
+    "firebase": "^12.3.0",
+    "firebase-admin": "^13.5.0",
+    "nodemon": "^3.1.10"
+  }
+}
