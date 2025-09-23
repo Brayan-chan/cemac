@@ -1,31 +1,85 @@
-.sidebar-expanded {
-    width: 180px;
-}
-
+/* Custom CSS for pixel perfect design */
 .sidebar-collapsed {
     width: 80px;
 }
 
-.main-expanded {
-    margin-left: 180px;
+.sidebar-expanded {
+    width: 240px;
 }
 
 .main-collapsed {
     margin-left: 80px;
 }
 
-.transition-all {
-    transition: all 0.3s ease;
+.main-expanded {
+    margin-left: 240px;
 }
 
-.sidebar-text {
-    opacity: 1;
-    transition: opacity 0.2s ease;
-    white-space: nowrap;
+/* Gradient backgrounds for stats cards */
+.stats-card-red {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
 }
 
-.sidebar-collapsed .sidebar-text {
-    opacity: 0;
-    width: 0;
-    overflow: hidden;
+.stats-card-yellow {
+    background: linear-gradient(135deg, #eab308 0%, #ca8a04 100%);
+}
+
+.stats-card-green {
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+}
+
+.stats-card-blue {
+    background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+/* Sidebar transition */
+.sidebar-transition {
+    transition: all 0.3s ease-in-out;
+}
+
+/* Chart container */
+.chart-container {
+    position: relative;
+    width: 200px;
+    height: 200px;
+}
+
+/* Donut chart styles */
+.donut-chart {
+    transform: rotate(-90deg);
+}
+
+.donut-segment {
+    fill: none;
+    stroke-width: 30;
+}
+
+.donut-segment-1 {
+    stroke: #8b5cf6;
+}
+
+.donut-segment-2 {
+    stroke: #a78bfa;
+}
+
+.donut-segment-3 {
+    stroke: #c4b5fd;
 }
