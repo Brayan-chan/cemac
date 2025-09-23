@@ -3,31 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - Inventario</title>
+    <title>CEMAC - Dashboard</title>
     <link rel="stylesheet" href="../../css/inventario.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link rel="icon" type="image/png" sizes="32x32" href="https://res.cloudinary.com/dmyejrbs7/image/upload/v1757894655/CEMAC-LOGO_nrow82.png" />
-    <link rel="icon" type="image/png" sizes="16x16" href="https://res.cloudinary.com/dmyejrbs7/image/upload/v1757894655/CEMAC-LOGO_nrow82.png" />
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="../../js/tailwind.config.js"></script>
 </head>
-<body class="h-full bg-gray-100 dark:bg-gray-900">
-    <!-- Sidebar -->
-    <div id="sidebar" class="fixed left-0 top-0 h-full bg-sidebar transition-all z-40 sidebar-expanded">
-        <!-- Navigation -->
+<body class="h-full bg-gray-50">
+    <div id="sidebar" class="fixed left-0 top-0 h-full bg-[#8B7EC7] rounded-r-xl sidebar-expanded sidebar-transition z-40">        
         <nav class="mt-6">
             <div class="px-4 space-y-2">
+                <button id="toggleSidebar" class="flex items-center justify-center w-10 h-10 rounded-lg hover:bg-white/10 transition-colors mb-4">
+                    <i class="fas fa-bars text-white text-lg"></i>
+                </button>
+
                 <!-- Inicio -->
                 <a href="inicio.html" class="flex items-center px-3 py-2 text-white/80 hover:bg-white/10 rounded-lg cursor-pointer transition-colors">
                     <i class="fas fa-home text-white w-5"></i>
                     <span class="sidebar-text ml-3">Inicio</span>
                 </a>
-                
-                <!-- Inventario - Active -->
-                <div class="flex items-center px-3 py-2 bg-white/20 rounded-lg">
+
+                <!-- Ventas -->
+                <a href="ventas.html" class="flex items-center px-3 py-2 text-white/80 hover:bg-white/10 rounded-lg cursor-pointer transition-colors">
+                    <i class="fas fa-shopping-cart text-white w-5"></i>
+                    <span class="sidebar-text ml-3">Ventas</span>
+                </a>
+
+                <!-- Inventario -->
+                <a href="inventario.html" class="flex items-center px-3 py-2 bg-white/20 rounded-lg">
                     <i class="fas fa-boxes text-white w-5"></i>
                     <span class="sidebar-text ml-3 text-white font-medium">Inventario</span>
-                </div>
+                </a>
                 
                 <!-- Análisis -->
                 <a href="analisis.html" class="flex items-center px-3 py-2 text-white/80 hover:bg-white/10 rounded-lg cursor-pointer transition-colors">
@@ -41,10 +48,10 @@
                     <span class="sidebar-text ml-3">Sugerencias</span>
                 </a>
                 
-                <!-- Alertas -->
+                <!-- Alertas - Active -->
                 <a href="alertas.html" class="flex items-center px-3 py-2 text-white/80 hover:bg-white/10 rounded-lg cursor-pointer transition-colors">
                     <i class="fas fa-bell text-white w-5"></i>
-                    <span class="sidebar-text ml-3">Alertas</span>
+                    <span class="sidebar-text ml-3 text-white font-medium">Alertas</span>
                 </a>
                 
                 <!-- Buscar -->
@@ -54,7 +61,7 @@
                 </a>
                 
                 <!-- Salir -->
-                <a href="../../index.html" class="flex items-center px-3 py-2 text-white/80 hover:bg-white/10 rounded-lg cursor-pointer transition-colors">
+                <a href="login.html" class="flex items-center px-3 py-2 text-white/80 hover:bg-white/10 rounded-lg cursor-pointer transition-colors">
                     <i class="fas fa-sign-out-alt text-white w-5"></i>
                     <span class="sidebar-text ml-3">Salir</span>
                 </a>
@@ -62,55 +69,65 @@
         </nav>
     </div>
 
-    <!-- Main Content -->
-    <div id="mainContent" class="main-expanded transition-all min-h-screen">
-        <!-- Header -->
-        <header class="bg-white shadow-sm border-b border-gray-200 h-16">
+    <div id="mainContent" class="main-expanded sidebar-transition">
+        <header class="bg-white h-16">
             <div class="flex items-center justify-between h-full px-6">
-                <!-- Toggle Button -->
-                <button id="toggleSidebar" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-                    <i class="fas fa-bars text-gray-600 dark:text-gray-300"></i>
-                </button>
+                <div class="w-64"></div>
+                
+                <!-- Search Bar (Centered) -->
+                <div class="flex-1 flex justify-center">
+                    <div class="relative w-full max-w-md mx-4">
+                        <input type="text" 
+                               placeholder="Search" 
+                               class="w-full bg-gray-100 border-0 rounded-full px-4 py-2 pl-10 text-sm focus:outline-none focus:ring-2 focus:ring-[#8B7EC7]">
+                        <button class="absolute left-3 top-1/2 transform -translate-y-1/2">
+                            <i class="fas fa-search text-gray-400"></i>
+                        </button>
+                        <button class="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 bg-gray-200 rounded-full flex items-center justify-center">
+                            <i class="fas fa-times text-xs text-gray-500"></i>
+                        </button>
+                    </div>
+                </div>
                 
                 <!-- Header Actions -->
-                <div class="flex items-center space-x-4">
-                    <!-- Información del usuario -->
-                    <div id="welcome-message" class="hidden lg:block text-sm">
-                        <!-- Se llena dinámicamente con JavaScript -->
-                    </div>
-                    
-                    <!-- Notificaciones -->
-                    <button class="p-2 text-gray-600 hover:bg-gray-100 rounded-lg">
-                        <i class="fas fa-envelope text-lg"></i>
-                    </button>
-                    <button class="p-2 text-gray-600 hover:bg-gray-100 rounded-lg">
-                        <i class="fas fa-bell text-lg"></i>
+                <div class="w-64 flex items-center justify-end space-x-2">
+                    <!-- Messages -->
+                    <button class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                        <i class="far fa-envelope text-gray-600 text-xl"></i>
                     </button>
                     
-                    <div class="w-px h-6 bg-gray-300"></div>
+                    <!-- Notifications -->
+                    <button class="p-2 hover:bg-gray-100 rounded-lg transition-colors relative">
+                        <i class="far fa-bell text-gray-600 text-xl"></i>
+                        <span class="absolute top-1 right-1 w-4 h-4 bg-red-500 rounded-full text-xs text-white flex items-center justify-center">3</span>
+                    </button>
+
+                    <!-- Separator -->
+                    <div class="w-px h-6 bg-gray-300 mx-2"></div>
                     
-                    <!-- Menú de usuario -->
+                    <!-- User Menu -->
                     <div class="relative">
-                        <button id="userMenuBtn" class="flex items-center space-x-2 p-2 text-gray-600 hover:bg-gray-100 rounded-lg">
-                            <i class="fas fa-user text-lg"></i>
-                            <span class="user-name text-sm font-medium hidden md:block">Usuario</span>
-                            <i class="fas fa-chevron-down text-xs"></i>
+                        <button id="userMenuBtn" class="flex items-center space-x-2 px-2 py-1 hover:bg-gray-100 rounded-lg transition-colors">
+                            <span class="text-sm font-medium text-gray-700">jh6466011</span>
+                            <i class="fas fa-chevron-down text-xs text-gray-500"></i>
                         </button>
                         
-                        <!-- Dropdown menu -->
-                        <div id="userDropdown" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
-                            <div class="py-2">
-                                <div class="px-4 py-2 border-b border-gray-100">
-                                    <p class="user-name text-sm font-medium text-gray-900">Usuario</p>
-                                    <p class="user-email text-xs text-gray-500">email@ejemplo.com</p>
-                                </div>
-                                <button class="w-full text-left px-4 py-2 text-sm text-gray-600 hover:bg-gray-100">
-                                    Gesionar Usuarios
-                                </button>
-                                <button class="logout-btn w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center space-x-2">
-                                    <i class="fas fa-sign-out-alt"></i>
-                                    <span>Cerrar Sesión</span>
-                                </button>
+                        <!-- Dropdown Menu -->
+                        <div id="userDropdown" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg z-50 border border-gray-100">
+                            <div class="py-1">
+                                <a href="#" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                                    <i class="far fa-user-circle w-5"></i>
+                                    <span>Ver perfil</span>
+                                </a>
+                                <a href="#" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                                    <i class="fas fa-users-cog w-5"></i>
+                                    <span>Gestionar usuarios</span>
+                                </a>
+                                <hr class="my-1 border-gray-100">
+                                <a href="#" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                                    <i class="fas fa-sign-out-alt w-5"></i>
+                                    <span>Cerrar sesión</span>
+                                </a>
                             </div>
                         </div>
                     </div>
@@ -118,21 +135,11 @@
             </div>
         </header>
 
-        <!-- Main Content Area -->
-        <main class="p-6 bg-gray-50 pb-20">
-            <!-- Header con buscador y botón agregar -->
-            <div class="flex justify-between items-center mb-6">
-                <!-- Buscador -->
-                <div class="relative flex-1 max-w-md">
-                    <input type="text" 
-                           id="searchInput"
-                           placeholder="Search" 
-                           class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-                </div>
-                
+        <main class="p-6 bg-gray-50 min-h-screen">
+            <!-- Header con botón agregar -->
+            <div class="flex justify-end mb-6">                
                 <!-- Botón agregar producto -->
-                <div class="ml-4 flex space-x-2">
+                <div class="flex space-x-2">
                     <button id="clearAllBtn" 
                             class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center space-x-2">
                         <i class="fas fa-trash"></i>
@@ -158,7 +165,7 @@
         </div>
     </div>
 
-    <!-- Modal para agregar/editar producto -->
+     <!-- Modal para agregar/editar producto -->
     <div id="productModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-lg max-w-4xl w-full max-h-screen overflow-y-auto">
             <!-- Header del modal -->
@@ -319,12 +326,155 @@
         </div>
     </div>
 
-    <!-- Scripts -->
     <script type="module" src="../../js/config/firebase.js"></script>
     <script type="module" src="../../js/services/authService.js"></script>
     <script type="module" src="../../js/services/inventoryService.js"></script>
     <script type="module" src="../../js/utils/uiUtils.js"></script>
     <script type="module" src="../../js/modules/dashboardHandler.js"></script>
     <script type="module" src="../../js/modules/inventoryPageHandler.js"></script>
+    <script>
+        // Función principal para inicializar el dropdown
+        function initializeUserDropdown() {
+            const userMenuBtn = document.querySelector('#userMenuBtn');
+            const userDropdown = document.querySelector('#userDropdown');
+            
+            if (!userMenuBtn || !userDropdown) return;
+
+            // Alternar dropdown al hacer clic en el botón
+            userMenuBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                userDropdown.classList.toggle('hidden');
+            });
+
+            // Cerrar dropdown al hacer clic fuera
+            document.addEventListener('click', (e) => {
+                if (!userDropdown.contains(e.target) && !userMenuBtn.contains(e.target)) {
+                    userDropdown.classList.add('hidden');
+                }
+            });
+
+            // Manejar clics en los elementos del menú
+            userDropdown.querySelectorAll('a').forEach(item => {
+                item.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const action = e.currentTarget.querySelector('span').textContent;
+
+                    switch (action) {
+                        case 'Ver perfil':
+                            console.log('Ver perfil clicked');
+                            break;
+                        case 'Gestionar usuarios':
+                            console.log('Gestionar usuarios clicked');
+                            break;
+                        case 'Cerrar sesión':
+                            window.location.href = '/index.html';
+                            break;
+                    }
+
+                    userDropdown.classList.add('hidden');
+                });
+            });
+        }
+
+            
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeUserDropdown();
+
+            // DOM Elements
+            const toggleBtn = document.getElementById('toggleSidebar');
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.getElementById('mainContent');
+            const sidebarTexts = document.querySelectorAll('.sidebar-text');
+            const userMenuBtn = document.getElementById('userMenuBtn');
+            const userDropdown = document.getElementById('userDropdown');
+            const closeAlertBtn = document.querySelector('.fa-times');
+
+            // Initialize states
+            let isCollapsed = false;
+            
+            // Sidebar Toggle
+            if (toggleBtn) {
+                toggleBtn.addEventListener('click', () => {
+                    isCollapsed = !isCollapsed;
+                    if (isCollapsed) {
+                        sidebar.classList.remove('sidebar-expanded');
+                        sidebar.classList.add('sidebar-collapsed');
+                        mainContent.classList.remove('main-expanded');
+                        mainContent.classList.add('main-collapsed');
+                        // Ocultar textos del sidebar
+                        document.querySelectorAll('.sidebar-text').forEach(text => {
+                            text.classList.add('hidden');
+                        });
+                    } else {
+                        sidebar.classList.remove('sidebar-collapsed');
+                        sidebar.classList.add('sidebar-expanded');
+                        mainContent.classList.remove('main-collapsed');
+                        mainContent.classList.add('main-expanded');
+                        // Mostrar textos del sidebar
+                        document.querySelectorAll('.sidebar-text').forEach(text => {
+                            text.classList.remove('hidden');
+                        });
+                    }
+                });
+            }
+
+            // Navigation hover effects
+            const navItems = document.querySelectorAll('nav > div > a');
+            navItems.forEach(item => {
+                if (!item.classList.contains('bg-white/20')) {
+                    item.addEventListener('mouseenter', () => {
+                        item.classList.add('bg-white/10');
+                    });
+                    item.addEventListener('mouseleave', () => {
+                        item.classList.remove('bg-white/10');
+                    });
+                }
+            });
+
+            // User Dropdown functionality
+            if (userMenuBtn && userDropdown) {
+                // Toggle dropdown on button click
+                userMenuBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    userDropdown.classList.toggle('hidden');
+                });
+                
+                // Close dropdown when clicking outside
+                document.addEventListener('click', (e) => {
+                    if (!userMenuBtn.contains(e.target)) {
+                        userDropdown.classList.add('hidden');
+                    }
+                });
+                
+                // Prevent dropdown from closing when clicking inside
+                userDropdown.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                });
+                
+                // Handle dropdown menu items
+                userDropdown.querySelectorAll('a').forEach(item => {
+                    item.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        const action = e.currentTarget.querySelector('span').textContent;
+                        
+                        switch(action) {
+                            case 'Ver perfil':
+                                console.log('Ver perfil clicked');
+                                break;
+                            case 'Gestionar usuarios':
+                                console.log('Gestionar usuarios clicked');
+                                break;
+                            case 'Cerrar sesión':
+                                window.location.href = '/index.html';
+                                break;
+                        }
+                        
+                        userDropdown.classList.add('hidden');
+                    });
+                });
+            }
+
+        });
+    </script>
 </body>
 </html>
