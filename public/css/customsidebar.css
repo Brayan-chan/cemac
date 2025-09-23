@@ -1,0 +1,36 @@
+#sidebar {
+    height: 92vh;
+    margin-block: 30px;
+    border-radius: 30px;
+    margin-inline: 10px;
+}
+
+/* Sidebar flexbox layout */
+.sidebar-flex {
+    display: flex;
+    flex-direction: column;
+}
+
+.sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    height: calc(90vh - 60px); /* Ajustamos para el margin del sidebar */
+    justify-content: space-between;
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+    margin-top: 30px;
+}
+
+.sidebar-top {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around; /* Distribuye con espacio alrededor de cada elemento */
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+}
+
+.sidebar-bottom {
+    flex-shrink: 0;
+    padding-bottom: 1rem;
+}
