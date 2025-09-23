@@ -13,16 +13,19 @@
 </head>
 <body class="h-full bg-gray-100">
     <!-- Sidebar -->
-    <div id="sidebar" class="fixed left-0 top-0 h-full bg-sidebar sidebar-expanded transition-all z-40">
-        
+    <div id="sidebar" class="fixed left-0 top-0 h-full bg-sidebar sidebar-collapsed transition-all z-40">        
         <!-- Navigation -->
         <nav class="mt-6">
             <div class="px-4 space-y-2">
+                <!-- Toggle Button -->
+                <button id="toggleSidebar" class="flex items-center justify-center w-10 h-10 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors  ">
+                    <i class="fas fa-bars text-gray-600 dark:text-gray-300"></i>
+                </button>
                 <!-- Inicio -->
-                <div class="flex items-center px-3 py-2 bg-white/20 rounded-lg">
+                <a href="inicio.html" class="flex items-center px-3 py-2 bg-white/20 rounded-lg">
                     <i class="fas fa-home text-white w-5"></i>
                     <span class="sidebar-text ml-3 text-white font-medium">Inicio</span>
-                </div>
+                </a>
                 
                 <!-- Inventario -->
                 <a href="inventario.html" class="flex items-center px-3 py-2 text-white/80 hover:bg-white/10 rounded-lg cursor-pointer transition-colors">
@@ -42,10 +45,10 @@
                     <span class="sidebar-text ml-3">Sugerencias</span>
                 </a>
                 
-                <!-- Alertas -->
+                <!-- Alertas - Active -->
                 <a href="alertas.html" class="flex items-center px-3 py-2 text-white/80 hover:bg-white/10 rounded-lg cursor-pointer transition-colors">
                     <i class="fas fa-bell text-white w-5"></i>
-                    <span class="sidebar-text ml-3">Alertas</span>
+                    <span class="sidebar-text ml-3 text-white font-medium">Alertas</span>
                 </a>
                 
                 <!-- Buscar -->
@@ -55,7 +58,7 @@
                 </a>
                 
                 <!-- Salir -->
-                <a href="../../index.html" class="flex items-center px-3 py-2 text-white/80 hover:bg-white/10 rounded-lg cursor-pointer transition-colors">
+                <a href="login.html" class="flex items-center px-3 py-2 text-white/80 hover:bg-white/10 rounded-lg cursor-pointer transition-colors">
                     <i class="fas fa-sign-out-alt text-white w-5"></i>
                     <span class="sidebar-text ml-3">Salir</span>
                 </a>
@@ -68,35 +71,36 @@
         <!-- Header -->
         <header class="bg-white shadow-sm border-b border-gray-200 h-16">
             <div class="flex items-center justify-between h-full px-6">
-                <!-- Toggle Button -->
-                <button id="toggleSidebar" class="p-2 rounded-lg hover:bg-gray-100 transition-colors">
-                    <i class="fas fa-bars text-gray-600"></i>
-                </button>
+                <!-- Espacio a la izquierda para balance -->
+                <div class="w-64 flex items-center">
+                    <div id="welcome-message" class="text-sm text-gray-600">
+                        <!-- Se llena dinámicamente con JavaScript -->
+                    </div>
+                </div>
                 
-                <!-- Search Bar -->
-                <div class="flex-1 max-w-md mx-6">
-                    <div class="relative">
-                        <input type="text" placeholder="Search" class="w-full bg-gray-100 border-0 rounded-full px-4 py-2 pl-10 text-base focus:outline-none focus:ring-2 focus:ring-primary">
+                <!-- Search Bar (Centered) -->
+                <div class="flex-1 flex justify-center max-w-2xl">
+                    <div class="relative w-full mx-4">
+                        <input type="text" 
+                               placeholder="Buscar..." 
+                               class="w-full bg-gray-100 border-0 rounded-full px-4 py-2 pl-10 text-base focus:outline-none focus:ring-2 focus:ring-blue-500">
                         <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-                        <button class="absolute right-3 top-1/2 transform -translate-y-1/2 w-6 h-6 bg-gray-300 rounded-full flex items-center justify-center">
+                        <button class="absolute right-3 top-1/2 transform -translate-y-1/2 w-6 h-6 bg-gray-300 rounded-full flex items-center justify-center hover:bg-gray-400">
                             <i class="fas fa-times text-xs text-gray-600"></i>
                         </button>
                     </div>
                 </div>
                 
                 <!-- Header Actions -->
-                <div class="flex items-center space-x-4">
-                    <!-- Información del usuario -->
-                    <div id="welcome-message" class="hidden lg:block text-sm">
-                        <!-- Se llena dinámicamente con JavaScript -->
-                    </div>
-                    
+                <div class="w-64 flex items-center justify-end space-x-4">
                     <!-- Notificaciones -->
-                    <button class="p-2 text-gray-600 hover:bg-gray-100 rounded-lg">
+                    <button class="p-2 text-gray-600 hover:bg-gray-100 rounded-lg relative">
                         <i class="fas fa-envelope text-lg"></i>
+                        <span class="absolute top-0 right-0 h-4 w-4 bg-red-500 rounded-full text-xs text-white flex items-center justify-center">2</span>
                     </button>
-                    <button class="p-2 text-gray-600 hover:bg-gray-100 rounded-lg">
+                    <button class="p-2 text-gray-600 hover:bg-gray-100 rounded-lg relative">
                         <i class="fas fa-bell text-lg"></i>
+                        <span class="absolute top-0 right-0 h-4 w-4 bg-red-500 rounded-full text-xs text-white flex items-center justify-center">3</span>
                     </button>
                     
                     <div class="w-px h-6 bg-gray-300"></div>
