@@ -5,8 +5,12 @@
 
 class AuthService {
   constructor() {
-    // Ahora usa el servidor local que hace de proxy a la API externa
-    this.baseURL = window.location.origin
+    // URL base del servidor en producción
+    this.baseURL = 'https://cemac.vercel.app';
+    // Si estamos en desarrollo, usar la URL local
+    if (window.location.hostname === 'localhost') {
+      this.baseURL = window.location.origin;
+    }
   }
 
   /**
