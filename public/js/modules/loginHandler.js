@@ -197,7 +197,7 @@ class LoginHandler {
      */
     redirectToDashboard() {
         console.log('🏠 Redirigiendo al dashboard...');
-        window.location.href = './views/dashboard/inicio.html';
+        window.location.href = '/views/dashboard/inicio.html';
     }
 }
 
