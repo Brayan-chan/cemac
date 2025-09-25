@@ -104,8 +104,17 @@ class LoginHandler {
             return;
         }
 
-        // Mostrar loading
-        this.restoreButton = UIUtils.showButtonLoading(this.submitButton, 'Iniciando sesión...');
+        // Detectar si estamos en producción
+        const isProduction = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
+        
+        // Mostrar loading con mensaje apropiado
+        const loadingMessage = isProduction ? 'Conectando con el servidor...' : 'Iniciando sesión...';
+        this.restoreButton = UIUtils.showButtonLoading(this.submitButton, loadingMessage);
+
+        // Mostrar mensaje informativo en producción
+        if (isProduction) {
+            UIUtils.showAlert('Conectando con el servidor, esto puede tomar unos momentos...', 'info', 3000);
+        }
 
         try {
             // Realizar login
