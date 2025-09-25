@@ -57,20 +57,30 @@ class LoginHandler {
         this.setLoadingState(true);
 
         try {
+            console.log('🔐 Iniciando proceso de login con API...');
+            
+            // Mostrar mensaje de wake up si estamos en producción
+            const hostname = window.location.hostname;
+            const isProduction = hostname !== 'localhost' && hostname !== '127.0.0.1';
+            
+            if (isProduction) {
+                this.showInfo('Despertando servidor... esto puede tomar unos momentos');
+            }
+            
             const result = await window.authService.login(email, password);
 
             if (result.success) {
-                this.showSuccess('Login exitoso! Redirigiendo...');
+                this.showSuccess('¡Login exitoso! Redirigiendo...');
                 
                 setTimeout(() => {
                     window.location.href = '/views/dashboard/inicio.html';
                 }, 1500);
             } else {
-                this.showError(result.error || 'Error de autenticacion');
+                this.showError(result.error || 'Error de autenticación');
             }
         } catch (error) {
-            console.error('Error en login:', error);
-            this.showError('Error inesperado. Intenta de nuevo.');
+            console.error('❌ Error en handleLogin:', error);
+            this.showError('Error de conexión. Verifica tu conexión a internet.');
         } finally {
             this.setLoadingState(false);
         }
@@ -103,6 +113,11 @@ class LoginHandler {
         this.showMessage(message, 'error');
     }
 
+    showInfo(message) {
+        console.log('Info:', message);
+        this.showMessage(message, 'info');
+    }
+
     showMessage(message, type) {
         let messageContainer = document.getElementById('message-container');
         
@@ -114,9 +129,21 @@ class LoginHandler {
         }
 
         const messageEl = document.createElement('div');
-        const bgClass = type === 'success' 
-            ? 'bg-green-100 border border-green-400 text-green-700'
-            : 'bg-red-100 border border-red-400 text-red-700';
+        let bgClass;
+        
+        switch(type) {
+            case 'success':
+                bgClass = 'bg-green-100 border border-green-400 text-green-700';
+                break;
+            case 'error':
+                bgClass = 'bg-red-100 border border-red-400 text-red-700';
+                break;
+            case 'info':
+                bgClass = 'bg-blue-100 border border-blue-400 text-blue-700';
+                break;
+            default:
+                bgClass = 'bg-gray-100 border border-gray-400 text-gray-700';
+        }
         
         messageEl.className = 'px-4 py-3 rounded-lg shadow-lg mb-2 ' + bgClass;
         messageEl.textContent = message;
@@ -127,7 +154,7 @@ class LoginHandler {
             if (messageEl.parentNode) {
                 messageEl.parentNode.removeChild(messageEl);
             }
-        }, 5000);
+        }, type === 'info' ? 8000 : 5000); // Info messages last longer
     }
 }
 
