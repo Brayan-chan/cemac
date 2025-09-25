@@ -105,21 +105,9 @@ class LoginHandler {
         }
 
         // Mostrar loading
-        this.restoreButton = UIUtils.showButtonLoading(this.submitButton, 'Conectando...');
+        this.restoreButton = UIUtils.showButtonLoading(this.submitButton, 'Iniciando sesión...');
 
         try {
-            // Despertar la API externa primero
-            UIUtils.showAlert('Conectando con el servidor...', 'info', 2000);
-            const wakeUpResult = await window.authService.wakeUpAPI();
-            
-            if (!wakeUpResult.success) {
-                UIUtils.showAlert('El servidor está iniciando. Esto puede tomar unos momentos...', 'warning', 3000);
-            }
-
-            // Actualizar el texto del botón
-            if (this.restoreButton) this.restoreButton();
-            this.restoreButton = UIUtils.showButtonLoading(this.submitButton, 'Iniciando sesión...');
-
             // Realizar login
             const result = await window.authService.login(email, password);
             console.log('📋 Resultado del login:', result);
