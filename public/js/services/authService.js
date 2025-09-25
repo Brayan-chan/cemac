@@ -1,78 +1,186 @@
 /**
- * Servicio de autenticación básico (Sin API)
- * Maneja autenticación local para demostración
+ * Servicio de autenticación del frontend
+ * Maneja todas las comunicaciones con la API de autenticación externa
  */
 
 class AuthService {
     constructor() {
-        console.log('🔧 AuthService: Modo básico - Sin API');
-        this.isDemo = true;
+        this.configureAPIEndpoint();
     }
 
     /**
-     * Simula login local para demostración
+     * Configura el endpoint de la API según el entorno
+     */
+    configureAPIEndpoint() {
+        const hostname = window.location.hostname;
+        const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1';
+        
+        if (isLocalhost) {
+            // Desarrollo local: usar el servidor proxy local
+            this.baseURL = window.location.origin;
+            this.isDirectAPI = false;
+            this.environment = 'development';
+            console.log('🔧 Modo desarrollo: usando servidor proxy local');
+        } else {
+            // Producción: usar API externa directamente
+            this.baseURL = 'https://cemac-api.onrender.com';
+            this.isDirectAPI = true;
+            this.environment = 'production';
+            console.log('🌐 Modo producción: usando API externa directa');
+        }
+        
+        console.log('📡 API Base URL:', this.baseURL);
+        console.log('🌍 Environment:', this.environment);
+    }
+
+    /**
+     * Despierta la API externa para mejorar los tiempos de respuesta
+     * @returns {Object} Resultado del wake up
+     */
+    async wakeUpAPI() {
+        try {
+            console.log('⏰ Despertando API externa...');
+            
+            // Usar el endpoint raíz para despertar la API
+            const wakeupURL = `${this.baseURL}/`;
+            console.log('📡 Wakeup URL:', wakeupURL);
+            
+            const requestOptions = {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                },
+                mode: 'cors'
+            };
+
+            // Solo incluir credentials en desarrollo local
+            if (this.environment === 'development') {
+                requestOptions.credentials = 'include';
+            }
+
+            const response = await fetch(wakeupURL, requestOptions);
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+
+            const data = await response.json();
+            console.log('⏰ Wake up result:', data);
+            return { success: true, ...data };
+        } catch (error) {
+            console.error('❌ Error en wake up:', error);
+            return { success: false, error: 'Error despertando API' };
+        }
+    }
+
+    /**
+     * Realiza el login del usuario
      * @param {string} email - Email del usuario
      * @param {string} password - Contraseña del usuario
      * @returns {Object} Resultado del login
      */
     async login(email, password) {
         try {
-            console.log('🔐 AuthService: Login local simulado');
+            console.log('🔐 AuthService: Iniciando login');
             console.log('  - Email:', email);
+            console.log('  - Environment:', this.environment);
+            console.log('  - API URL:', `${this.baseURL}/auth/login`);
             
-            // Simulación de credenciales demo
-            const demoCredentials = {
-                'admin@cemac.com': 'admin123',
-                'demo@cemac.com': 'demo123',
-                'test@cemac.com': 'test123'
+            // Despertar la API primero si estamos en producción (sin bloquear si falla)
+            if (this.isDirectAPI) {
+                try {
+                    await this.wakeUpAPI();
+                    console.log('✅ API despertada exitosamente');
+                } catch (error) {
+                    console.warn('⚠️ Wake up falló, continuando con login:', error.message);
+                }
+            }
+            
+            const requestOptions = {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                },
+                mode: 'cors',
+                body: JSON.stringify({ email, password })
             };
 
-            // Simular delay de red
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            // Solo incluir credentials en desarrollo local
+            if (this.environment === 'development') {
+                requestOptions.credentials = 'include';
+            }
 
-            if (demoCredentials[email] && demoCredentials[email] === password) {
-                // Usuario demo válido
-                const userData = {
-                    email: email,
-                    name: email.split('@')[0].toUpperCase(),
-                    role: email.includes('admin') ? 'admin' : 'user'
-                };
+            const response = await fetch(`${this.baseURL}/auth/login`, requestOptions);
 
-                // Guardar sesión local
-                this.setUser(userData);
-                this.setToken('demo-token-' + Date.now());
+            console.log('📥 Response status:', response.status);
+            console.log('📥 Response ok:', response.ok);
 
-                return {
-                    success: true,
-                    message: 'Login exitoso (modo demo)',
-                    user: userData,
-                    token: this.getToken()
-                };
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`HTTP ${response.status}: ${errorText}`);
+            }
+
+            const data = await response.json();
+            console.log('📥 Response data:', data);
+
+            // Verificar si el login fue exitoso: debe tener token Y message de éxito O success true
+            const isLoginSuccessful = data.token && (
+                data.success === true || 
+                (data.message && data.message.toLowerCase().includes('exitoso'))
+            );
+
+            if (isLoginSuccessful) {
+                // Guardar token y datos del usuario
+                this.setToken(data.token);
+                if (data.user) {
+                    this.setUser(data.user);
+                }
+                return { success: true, ...data };
             } else {
-                return {
-                    success: false,
-                    error: 'Credenciales inválidas. Usa: admin@cemac.com / admin123'
+                return { 
+                    success: false, 
+                    error: data.error || data.message || 'Error de autenticación' 
                 };
             }
         } catch (error) {
-            console.error('❌ Error en login:', error);
-            return {
-                success: false,
-                error: 'Error en el login'
+            console.error('❌ Error en AuthService.login:', error);
+            return { 
+                success: false, 
+                error: error.message || 'Error de conexión con la API' 
             };
         }
     }
 
     /**
-     * Logout local
+     * Realiza el logout del usuario
      */
     async logout() {
         try {
-            console.log('🚪 AuthService: Logout');
-            this.clearSession();
-            window.location.href = '/';
+            const token = this.getToken();
+            if (token) {
+                const requestOptions = {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    mode: 'cors'
+                };
+
+                // Solo incluir credentials en desarrollo local
+                if (this.environment === 'development') {
+                    requestOptions.credentials = 'include';
+                }
+
+                await fetch(`${this.baseURL}/auth/logout`, requestOptions);
+            }
         } catch (error) {
             console.error('Error en logout:', error);
+        } finally {
+            // Limpiar datos locales independientemente del resultado
+            this.clearSession();
+            window.location.href = '/';
         }
     }
 
@@ -126,24 +234,41 @@ class AuthService {
     }
 
     /**
-     * Verifica autenticación local
+     * Verifica el estado de autenticación con el servidor
      * @returns {Object} Resultado de la verificación
      */
     async verifyAuth() {
-        const token = this.getToken();
-        const user = this.getUser();
+        try {
+            const token = this.getToken();
+            if (!token) {
+                return { success: false, error: 'No hay token' };
+            }
 
-        if (token && user) {
-            return {
-                success: true,
-                user: user,
-                message: 'Sesión válida (modo demo)'
+            const requestOptions = {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Accept': 'application/json',
+                },
+                mode: 'cors'
             };
-        } else {
-            return {
-                success: false,
-                error: 'No hay sesión activa'
-            };
+
+            // Solo incluir credentials en desarrollo local
+            if (this.environment === 'development') {
+                requestOptions.credentials = 'include';
+            }
+
+            const response = await fetch(`${this.baseURL}/auth/verify`, requestOptions);
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            console.error('Error verificando autenticación:', error);
+            return { success: false, error: 'Error de verificación' };
         }
     }
 }
