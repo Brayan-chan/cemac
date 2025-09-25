@@ -126,18 +126,12 @@ class LoginHandler {
 
             if (result.success) {
                 console.log('🎉 Login exitoso!');
+                UIUtils.showAlert('¡Inicio de sesión exitoso!', 'success');
                 
-                // Verificar el rol del usuario
-                if (result.user && result.user.role === 'admin') {
-                    UIUtils.showAlert('¡Bienvenido Administrador!', 'success');
-                    // Redireccionar después de un breve delay
-                    setTimeout(() => {
-                        this.redirectToDashboard();
-                    }, 1500);
-                } else {
-                    UIUtils.showAlert('No tienes permisos de administrador', 'error');
-                    return;
-                }
+                // Redireccionar después de un breve delay
+                setTimeout(() => {
+                    this.redirectToDashboard();
+                }, 1500);
             } else {
                 console.log('❌ Login fallido:', result.error);
                 UIUtils.showAlert(result.error || 'Error al iniciar sesión', 'error');
