@@ -1,57 +1,38 @@
-/**
- * Manejador del formulario de login
- * Controla la lógica específica de la página de login
- */
-
 class LoginHandler {
     constructor() {
-        this.form = null;
         this.emailInput = null;
         this.passwordInput = null;
         this.submitButton = null;
-        this.restoreButton = null;
     }
 
-    /**
-     * Inicializa el manejador de login
-     */
     init() {
         this.setupElements();
         this.setupEventListeners();
         this.checkAuthStatus();
     }
 
-    /**
-     * Configura las referencias a los elementos del DOM
-     */
     setupElements() {
         this.emailInput = document.getElementById('usuario');
         this.passwordInput = document.getElementById('contrasena');
         this.submitButton = document.querySelector('button[type="submit"]');
-        this.form = this.submitButton?.closest('form');
 
         if (!this.emailInput || !this.passwordInput || !this.submitButton) {
-            console.error('❌ No se encontraron todos los elementos necesarios para el login');
+            console.error('Elementos del formulario no encontrados');
             return false;
         }
 
-        console.log('✅ Elementos del login configurados correctamente');
+        console.log('Elementos del login configurados');
         return true;
     }
 
-    /**
-     * Configura los event listeners
-     */
     setupEventListeners() {
         if (!this.submitButton) return;
 
-        // Click en el botón de submit
         this.submitButton.addEventListener('click', (e) => {
             e.preventDefault();
             this.handleLogin();
         });
 
-        // Enter en los campos de input
         [this.emailInput, this.passwordInput].forEach(input => {
             if (input) {
                 input.addEventListener('keypress', (e) => {
@@ -60,162 +41,99 @@ class LoginHandler {
                         this.handleLogin();
                     }
                 });
-
-                // Limpiar errores al escribir
-                input.addEventListener('input', () => {
-                    UIUtils.clearError(input);
-                });
             }
         });
-
-        console.log('✅ Event listeners configurados');
     }
 
-    /**
-     * Verifica si el usuario ya está autenticado
-     */
-    checkAuthStatus() {
-        if (window.authService?.isAuthenticated()) {
-            console.log('✅ Usuario ya autenticado, redirigiendo...');
-            this.redirectToDashboard();
-        }
-    }
-
-    /**
-     * Maneja el proceso de login
-     */
     async handleLogin() {
-        console.log('🚀 Iniciando proceso de login...');
-
-        // Validar elementos
-        if (!this.emailInput || !this.passwordInput) {
-            UIUtils.showAlert('Error: Elementos del formulario no encontrados', 'error');
-            return;
-        }
-
         const email = this.emailInput.value.trim();
         const password = this.passwordInput.value.trim();
 
-        // Limpiar errores previos
-        UIUtils.clearFormErrors(this.form || document);
-
-        // Validaciones
-        if (!this.validateInputs(email, password)) {
+        if (!email || !password) {
+            this.showError('Por favor, completa todos los campos');
             return;
         }
 
-        // Mostrar loading
-        this.restoreButton = UIUtils.showButtonLoading(this.submitButton, 'Conectando...');
+        this.setLoadingState(true);
 
         try {
-            // Despertar la API externa primero
-            UIUtils.showAlert('Conectando con el servidor...', 'info', 2000);
-            const wakeUpResult = await window.authService.wakeUpAPI();
-            
-            if (!wakeUpResult.success) {
-                UIUtils.showAlert('El servidor está iniciando. Esto puede tomar unos momentos...', 'warning', 3000);
-            }
-
-            // Actualizar el texto del botón
-            if (this.restoreButton) this.restoreButton();
-            this.restoreButton = UIUtils.showButtonLoading(this.submitButton, 'Iniciando sesión...');
-
-            // Realizar login
             const result = await window.authService.login(email, password);
-            console.log('📋 Resultado del login:', result);
 
             if (result.success) {
-                console.log('🎉 Login exitoso!');
+                this.showSuccess('Login exitoso! Redirigiendo...');
                 
-                // Verificar el rol del usuario
-                if (result.user && result.user.role === 'admin') {
-                    UIUtils.showAlert('¡Bienvenido Administrador!', 'success');
-                    // Redireccionar después de un breve delay
-                    setTimeout(() => {
-                        this.redirectToDashboard();
-                    }, 1500);
-                } else {
-                    UIUtils.showAlert('No tienes permisos de administrador', 'error');
-                    return;
-                }
+                setTimeout(() => {
+                    window.location.href = '/views/dashboard/inicio.html';
+                }, 1500);
             } else {
-                console.log('❌ Login fallido:', result.error);
-                UIUtils.showAlert(result.error || 'Error al iniciar sesión', 'error');
-                this.passwordInput.focus();
+                this.showError(result.error || 'Error de autenticacion');
             }
         } catch (error) {
-            console.error('🚨 Error durante el login:', error);
-            UIUtils.showAlert('Error de conexión. Por favor intenta nuevamente.', 'error');
+            console.error('Error en login:', error);
+            this.showError('Error inesperado. Intenta de nuevo.');
         } finally {
-            // Restaurar botón
-            if (this.restoreButton) {
-                this.restoreButton();
-                this.restoreButton = null;
+            this.setLoadingState(false);
+        }
+    }
+
+    checkAuthStatus() {
+        if (window.authService && window.authService.isAuthenticated()) {
+            window.location.href = '/views/dashboard/inicio.html';
+        }
+    }
+
+    setLoadingState(loading) {
+        if (this.submitButton) {
+            this.submitButton.disabled = loading;
+            this.submitButton.textContent = loading ? 'Ingresando...' : 'Ingresar';
+        }
+        
+        [this.emailInput, this.passwordInput].forEach(input => {
+            if (input) input.disabled = loading;
+        });
+    }
+
+    showSuccess(message) {
+        console.log('Exito:', message);
+        this.showMessage(message, 'success');
+    }
+
+    showError(message) {
+        console.error('Error:', message);
+        this.showMessage(message, 'error');
+    }
+
+    showMessage(message, type) {
+        let messageContainer = document.getElementById('message-container');
+        
+        if (!messageContainer) {
+            messageContainer = document.createElement('div');
+            messageContainer.id = 'message-container';
+            messageContainer.className = 'fixed top-4 right-4 z-50';
+            document.body.appendChild(messageContainer);
+        }
+
+        const messageEl = document.createElement('div');
+        const bgClass = type === 'success' 
+            ? 'bg-green-100 border border-green-400 text-green-700'
+            : 'bg-red-100 border border-red-400 text-red-700';
+        
+        messageEl.className = 'px-4 py-3 rounded-lg shadow-lg mb-2 ' + bgClass;
+        messageEl.textContent = message;
+
+        messageContainer.appendChild(messageEl);
+
+        setTimeout(() => {
+            if (messageEl.parentNode) {
+                messageEl.parentNode.removeChild(messageEl);
             }
-        }
-    }
-
-    /**
-     * Valida los inputs del formulario
-     * @param {string} email - Email ingresado
-     * @param {string} password - Contraseña ingresada
-     * @returns {boolean} True si es válido
-     */
-    validateInputs(email, password) {
-        let isValid = true;
-
-        // Validar email
-        if (!email) {
-            UIUtils.showAlert('Por favor ingresa tu email', 'error');
-            UIUtils.markAsError(this.emailInput);
-            this.emailInput.focus();
-            return false;
-        }
-
-        if (!UIUtils.isValidEmail(email)) {
-            UIUtils.showAlert('Por favor ingresa un email válido', 'error');
-            UIUtils.markAsError(this.emailInput);
-            this.emailInput.focus();
-            return false;
-        }
-
-        // Validar contraseña
-        if (!password) {
-            UIUtils.showAlert('Por favor ingresa tu contraseña', 'error');
-            UIUtils.markAsError(this.passwordInput);
-            this.passwordInput.focus();
-            return false;
-        }
-
-        const passwordValidation = UIUtils.validatePassword(password);
-        if (!passwordValidation.isValid) {
-            UIUtils.showAlert(passwordValidation.errors[0], 'error');
-            UIUtils.markAsError(this.passwordInput);
-            this.passwordInput.focus();
-            return false;
-        }
-
-        return isValid;
-    }
-
-    /**
-     * Redirecciona al dashboard
-     */
-    redirectToDashboard() {
-        console.log('🏠 Redirigiendo al dashboard...');
-        window.location.href = './views/dashboard/inicio.html';
+        }, 5000);
     }
 }
 
-// Inicializar cuando el DOM esté listo
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('📄 Página de login cargada');
-    
     const loginHandler = new LoginHandler();
     loginHandler.init();
-    
-    // Hacer disponible globalmente para debugging
-    window.loginHandler = loginHandler;
 });
 
 export default LoginHandler;
