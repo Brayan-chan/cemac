@@ -1,100 +1,175 @@
 <!DOCTYPE html>
 <html lang="es" class="h-full">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - Analisis</title>
-    <link rel="stylesheet" href="../../css/analisis.css">
+    <title>CEMAC - Dashboard</title>
+    <link rel="stylesheet" href="../../css/customsidebar.css">
+    <link rel="stylesheet" href="../../css/inicio.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link rel="icon" type="image/png" sizes="32x32" href="https://res.cloudinary.com/dmyejrbs7/image/upload/v1757894655/CEMAC-LOGO_nrow82.png" />
-    <link rel="icon" type="image/png" sizes="16x16" href="https://res.cloudinary.com/dmyejrbs7/image/upload/v1757894655/CEMAC-LOGO_nrow82.png" />
+    <link rel="icon" type="image/png" sizes="32x32"
+        href="https://res.cloudinary.com/dmyejrbs7/image/upload/v1757894655/CEMAC-LOGO_nrow82.png" />
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="../../js/tailwind.config.js"></script>
 </head>
-<body class="h-full bg-gray-100 dark:bg-gray-900">
-    <!-- Sidebar -->
-    <div id="sidebar" class="fixed left-0 top-0 h-full bg-sidebar sidebar-expanded transition-all z-40">
-        <!-- Navigation -->
-        <nav class="mt-6">
-            <div class="px-4 space-y-2">
-                <!-- Inicio -->
-                <a href="inicio.html" class="flex items-center px-3 py-2 text-white/80 hover:bg-white/10 rounded-lg cursor-pointer transition-colors">
-                    <i class="fas fa-home text-white w-5"></i>
-                    <span class="sidebar-text ml-3">Inicio</span>
-                </a>
-                
-                <!-- Inventario -->
-                <a href="inventario.html" class="flex items-center px-3 py-2 text-white/80 hover:bg-white/10 rounded-lg cursor-pointer transition-colors">
-                    <i class="fas fa-boxes text-white w-5"></i>
-                    <span class="sidebar-text ml-3">Inventario</span>
-                </a>
-                
-                <!-- Análisis - Active -->
-                <div class="flex items-center px-3 py-2 bg-white/20 rounded-lg">
-                    <i class="fas fa-chart-line text-white w-5"></i>
-                    <span class="sidebar-text ml-3 text-white font-medium">Análisis</span>
+
+<body class="h-full bg-gray-50">
+    <div id="sidebar" class="fixed left-0 top-0 bg-[#8B7EC7] sidebar-expanded sidebar-transition z-40 sidebar-flex">
+        <nav class="sidebar-nav">
+            <!-- Botón toggle en la parte superior -->
+            <div class="px-4">
+                <button id="toggleSidebar"
+                    class="flex items-center justify-center w-10 h-10 rounded-lg hover:bg-white/10 transition-colors">
+                    <i class="fas fa-bars text-white text-lg"></i>
+                </button>
+            </div>
+
+            <!-- Elementos de navegación distribuidos uniformemente -->
+            <div class="sidebar-top">
+                <div class="px-4">
+                    <!-- Inicio -->
+                    <a href="inicio.html"
+                        class="flex items-center px-3 py-2 text-white/80 hover:bg-white/10 rounded-lg cursor-pointer transition-colors">
+                        <i class="fas fa-home text-white w-5"></i>
+                        <span class="sidebar-text ml-3">Inicio</span>
+                    </a>
                 </div>
-                
-                <!-- Sugerencias -->
-                <a href="sugerencias.html" class="flex items-center px-3 py-2 text-white/80 hover:bg-white/10 rounded-lg cursor-pointer transition-colors">
-                    <i class="fas fa-lightbulb text-white w-5"></i>
-                    <span class="sidebar-text ml-3">Sugerencias</span>
-                </a>
-                
-                <!-- Alertas -->
-                <a href="alertas.html" class="flex items-center px-3 py-2 text-white/80 hover:bg-white/10 rounded-lg cursor-pointer transition-colors">
-                    <i class="fas fa-bell text-white w-5"></i>
-                    <span class="sidebar-text ml-3">Alertas</span>
-                </a>
-                
-                <!-- Buscar -->
-                <a href="buscar.html" class="flex items-center px-3 py-2 text-white/80 hover:bg-white/10 rounded-lg cursor-pointer transition-colors">
-                    <i class="fas fa-search text-white w-5"></i>
-                    <span class="sidebar-text ml-3">Buscar</span>
-                </a>
-                
-                <!-- Salir -->
-                <a href="salir.html" class="flex items-center px-3 py-2 text-white/80 hover:bg-white/10 rounded-lg cursor-pointer transition-colors">
-                    <i class="fas fa-sign-out-alt text-white w-5"></i>
-                    <span class="sidebar-text ml-3">Salir</span>
-                </a>
+
+                <div class="px-4">
+                    <!-- Ventas -->
+                    <a href="ventas.html"
+                        class="flex items-center px-3 py-2 text-white/80 hover:bg-white/10 rounded-lg cursor-pointer transition-colors">
+                        <i class="fas fa-shopping-cart text-white w-5"></i>
+                        <span class="sidebar-text ml-3">Ventas</span>
+                    </a>
+                </div>
+
+                <div class="px-4">
+                    <!-- Inventario -->
+                    <a href="inventario.html"
+                        class="flex items-center px-3 py-2 text-white/80 hover:bg-white/10 rounded-lg cursor-pointer transition-colors">
+                        <i class="fas fa-boxes text-white w-5"></i>
+                        <span class="sidebar-text ml-3">Inventario</span>
+                    </a>
+                </div>
+
+                <div class="px-4">
+                    <!-- Análisis -->
+                    <a href="analisis.html" class="flex items-center px-3 py-2 bg-white/20 rounded-lg">
+                        <i class="fas fa-chart-line text-white w-5"></i>
+                        <span class="sidebar-text ml-3 text-white font-medium">Análisis</span>
+                    </a>
+                </div>
+
+                <div class="px-4">
+                    <!-- Sugerencias -->
+                    <a href="sugerencias.html"
+                        class="flex items-center px-3 py-2 text-white/80 hover:bg-white/10 rounded-lg cursor-pointer transition-colors">
+                        <i class="fas fa-lightbulb text-white w-5"></i>
+                        <span class="sidebar-text ml-3">Sugerencias</span>
+                    </a>
+                </div>
+
+                <div class="px-4">
+                    <!-- Alertas - Active -->
+                    <a href="alertas.html"
+                        class="flex items-center px-3 py-2 text-white/80 hover:bg-white/10 rounded-lg cursor-pointer transition-colors">
+                        <i class="fas fa-bell text-white w-5"></i>
+                        <span class="sidebar-text ml-3 text-white font-medium">Alertas</span>
+                    </a>
+                </div>
+
+                <div class="px-4">
+                    <!-- Buscar -->
+                    <a href="buscar.html"
+                        class="flex items-center px-3 py-2 text-white/80 hover:bg-white/10 rounded-lg cursor-pointer transition-colors">
+                        <i class="fas fa-search text-white w-5"></i>
+                        <span class="sidebar-text ml-3">Buscar</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Parte inferior con Salir -->
+            <div class="sidebar-bottom">
+                <div class="px-4">
+                    <!-- Salir -->
+                    <a href="../../index.html"
+                        class="flex items-center px-3 py-2 text-white/80 hover:bg-white/10 rounded-lg cursor-pointer transition-colors">
+                        <i class="fas fa-sign-out-alt text-white w-5"></i>
+                        <span class="sidebar-text ml-3">Salir</span>
+                    </a>
+                </div>
             </div>
         </nav>
     </div>
 
-    <!-- Main Content -->
-    <div id="mainContent" class="main-collapsed transition-all">
-        <!-- Header -->
-        <header class="bg-white shadow-sm border-b border-gray-200 h-16">
+    <div id="mainContent" class="main-expanded sidebar-transition">
+        <header class="bg-white h-16">
             <div class="flex items-center justify-between h-full px-6">
-                <!-- Toggle Button -->
-                <button id="toggleSidebar" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-                    <i class="fas fa-bars text-gray-600 dark:text-gray-300"></i>
-                </button>
-                
-                <!-- Search Bar -->
-                <div class="flex-1 max-w-md mx-6">
-                    <div class="relative">
-                        <input type="text" placeholder="Search" class="w-full bg-gray-100 border-0 rounded-full px-4 py-2 pl-10 text-base focus:outline-none focus:ring-2 focus:ring-primary">
-                        <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-                        <button class="absolute right-3 top-1/2 transform -translate-y-1/2 w-6 h-6 bg-gray-300 rounded-full flex items-center justify-center">
-                            <i class="fas fa-times text-xs text-gray-600"></i>
+                <div class="w-64"></div>
+
+                <!-- Search Bar (Centered) -->
+                <div class="flex-1 flex justify-center">
+                    <div class="relative w-full max-w-md mx-4">
+                        <input type="text" placeholder="Search"
+                            class="w-full bg-gray-100 border-0 rounded-full px-4 py-2 pl-10 text-sm focus:outline-none focus:ring-2 focus:ring-[#8B7EC7]">
+                        <button class="absolute left-3 top-1/2 transform -translate-y-1/2">
+                            <i class="fas fa-search text-gray-400"></i>
+                        </button>
+                        <button
+                            class="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 bg-gray-200 rounded-full flex items-center justify-center">
+                            <i class="fas fa-times text-xs text-gray-500"></i>
                         </button>
                     </div>
                 </div>
-                
+
                 <!-- Header Actions -->
-                <div class="flex items-center space-x-4">
-                    <button class="p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">
-                        <i class="fas fa-envelope text-lg"></i>
+                <div class="w-64 flex items-center justify-end space-x-2">
+                    <!-- Messages -->
+                    <button class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                        <i class="far fa-envelope text-gray-600 text-xl"></i>
                     </button>
-                    <button class="p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">
-                        <i class="fas fa-bell text-lg"></i>
+
+                    <!-- Notifications -->
+                    <button class="p-2 hover:bg-gray-100 rounded-lg transition-colors relative">
+                        <i class="far fa-bell text-gray-600 text-xl"></i>
+                        <span
+                            class="absolute top-1 right-1 w-4 h-4 bg-red-500 rounded-full text-xs text-white flex items-center justify-center">3</span>
                     </button>
-                    <div class="w-px h-6 bg-gray-300"></div>
-                    <button class="p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">
-                        <i class="fas fa-user text-lg"></i>
-                    </button>
+
+                    <!-- Separator -->
+                    <div class="w-px h-6 bg-gray-300 mx-2"></div>
+
+                    <!-- User Menu -->
+                    <div class="relative">
+                        <button id="userMenuBtn"
+                            class="flex items-center space-x-2 px-2 py-1 hover:bg-gray-100 rounded-lg transition-colors">
+                            <span class="text-sm font-medium text-gray-700">jh6466011</span>
+                            <i class="fas fa-chevron-down text-xs text-gray-500"></i>
+                        </button>
+
+                        <!-- Dropdown Menu -->
+                        <div id="userDropdown"
+                            class="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg z-50 border border-gray-100">
+                            <div class="py-1">
+                                <a href="#" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                                    <i class="far fa-user-circle w-5"></i>
+                                    <span>Ver perfil</span>
+                                </a>
+                                <a href="#" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                                    <i class="fas fa-users-cog w-5"></i>
+                                    <span>Gestionar usuarios</span>
+                                </a>
+                                <hr class="my-1 border-gray-100">
+                                <a href="../../index.html"
+                                    class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                                    <i class="fas fa-sign-out-alt w-5"></i>
+                                    <span>Cerrar sesión</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </header>
@@ -111,7 +186,9 @@
                             <div class="w-20 h-20 bg-gray-300 rounded-full"></div>
                         </div>
                         <div class="flex items-center justify-center space-x-4 mb-6">
-                            <div class="w-8 h-8 bg-gray-300" style="clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)"></div>
+                            <div class="w-8 h-8 bg-gray-300"
+                                style="clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)">
+                            </div>
                             <div class="w-12 h-12 bg-gray-300 rounded"></div>
                         </div>
                         <div class="space-y-3">
@@ -119,14 +196,16 @@
                             <div class="h-3 bg-gray-300 rounded w-1/2 mx-auto"></div>
                         </div>
                     </div>
-                    
+
                     <!-- Large Card 2 -->
                     <div class="bg-white rounded-lg p-8 shadow-sm border border-gray-200">
                         <div class="flex items-center justify-center h-32 mb-6">
                             <div class="w-20 h-20 bg-gray-300 rounded-full"></div>
                         </div>
                         <div class="flex items-center justify-center space-x-4 mb-6">
-                            <div class="w-8 h-8 bg-gray-300" style="clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)"></div>
+                            <div class="w-8 h-8 bg-gray-300"
+                                style="clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)">
+                            </div>
                             <div class="w-12 h-12 bg-gray-300 rounded"></div>
                         </div>
                         <div class="space-y-3">
@@ -144,7 +223,9 @@
                             <div class="w-16 h-16 bg-gray-300 rounded-full"></div>
                         </div>
                         <div class="flex items-center justify-center space-x-3 mb-4">
-                            <div class="w-6 h-6 bg-gray-300" style="clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)"></div>
+                            <div class="w-6 h-6 bg-gray-300"
+                                style="clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)">
+                            </div>
                             <div class="w-8 h-8 bg-gray-300 rounded"></div>
                         </div>
                         <div class="space-y-2">
@@ -152,14 +233,16 @@
                             <div class="h-2 bg-gray-300 rounded w-1/2 mx-auto"></div>
                         </div>
                     </div>
-                    
+
                     <!-- Small Card 2 -->
                     <div class="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
                         <div class="flex items-center justify-center h-20 mb-4">
                             <div class="w-16 h-16 bg-gray-300 rounded-full"></div>
                         </div>
                         <div class="flex items-center justify-center space-x-3 mb-4">
-                            <div class="w-6 h-6 bg-gray-300" style="clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)"></div>
+                            <div class="w-6 h-6 bg-gray-300"
+                                style="clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)">
+                            </div>
                             <div class="w-8 h-8 bg-gray-300 rounded"></div>
                         </div>
                         <div class="space-y-2">
@@ -167,14 +250,16 @@
                             <div class="h-2 bg-gray-300 rounded w-1/2 mx-auto"></div>
                         </div>
                     </div>
-                    
+
                     <!-- Small Card 3 -->
                     <div class="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
                         <div class="flex items-center justify-center h-20 mb-4">
                             <div class="w-16 h-16 bg-gray-300 rounded-full"></div>
                         </div>
                         <div class="flex items-center justify-center space-x-3 mb-4">
-                            <div class="w-6 h-6 bg-gray-300" style="clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)"></div>
+                            <div class="w-6 h-6 bg-gray-300"
+                                style="clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)">
+                            </div>
                             <div class="w-8 h-8 bg-gray-300 rounded"></div>
                         </div>
                         <div class="space-y-2">
@@ -193,7 +278,8 @@
                         <div class="flex-1">
                             <h3 class="font-medium text-gray-900 dark:text-white">List item</h3>
                             <p class="text-sm text-gray-500 dark:text-gray-400">Category • $$ • 1.2 miles away</p>
-                            <p class="text-sm text-gray-600 dark:text-gray-300 mt-1">Supporting line text lorem ipsum dolor sit amet, consectetur.</p>
+                            <p class="text-sm text-gray-600 dark:text-gray-300 mt-1">Supporting line text lorem ipsum
+                                dolor sit amet, consectetur.</p>
                         </div>
                         <div class="flex items-center space-x-2 ml-4">
                             <div class="flex text-yellow-400">
@@ -213,52 +299,152 @@
         </main>
     </div>
 
+    <script type="module" src="../../js/services/authService.js"></script>
+    <script type="module" src="../../js/utils/uiUtils.js"></script>
+    <script type="module" src="../../js/modules/dashboardHandler.js"></script>
     <script>
-        // Dark mode support
-        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-            document.documentElement.classList.add('dark');
-        }
-        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
-            if (event.matches) {
-                document.documentElement.classList.add('dark');
-            } else {
-                document.documentElement.classList.remove('dark');
-            }
-        });
+        // Función principal para inicializar el dropdown
+        function initializeUserDropdown() {
+            const userMenuBtn = document.querySelector('#userMenuBtn');
+            const userDropdown = document.querySelector('#userDropdown');
 
-        // Sidebar toggle functionality
-        const toggleBtn = document.getElementById('toggleSidebar');
-        const sidebar = document.getElementById('sidebar');
-        const mainContent = document.getElementById('mainContent');
-        const sidebarTexts = document.querySelectorAll('.sidebar-text');
-        
-        // Check localStorage for saved state
-        let isCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
-        
-        // Apply initial state
-        function updateSidebarState() {
-            if (isCollapsed) {
-                sidebar.classList.remove('sidebar-expanded');
-                sidebar.classList.add('sidebar-collapsed');
-                mainContent.classList.remove('main-expanded');
-                mainContent.classList.add('main-collapsed');
-            } else {
-                sidebar.classList.remove('sidebar-collapsed');
-                sidebar.classList.add('sidebar-expanded');
-                mainContent.classList.remove('main-collapsed');
-                mainContent.classList.add('main-expanded');
-            }
-        }
-        
-        // Apply initial state on page load
-        updateSidebarState();
+            if (!userMenuBtn || !userDropdown) return;
 
-        // Toggle button click handler
-        toggleBtn.addEventListener('click', () => {
-            isCollapsed = !isCollapsed;
-            localStorage.setItem('sidebarCollapsed', isCollapsed);
-            updateSidebarState();
+            // Alternar dropdown al hacer clic en el botón
+            userMenuBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                userDropdown.classList.toggle('hidden');
+            });
+
+            // Cerrar dropdown al hacer clic fuera
+            document.addEventListener('click', (e) => {
+                if (!userDropdown.contains(e.target) && !userMenuBtn.contains(e.target)) {
+                    userDropdown.classList.add('hidden');
+                }
+            });
+
+            // Manejar clics en los elementos del menú
+            userDropdown.querySelectorAll('a').forEach(item => {
+                item.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const action = e.currentTarget.querySelector('span').textContent;
+
+                    switch (action) {
+                        case 'Ver perfil':
+                            console.log('Ver perfil clicked');
+                            break;
+                        case 'Gestionar usuarios':
+                            console.log('Gestionar usuarios clicked');
+                            break;
+                        case 'Cerrar sesión':
+                            window.location.href = '/index.html';
+                            break;
+                    }
+
+                    userDropdown.classList.add('hidden');
+                });
+            });
+        }
+
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeUserDropdown();
+
+            // DOM Elements
+            const toggleBtn = document.getElementById('toggleSidebar');
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.getElementById('mainContent');
+            const sidebarTexts = document.querySelectorAll('.sidebar-text');
+            const userMenuBtn = document.getElementById('userMenuBtn');
+            const userDropdown = document.getElementById('userDropdown');
+            const closeAlertBtn = document.querySelector('.fa-times');
+
+            // Initialize states
+            let isCollapsed = false;
+
+            // Sidebar Toggle
+            if (toggleBtn) {
+                toggleBtn.addEventListener('click', () => {
+                    isCollapsed = !isCollapsed;
+                    if (isCollapsed) {
+                        sidebar.classList.remove('sidebar-expanded');
+                        sidebar.classList.add('sidebar-collapsed');
+                        mainContent.classList.remove('main-expanded');
+                        mainContent.classList.add('main-collapsed');
+                        // Ocultar textos del sidebar
+                        document.querySelectorAll('.sidebar-text').forEach(text => {
+                            text.classList.add('hidden');
+                        });
+                    } else {
+                        sidebar.classList.remove('sidebar-collapsed');
+                        sidebar.classList.add('sidebar-expanded');
+                        mainContent.classList.remove('main-collapsed');
+                        mainContent.classList.add('main-expanded');
+                        // Mostrar textos del sidebar
+                        document.querySelectorAll('.sidebar-text').forEach(text => {
+                            text.classList.remove('hidden');
+                        });
+                    }
+                });
+            }
+
+            // Navigation hover effects
+            const navItems = document.querySelectorAll('nav > div > a');
+            navItems.forEach(item => {
+                if (!item.classList.contains('bg-white/20')) {
+                    item.addEventListener('mouseenter', () => {
+                        item.classList.add('bg-white/10');
+                    });
+                    item.addEventListener('mouseleave', () => {
+                        item.classList.remove('bg-white/10');
+                    });
+                }
+            });
+
+            // User Dropdown functionality
+            if (userMenuBtn && userDropdown) {
+                // Toggle dropdown on button click
+                userMenuBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    userDropdown.classList.toggle('hidden');
+                });
+
+                // Close dropdown when clicking outside
+                document.addEventListener('click', (e) => {
+                    if (!userMenuBtn.contains(e.target)) {
+                        userDropdown.classList.add('hidden');
+                    }
+                });
+
+                // Prevent dropdown from closing when clicking inside
+                userDropdown.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                });
+
+                // Handle dropdown menu items
+                userDropdown.querySelectorAll('a').forEach(item => {
+                    item.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        const action = e.currentTarget.querySelector('span').textContent;
+
+                        switch (action) {
+                            case 'Ver perfil':
+                                console.log('Ver perfil clicked');
+                                break;
+                            case 'Gestionar usuarios':
+                                console.log('Gestionar usuarios clicked');
+                                break;
+                            case 'Cerrar sesión':
+                                window.location.href = '/index.html';
+                                break;
+                        }
+
+                        userDropdown.classList.add('hidden');
+                    });
+                });
+            }
         });
     </script>
 </body>
+
 </html>
