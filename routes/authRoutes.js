@@ -4,7 +4,7 @@
  */
 
 import express from 'express';
-import { login, logout, verifyAuth, register, wakeUp } from '../controllers/authController.js';
+import { login, logout, verifyAuth, register } from '../controllers/authController.js';
 import { logAuthRequests, authenticateToken } from '../middlewares/authMiddleware.js';
 
 const router = express.Router();
@@ -39,12 +39,6 @@ router.get('/verify', authenticateToken, verifyAuth);
  * Body: { email, password, firstName, lastName }
  */
 router.post('/register', register);
-
-/**
- * GET /auth/wakeup
- * Ruta para despertar la API externa
- */
-router.get('/wakeup', wakeUp);
 
 /**
  * GET /auth/status
