@@ -36,7 +36,7 @@ class DashboardHandler {
             console.log('❌ Usuario no autenticado, redirigiendo al login...');
             UIUtils.showAlert('Sesión expirada. Redirigiendo al login...', 'warning');
             setTimeout(() => {
-                window.location.href = '../../index.html';
+                window.location.href = '/index.html';
             }, 2000);
             return false;
         }
@@ -96,7 +96,7 @@ class DashboardHandler {
      */
     setupLogoutButtons() {
         // Botón de logout en el sidebar
-        const sidebarLogoutBtn = document.querySelector('a[href="../../index.html"]');
+        const sidebarLogoutBtn = document.querySelector('a[href="/index.html"]');
         if (sidebarLogoutBtn) {
             sidebarLogoutBtn.addEventListener('click', (e) => {
                 e.preventDefault();
@@ -142,7 +142,7 @@ class DashboardHandler {
             
             // Forzar logout local aunque falle el servidor
             window.authService.clearSession();
-            window.location.href = '../../index.html';
+            window.location.href = '/index.html';
         }
     }
 
