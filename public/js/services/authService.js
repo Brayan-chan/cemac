@@ -1,105 +1,78 @@
 /**
- * Servicio de autenticación del frontend
- * Maneja todas las comunicaciones con la API de autenticación
+ * Servicio de autenticación básico (Sin API)
+ * Maneja autenticación local para demostración
  */
 
 class AuthService {
     constructor() {
-        // Ahora usa el servidor local que hace de proxy a la API externa
-        this.baseURL = window.location.origin;
+        console.log('🔧 AuthService: Modo básico - Sin API');
+        this.isDemo = true;
     }
 
     /**
-     * Despierta la API externa para mejorar los tiempos de respuesta
-     * @returns {Object} Resultado del wake up
-     */
-    async wakeUpAPI() {
-        try {
-            console.log('⏰ Despertando API externa...');
-            const response = await fetch(`${this.baseURL}/auth/wakeup`, {
-                method: 'GET',
-                headers: {
-                    'Accept': 'application/json',
-                }
-            });
-
-            const data = await response.json();
-            console.log('⏰ Wake up result:', data);
-            return data;
-        } catch (error) {
-            console.error('❌ Error en wake up:', error);
-            return { success: false, error: 'Error despertando API' };
-        }
-    }
-
-    /**
-     * Realiza el login del usuario
+     * Simula login local para demostración
      * @param {string} email - Email del usuario
      * @param {string} password - Contraseña del usuario
      * @returns {Object} Resultado del login
      */
     async login(email, password) {
         try {
-            console.log('🔐 AuthService: Iniciando login');
+            console.log('🔐 AuthService: Login local simulado');
             console.log('  - Email:', email);
-            console.log('  - API URL:', `${this.baseURL}/auth/login`);
             
-            const response = await fetch(`${this.baseURL}/auth/login`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                },
-                body: JSON.stringify({ email, password })
-            });
+            // Simulación de credenciales demo
+            const demoCredentials = {
+                'admin@cemac.com': 'admin123',
+                'demo@cemac.com': 'demo123',
+                'test@cemac.com': 'test123'
+            };
 
-            console.log('📥 Response status:', response.status);
-            const data = await response.json();
-            console.log('📥 Response data:', data);
+            // Simular delay de red
+            await new Promise(resolve => setTimeout(resolve, 1000));
 
-            if (data.success && data.token) {
-                // Guardar token y datos del usuario
-                this.setToken(data.token);
-                if (data.user) {
-                    this.setUser(data.user);
-                }
-                return { success: true, ...data };
+            if (demoCredentials[email] && demoCredentials[email] === password) {
+                // Usuario demo válido
+                const userData = {
+                    email: email,
+                    name: email.split('@')[0].toUpperCase(),
+                    role: email.includes('admin') ? 'admin' : 'user'
+                };
+
+                // Guardar sesión local
+                this.setUser(userData);
+                this.setToken('demo-token-' + Date.now());
+
+                return {
+                    success: true,
+                    message: 'Login exitoso (modo demo)',
+                    user: userData,
+                    token: this.getToken()
+                };
             } else {
-                return { 
-                    success: false, 
-                    error: data.error || 'Error de autenticación' 
+                return {
+                    success: false,
+                    error: 'Credenciales inválidas. Usa: admin@cemac.com / admin123'
                 };
             }
         } catch (error) {
-            console.error('❌ Error en AuthService.login:', error);
-            return { 
-                success: false, 
-                error: 'Error de conexión' 
+            console.error('❌ Error en login:', error);
+            return {
+                success: false,
+                error: 'Error en el login'
             };
         }
     }
 
     /**
-     * Realiza el logout del usuario
+     * Logout local
      */
     async logout() {
         try {
-            const token = this.getToken();
-            if (token) {
-                await fetch(`${this.baseURL}/auth/logout`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
-            }
-        } catch (error) {
-            console.error('Error en logout:', error);
-        } finally {
-            // Limpiar datos locales independientemente del resultado
+            console.log('🚪 AuthService: Logout');
             this.clearSession();
             window.location.href = '/';
+        } catch (error) {
+            console.error('Error en logout:', error);
         }
     }
 
@@ -153,28 +126,24 @@ class AuthService {
     }
 
     /**
-     * Verifica el estado de autenticación con el servidor
+     * Verifica autenticación local
      * @returns {Object} Resultado de la verificación
      */
     async verifyAuth() {
-        try {
-            const token = this.getToken();
-            if (!token) {
-                return { success: false, error: 'No hay token' };
-            }
+        const token = this.getToken();
+        const user = this.getUser();
 
-            const response = await fetch(`${this.baseURL}/auth/verify`, {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-
-            const data = await response.json();
-            return data;
-        } catch (error) {
-            console.error('Error verificando autenticación:', error);
-            return { success: false, error: 'Error de verificación' };
+        if (token && user) {
+            return {
+                success: true,
+                user: user,
+                message: 'Sesión válida (modo demo)'
+            };
+        } else {
+            return {
+                success: false,
+                error: 'No hay sesión activa'
+            };
         }
     }
 }
