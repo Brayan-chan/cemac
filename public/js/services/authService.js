@@ -5,19 +5,8 @@
 
 class AuthService {
     constructor() {
-        // Detectar si estamos en producción (Vercel) o desarrollo local
-        const isProduction = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
-        
-        if (isProduction) {
-            // En producción, llamar directamente a la API externa
-            this.baseURL = 'https://cemac-api.onrender.com';
-        } else {
-            // En desarrollo, usar el servidor local (proxy)
-            this.baseURL = window.location.origin;
-        }
-        
-        console.log(`🌍 Modo: ${isProduction ? 'Producción' : 'Desarrollo'}`);
-        console.log(`🔗 API URL: ${this.baseURL}`);
+        // Usa el servidor local
+        this.baseURL = window.location.origin;
     }
 
     /**
@@ -32,27 +21,16 @@ class AuthService {
             console.log('  - Email:', email);
             console.log('  - API URL:', `${this.baseURL}/auth/login`);
             
-            const isProduction = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
-            
-            // Configurar timeout más largo para producción (API externa puede estar dormida)
-            const timeoutMs = isProduction ? 30000 : 10000; // 30s en producción, 10s en desarrollo
-            
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
-            
             const response = await fetch(`${this.baseURL}/auth/login`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json',
                 },
-                body: JSON.stringify({ email, password }),
-                signal: controller.signal
+                body: JSON.stringify({ email, password })
             });
 
-            clearTimeout(timeoutId);
             console.log('📥 Response status:', response.status);
-            
             const data = await response.json();
             console.log('📥 Response data:', data);
 
@@ -71,18 +49,9 @@ class AuthService {
             }
         } catch (error) {
             console.error('❌ Error en AuthService.login:', error);
-            
-            // Manejo específico para diferentes tipos de errores
-            if (error.name === 'AbortError') {
-                return { 
-                    success: false, 
-                    error: 'Timeout: El servidor tardó demasiado en responder. Inténtalo de nuevo.' 
-                };
-            }
-            
             return { 
                 success: false, 
-                error: 'Error de conexión con el servidor' 
+                error: 'Error de conexión' 
             };
         }
     }
@@ -94,17 +63,13 @@ class AuthService {
         try {
             const token = this.getToken();
             if (token) {
-                // Solo intentar logout en el servidor si estamos en desarrollo
-                const isProduction = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
-                if (!isProduction) {
-                    await fetch(`${this.baseURL}/auth/logout`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${token}`
-                        }
-                    });
-                }
+                await fetch(`${this.baseURL}/auth/logout`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
             }
         } catch (error) {
             console.error('Error en logout:', error);
@@ -173,13 +138,6 @@ class AuthService {
             const token = this.getToken();
             if (!token) {
                 return { success: false, error: 'No hay token' };
-            }
-
-            // Solo verificar en desarrollo donde tenemos el endpoint
-            const isProduction = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
-            if (isProduction) {
-                // En producción, solo verificamos que el token exista localmente
-                return { success: true, message: 'Token válido localmente' };
             }
 
             const response = await fetch(`${this.baseURL}/auth/verify`, {
