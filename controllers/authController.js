@@ -171,64 +171,9 @@ const register = async (req, res) => {
     }
 };
 
-/**
- * Controlador para "despertar" la API externa
- * @param {Object} req - Objeto de solicitud de Express
- * @param {Object} res - Objeto de respuesta de Express
- */
-const wakeUp = async (req, res) => {
-    try {
-        console.log('[AUTH CONTROLLER] Despertando API externa...');
-        
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 segundos para wake up
-
-        const startTime = Date.now();
-        const response = await fetch(`${API_BASE_URL}/auth/status`, {
-            method: 'GET',
-            signal: controller.signal
-        });
-
-        clearTimeout(timeoutId);
-        const endTime = Date.now();
-        const responseTime = endTime - startTime;
-
-        console.log(`[AUTH CONTROLLER] API externa respondió en ${responseTime}ms`);
-
-        if (response.ok) {
-            return res.status(200).json({
-                success: true,
-                message: 'API externa activa',
-                responseTime: `${responseTime}ms`,
-                apiStatus: 'active'
-            });
-        } else {
-            return res.status(502).json({
-                success: false,
-                error: 'API externa no disponible',
-                responseTime: `${responseTime}ms`
-            });
-        }
-    } catch (error) {
-        if (error.name === 'AbortError') {
-            return res.status(408).json({
-                success: false,
-                error: 'API externa no responde (timeout)',
-                suggestion: 'La API puede estar inactiva. Intenta de nuevo en unos minutos.'
-            });
-        }
-        console.error('[AUTH CONTROLLER] Error despertando API:', error);
-        return res.status(500).json({
-            success: false,
-            error: 'Error verificando API externa'
-        });
-    }
-};
-
 export { 
     login, 
     logout, 
     verifyAuth, 
-    register,
-    wakeUp 
+    register
 };
