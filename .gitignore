@@ -3,3 +3,4 @@ node_modules
 Backend-API-Backup
 .DS_Store
 .vscode
+.vercel
