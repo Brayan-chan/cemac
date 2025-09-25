@@ -104,31 +104,40 @@ class LoginHandler {
             return;
         }
 
-        // Detectar si estamos en producción
-        const isProduction = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
-        
-        // Mostrar loading con mensaje apropiado
-        const loadingMessage = isProduction ? 'Conectando con el servidor...' : 'Iniciando sesión...';
-        this.restoreButton = UIUtils.showButtonLoading(this.submitButton, loadingMessage);
-
-        // Mostrar mensaje informativo en producción
-        if (isProduction) {
-            UIUtils.showAlert('Conectando con el servidor, esto puede tomar unos momentos...', 'info', 3000);
-        }
+        // Mostrar loading
+        this.restoreButton = UIUtils.showButtonLoading(this.submitButton, 'Conectando...');
 
         try {
+            // Despertar la API externa primero
+            UIUtils.showAlert('Conectando con el servidor...', 'info', 2000);
+            const wakeUpResult = await window.authService.wakeUpAPI();
+            
+            if (!wakeUpResult.success) {
+                UIUtils.showAlert('El servidor está iniciando. Esto puede tomar unos momentos...', 'warning', 3000);
+            }
+
+            // Actualizar el texto del botón
+            if (this.restoreButton) this.restoreButton();
+            this.restoreButton = UIUtils.showButtonLoading(this.submitButton, 'Iniciando sesión...');
+
             // Realizar login
             const result = await window.authService.login(email, password);
             console.log('📋 Resultado del login:', result);
 
             if (result.success) {
                 console.log('🎉 Login exitoso!');
-                UIUtils.showAlert('¡Inicio de sesión exitoso!', 'success');
                 
-                // Redireccionar después de un breve delay
-                setTimeout(() => {
-                    this.redirectToDashboard();
-                }, 1500);
+                // Verificar el rol del usuario
+                if (result.user && result.user.role === 'admin') {
+                    UIUtils.showAlert('¡Bienvenido Administrador!', 'success');
+                    // Redireccionar después de un breve delay
+                    setTimeout(() => {
+                        this.redirectToDashboard();
+                    }, 1500);
+                } else {
+                    UIUtils.showAlert('No tienes permisos de administrador', 'error');
+                    return;
+                }
             } else {
                 console.log('❌ Login fallido:', result.error);
                 UIUtils.showAlert(result.error || 'Error al iniciar sesión', 'error');
@@ -194,7 +203,7 @@ class LoginHandler {
      */
     redirectToDashboard() {
         console.log('🏠 Redirigiendo al dashboard...');
-        window.location.href = '/views/dashboard/inicio.html';
+        window.location.href = './views/dashboard/inicio.html';
     }
 }
 
