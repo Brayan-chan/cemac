@@ -4,6 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CEMAC - Login</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kadwa:wght@400;700&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="icon" type="image/png" sizes="32x32" href="https://res.cloudinary.com/dmyejrbs7/image/upload/v1757894655/CEMAC-LOGO_nrow82.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="https://res.cloudinary.com/dmyejrbs7/image/upload/v1757894655/CEMAC-LOGO_nrow82.png" />
@@ -23,9 +29,10 @@
             
             <!-- Brand Text -->
             <div class="text-center">
-                <h1 class="text-xl md:text-2xl font-medium text-gray-800 leading-relaxed">
+                <h1 class="text-6xl" style="font-family: 'Kadwa', serif;">CEMAC</h1>
+                <h3 class="text-gray-800 leading-relaxed" style="font-family: 'Kadwa', serif;">
                     Invitaciones, Detalles y Papelería
-                </h1>
+                </h3>
             </div>
         </div>
         
@@ -33,40 +40,48 @@
         <div class="flex-1 flex items-center justify-center p-8">
             <div class="form-container w-full max-w-sm p-8 rounded-2xl shadow-xl">
                 <div class="space-y-6">
+                    <h1 class="text-2xl font-bold text-center" style="font-family: 'Kadwa', serif;">
+                        Iniciar sesión
+                    </h1>
+                    
                     <!-- Usuario Field -->
                     <div>
-                        <label for="usuario" class="block text-sm font-medium text-gray-700 mb-2">
+                        <label for="usuario" class="block text-sm font-medium text-gray-700 mb-2" style="font-family: 'Kadwa', serif;">
                             Usuario
                         </label>
                         <input type="text" 
                                id="usuario" 
                                name="usuario"
                                class="input-field w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-cemac-blue focus:border-transparent bg-white text-gray-900 placeholder-gray-400"
+                               style="font-family: 'Kadwa', serif;"
                                placeholder="Ingresa tu usuario">
                     </div>
                     
                     <!-- Contraseña Field -->
                     <div>
-                        <label for="contrasena" class="block text-sm font-medium text-gray-700 mb-2">
+                        <label for="contrasena" class="block text-sm font-medium text-gray-700 mb-2" style="font-family: 'Kadwa', serif;">
                             Contraseña
                         </label>
                         <input type="password" 
                                id="contrasena" 
                                name="contrasena"
                                class="input-field w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-cemac-blue focus:border-transparent bg-white text-gray-900 placeholder-gray-400"
+                               style="font-family: 'Kadwa', serif;"
                                placeholder="Ingresa tu contraseña">
                     </div>
                     
                     <!-- Login Button -->
                     <button type="submit" 
-                            class="login-button w-full bg-blue-500 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-white">
+                            class="login-button w-full bg-blue-500 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-white"
+                            style="font-family: 'Kadwa', serif;">
                         Ingresar
                     </button>
                     
                     <!-- Help Link -->
                     <div class="text-center">
                         <a href="#" 
-                           class="help-link text-sm text-gray-600 hover:text-cemac-blue font-medium">
+                           class="help-link text-sm text-gray-600 hover:text-cemac-blue font-medium"
+                           style="font-family: 'Kadwa', serif;">
                             ¿Necesitas ayuda?
                         </a>
                     </div>
