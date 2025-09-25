@@ -5,31 +5,8 @@
 
 class AuthService {
     constructor() {
-        // Ahora usa el servidor local que hace de proxy a la API externa
+        // Usa el servidor local
         this.baseURL = window.location.origin;
-    }
-
-    /**
-     * Despierta la API externa para mejorar los tiempos de respuesta
-     * @returns {Object} Resultado del wake up
-     */
-    async wakeUpAPI() {
-        try {
-            console.log('⏰ Despertando API externa...');
-            const response = await fetch(`${this.baseURL}/auth/wakeup`, {
-                method: 'GET',
-                headers: {
-                    'Accept': 'application/json',
-                }
-            });
-
-            const data = await response.json();
-            console.log('⏰ Wake up result:', data);
-            return data;
-        } catch (error) {
-            console.error('❌ Error en wake up:', error);
-            return { success: false, error: 'Error despertando API' };
-        }
     }
 
     /**
