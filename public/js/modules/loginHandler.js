@@ -59,14 +59,6 @@ class LoginHandler {
         try {
             console.log('🔐 Iniciando proceso de login con API...');
             
-            // Mostrar mensaje de wake up si estamos en producción
-            const hostname = window.location.hostname;
-            const isProduction = hostname !== 'localhost' && hostname !== '127.0.0.1';
-            
-            if (isProduction) {
-                this.showInfo('Despertando servidor... esto puede tomar unos momentos');
-            }
-            
             const result = await window.authService.login(email, password);
 
             if (result.success) {
