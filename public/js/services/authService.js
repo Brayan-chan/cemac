@@ -22,56 +22,18 @@ class AuthService {
             this.environment = 'development';
             console.log('🔧 Modo desarrollo: usando servidor proxy local');
         } else {
-            // Producción: usar API externa directamente
+            // Producción: usar API desplegada en Vercel
             this.baseURL = 'https://cemac-api.vercel.app';
             this.isDirectAPI = true;
             this.environment = 'production';
-            console.log('🌐 Modo producción: usando API externa directa');
+            console.log('🌐 Modo producción: usando API desplegada en Vercel');
         }
         
         console.log('📡 API Base URL:', this.baseURL);
         console.log('🌍 Environment:', this.environment);
     }
 
-    /**
-     * Despierta la API externa para mejorar los tiempos de respuesta
-     * @returns {Object} Resultado del wake up
-     */
-    async wakeUpAPI() {
-        try {
-            console.log('⏰ Despertando API externa...');
-            
-            // Usar el endpoint raíz para despertar la API
-            const wakeupURL = `${this.baseURL}/`;
-            console.log('📡 Wakeup URL:', wakeupURL);
-            
-            const requestOptions = {
-                method: 'GET',
-                headers: {
-                    'Accept': 'application/json',
-                },
-                mode: 'cors'
-            };
 
-            // Solo incluir credentials en desarrollo local
-            if (this.environment === 'development') {
-                requestOptions.credentials = 'include';
-            }
-
-            const response = await fetch(wakeupURL, requestOptions);
-
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-            }
-
-            const data = await response.json();
-            console.log('⏰ Wake up result:', data);
-            return { success: true, ...data };
-        } catch (error) {
-            console.error('❌ Error en wake up:', error);
-            return { success: false, error: 'Error despertando API' };
-        }
-    }
 
     /**
      * Realiza el login del usuario
@@ -85,16 +47,6 @@ class AuthService {
             console.log('  - Email:', email);
             console.log('  - Environment:', this.environment);
             console.log('  - API URL:', `${this.baseURL}/auth/login`);
-            
-            // Despertar la API primero si estamos en producción (sin bloquear si falla)
-            if (this.isDirectAPI) {
-                try {
-                    await this.wakeUpAPI();
-                    console.log('✅ API despertada exitosamente');
-                } catch (error) {
-                    console.warn('⚠️ Wake up falló, continuando con login:', error.message);
-                }
-            }
             
             const requestOptions = {
                 method: 'POST',
