@@ -3,7 +3,7 @@
  * Maneja todas las operaciones relacionadas con login, logout, registro, etc.
  */
 
-const API_BASE_URL = 'https://cemac-api.onrender.com';
+const API_BASE_URL = 'https://cemac-api.vercel.app';
 
 /**
  * Controlador para el login de usuarios
