@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CEMAC - Gestión de Usuarios</title>
+    <link rel="stylesheet" href="/css/customsidebar.css">
+    <link rel="stylesheet" href="/css/inicio.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="icon" type="image/png" sizes="32x32" href="https://res.cloudinary.com/dmyejrbs7/image/upload/v1757894655/CEMAC-LOGO_nrow82.png" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="/js/tailwind.config.js"></script>
+</head>
+<body class="h-full bg-gray-50">
+    <div id="sidebar" class="fixed left-0 top-0 bg-[#8B7EC7] sidebar-expanded sidebar-transition z-40 sidebar-flex">        
+        <nav class="sidebar-nav">
+            <!-- Botón toggle en la parte superior -->
+            <div class="px-4">
+                <button id="toggleSidebar" class="flex items-center justify-center w-10 h-10 rounded-lg hover:bg-white/10 transition-colors">
+                    <i class="fas fa-bars text-white text-lg"></i>
+                </button>
+            </div>
+            
+            <!-- Elementos de navegación distribuidos uniformemente -->
+            <div class="sidebar-top">
+                <div class="px-4">
+                    <!-- Inicio -->
+                    <a href="/views/dashboard/inicio.html" class="flex items-center px-3 py-2 text-white/80 hover:bg-white/10 rounded-lg cursor-pointer transition-colors">
+                        <i class="fas fa-home text-white w-5"></i>
+                        <span class="sidebar-text ml-3">Inicio</span>
+                    </a>
+                </div>
+
+                <div class="px-4">
+                    <!-- Ventas -->
+                    <a href="/views/dashboard/ventas.html" class="flex items-center px-3 py-2 text-white/80 hover:bg-white/10 rounded-lg cursor-pointer transition-colors">
+                        <i class="fas fa-shopping-cart text-white w-5"></i>
+                        <span class="sidebar-text ml-3">Ventas</span>
+                    </a>
+                </div>
+
+                <div class="px-4">
+                    <!-- Inventario -->
+                    <a href="/views/dashboard/inventario.html" class="flex items-center px-3 py-2 text-white/80 hover:bg-white/10 rounded-lg cursor-pointer transition-colors">
+                        <i class="fas fa-boxes text-white w-5"></i>
+                        <span class="sidebar-text ml-3">Inventario</span>
+                    </a>
+                </div>
+                
+                <div class="px-4">
+                    <!-- Análisis -->
+                    <a href="/views/dashboard/analisis.html" class="flex items-center px-3 py-2 text-white/80 hover:bg-white/10 rounded-lg cursor-pointer transition-colors">
+                        <i class="fas fa-chart-line text-white w-5"></i>
+                        <span class="sidebar-text ml-3">Análisis</span>
+                    </a>
+                </div>
+                
+                <div class="px-4">
+                    <!-- Sugerencias -->
+                    <a href="/views/dashboard/sugerencias.html" class="flex items-center px-3 py-2 text-white/80 hover:bg-white/10 rounded-lg cursor-pointer transition-colors">
+                        <i class="fas fa-lightbulb text-white w-5"></i>
+                        <span class="sidebar-text ml-3">Sugerencias</span>
+                    </a>
+                </div>
+                
+                <div class="px-4">
+                    <!-- Alertas - Active -->
+                    <a href="/views/dashboard/alertas.html" class="flex items-center px-3 py-2 text-white/80 hover:bg-white/10 rounded-lg cursor-pointer transition-colors">
+                        <i class="fas fa-bell text-white w-5"></i>
+                        <span class="sidebar-text ml-3 text-white font-medium">Alertas</span>
+                    </a>
+                </div>
+                
+                <div class="px-4">
+                    <!-- Buscar -->
+                    <a href="/views/dashboard/buscar.html" class="flex items-center px-3 py-2 text-white/80 hover:bg-white/10 rounded-lg cursor-pointer transition-colors">
+                        <i class="fas fa-search text-white w-5"></i>
+                        <span class="sidebar-text ml-3">Buscar</span>
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Parte inferior con Salir -->
+            <div class="sidebar-bottom">
+                <div class="px-4">
+                    <!-- Salir -->
+                    <a href="/index.html" class="flex items-center px-3 py-2 text-white/80 hover:bg-white/10 rounded-lg cursor-pointer transition-colors">
+                        <i class="fas fa-sign-out-alt text-white w-5"></i>
+                        <span class="sidebar-text ml-3">Salir</span>
+                    </a>
+                </div>
+            </div>
+        </nav>
+    </div>
+
+    <div id="mainContent" class="main-expanded sidebar-transition">
+        <header class="bg-white h-16">
+            <div class="flex items-center justify-between h-full px-6">
+                <div class="w-64"></div>
+                
+                <!-- Search Bar (Centered) -->
+                <div class="flex-1 flex justify-center">
+                    <div class="relative w-full max-w-md mx-4">
+                        <input type="text" 
+                               placeholder="Search" 
+                               class="w-full bg-gray-100 border-0 rounded-full px-4 py-2 pl-10 text-sm focus:outline-none focus:ring-2 focus:ring-[#8B7EC7]">
+                        <button class="absolute left-3 top-1/2 transform -translate-y-1/2">
+                            <i class="fas fa-search text-gray-400"></i>
+                        </button>
+                        <button class="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 bg-gray-200 rounded-full flex items-center justify-center">
+                            <i class="fas fa-times text-xs text-gray-500"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Header Actions -->
+                <div class="w-64 flex items-center justify-end space-x-2">
+                    <!-- Messages -->
+                    <button class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                        <i class="far fa-envelope text-gray-600 text-xl"></i>
+                    </button>
+                    
+                    <!-- Notifications -->
+                    <button class="p-2 hover:bg-gray-100 rounded-lg transition-colors relative">
+                        <i class="far fa-bell text-gray-600 text-xl"></i>
+                        <span class="absolute top-1 right-1 w-4 h-4 bg-red-500 rounded-full text-xs text-white flex items-center justify-center">3</span>
+                    </button>
+
+                    <!-- Separator -->
+                    <div class="w-px h-6 bg-gray-300 mx-2"></div>
+                    
+                    <!-- User Menu -->
+                    <div class="relative">
+                        <button id="userMenuBtn" class="flex items-center space-x-2 px-2 py-1 hover:bg-gray-100 rounded-lg transition-colors">
+                            <span class="text-sm font-medium text-gray-700">jh6466011</span>
+                            <i class="fas fa-chevron-down text-xs text-gray-500"></i>
+                        </button>
+                        
+                        <!-- Dropdown Menu -->
+                        <div id="userDropdown" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg z-50 border border-gray-100">
+                            <div class="py-1">
+                                <a href="#" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                                    <i class="far fa-user-circle w-5"></i>
+                                    <span>Ver perfil</span>
+                                </a>
+                                <a href="../admin/users.html" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                                    <i class="fas fa-users-cog w-5"></i>
+                                    <span>Gestionar usuarios</span>
+                                </a>
+                                <hr class="my-1 border-gray-100">
+                                <a href="/index.html" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                                    <i class="fas fa-sign-out-alt w-5"></i>
+                                    <span>Cerrar sesión</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="p-6 bg-gray-50 min-h-screen">
+            <!-- Header Section -->
+            <div class="mb-6">
+                <h1 class="text-2xl font-bold text-gray-900 mb-6">Gestión de Usuarios</h1>
+                
+                <!-- Action Buttons -->
+                <div class="flex gap-3 mb-6">
+                    <button id="newUserBtn" class="flex items-center px-4 py-2 bg-[#8B7EC7] text-white rounded-lg hover:bg-[#7A6FB8] transition-colors">
+                        <i class="fas fa-plus mr-2"></i>
+                        Nuevo Usuario
+                    </button>
+                    <button id="filtersBtn" class="flex items-center px-4 py-2 bg-[#8B7EC7] text-white rounded-lg hover:bg-[#7A6FB8] transition-colors">
+                        <i class="fas fa-filter mr-2"></i>
+                        Filtros
+                    </button>
+                </div>
+            </div>
+
+            <!-- Users Table -->
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="bg-[#C8C3E6]">
+                            <tr>
+                                <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900">ID</th>
+                                <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900">Usuario</th>
+                                <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900">Nombre</th>
+                                <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900">Rol</th>
+                                <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900">Estado</th>
+                                <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200">
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4 text-sm text-gray-900">KHVFluygvÑ</td>
+                                <td class="px-6 py-4 text-sm text-gray-900">Administrador</td>
+                                <td class="px-6 py-4 text-sm text-gray-900">Brayan</td>
+                                <td class="px-6 py-4 text-sm text-gray-900">Administrador</td>
+                                <td class="px-6 py-4">
+                                    <span class="inline-flex px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
+                                        Activo
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="flex gap-2">
+                                        <button class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Editar">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Eliminar">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4 text-sm text-gray-900">KHVFluygvÑ</td>
+                                <td class="px-6 py-4 text-sm text-gray-900">Usuario 1</td>
+                                <td class="px-6 py-4 text-sm text-gray-900">Juan</td>
+                                <td class="px-6 py-4 text-sm text-gray-900">Empleado</td>
+                                <td class="px-6 py-4">
+                                    <span class="inline-flex px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
+                                        Activo
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="flex gap-2">
+                                        <button class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Editar">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Eliminar">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4 text-sm text-gray-900">KHVFluygvÑ</td>
+                                <td class="px-6 py-4 text-sm text-gray-900">Usuario 2</td>
+                                <td class="px-6 py-4 text-sm text-gray-900">Josue</td>
+                                <td class="px-6 py-4 text-sm text-gray-900">Empleado</td>
+                                <td class="px-6 py-4">
+                                    <span class="inline-flex px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
+                                        Activo
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="flex gap-2">
+                                        <button class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Editar">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Eliminar">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4 text-sm text-gray-900">KHVFluygvÑ</td>
+                                <td class="px-6 py-4 text-sm text-gray-900">Usuario 3</td>
+                                <td class="px-6 py-4 text-sm text-gray-900">Jose</td>
+                                <td class="px-6 py-4 text-sm text-gray-900">Empleado</td>
+                                <td class="px-6 py-4">
+                                    <span class="inline-flex px-2 py-1 text-xs font-medium rounded-full bg-red-100 text-red-800">
+                                        Inactivo
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="flex gap-2">
+                                        <button class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Editar">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Eliminar">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4 text-sm text-gray-900">KHVFluygvÑ</td>
+                                <td class="px-6 py-4 text-sm text-gray-900">Administrador 1</td>
+                                <td class="px-6 py-4 text-sm text-gray-900">Leonardo</td>
+                                <td class="px-6 py-4 text-sm text-gray-900">Administrador</td>
+                                <td class="px-6 py-4">
+                                    <span class="inline-flex px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
+                                        Activo
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="flex gap-2">
+                                        <button class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Editar">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Eliminar">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4 text-sm text-gray-900">KHVFluygvÑ</td>
+                                <td class="px-6 py-4 text-sm text-gray-900">Administrador 2</td>
+                                <td class="px-6 py-4 text-sm text-gray-900">Hector</td>
+                                <td class="px-6 py-4 text-sm text-gray-900">Administrador</td>
+                                <td class="px-6 py-4">
+                                    <span class="inline-flex px-2 py-1 text-xs font-medium rounded-full bg-red-100 text-red-800">
+                                        Inactivo
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="flex gap-2">
+                                        <button class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Editar">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Eliminar">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                <div class="bg-gray-50 px-6 py-4 border-t border-gray-200">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <button class="px-3 py-1 text-sm text-gray-500 hover:text-gray-700 disabled:opacity-50" disabled>
+                                <i class="fas fa-chevron-left mr-1"></i>
+                                Previous
+                            </button>
+                        </div>
+                        
+                        <div class="flex items-center gap-1">
+                            <button class="w-8 h-8 rounded text-sm bg-[#8B7EC7] text-white font-medium">1</button>
+                            <button class="w-8 h-8 rounded text-sm text-gray-500 hover:bg-gray-100">2</button>
+                            <button class="w-8 h-8 rounded text-sm text-gray-500 hover:bg-gray-100">3</button>
+                            <span class="text-gray-500 px-2">...</span>
+                            <button class="w-8 h-8 rounded text-sm text-gray-500 hover:bg-gray-100">67</button>
+                            <button class="w-8 h-8 rounded text-sm text-gray-500 hover:bg-gray-100">68</button>
+                        </div>
+                        
+                        <div class="flex items-center gap-2">
+                            <button class="px-3 py-1 text-sm text-gray-500 hover:text-gray-700">
+                                Next
+                                <i class="fas fa-chevron-right ml-1"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+        
+    </div>
+
+    <script type="module" src="/js/services/authService.js"></script>
+    <script type="module" src="/js/utils/uiUtils.js"></script>
+    <script type="module" src="/js/modules/dashboardHandler.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('🚀 Inicializando dashboard...');
+            
+            // DOM Elements
+            const toggleBtn = document.getElementById('toggleSidebar');
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.getElementById('mainContent');
+            const userMenuBtn = document.getElementById('userMenuBtn');
+            const userDropdown = document.getElementById('userDropdown');
+            const closeAlertBtn = document.getElementById('closeAlertBtn');
+
+            console.log('🔍 Elementos encontrados:', {
+                toggleBtn: !!toggleBtn,
+                sidebar: !!sidebar,
+                mainContent: !!mainContent,
+                userMenuBtn: !!userMenuBtn,
+                userDropdown: !!userDropdown,
+                closeAlertBtn: !!closeAlertBtn
+            });
+
+            // Initialize states
+            let isCollapsed = false;
+            
+            // Sidebar Toggle
+            if (toggleBtn) {
+                toggleBtn.addEventListener('click', () => {
+                    isCollapsed = !isCollapsed;
+                    if (isCollapsed) {
+                        sidebar.classList.remove('sidebar-expanded');
+                        sidebar.classList.add('sidebar-collapsed');
+                        mainContent.classList.remove('main-expanded');
+                        mainContent.classList.add('main-collapsed');
+                        // Ocultar textos del sidebar
+                        document.querySelectorAll('.sidebar-text').forEach(text => {
+                            text.classList.add('hidden');
+                        });
+                    } else {
+                        sidebar.classList.remove('sidebar-collapsed');
+                        sidebar.classList.add('sidebar-expanded');
+                        mainContent.classList.remove('main-collapsed');
+                        mainContent.classList.add('main-expanded');
+                        // Mostrar textos del sidebar
+                        document.querySelectorAll('.sidebar-text').forEach(text => {
+                            text.classList.remove('hidden');
+                        });
+                    }
+                });
+            }
+
+            // Navigation hover effects
+            const navItems = document.querySelectorAll('nav > div > a');
+            navItems.forEach(item => {
+                if (!item.classList.contains('bg-white/20')) {
+                    item.addEventListener('mouseenter', () => {
+                        item.classList.add('bg-white/10');
+                    });
+                    item.addEventListener('mouseleave', () => {
+                        item.classList.remove('bg-white/10');
+                    });
+                }
+            });
+
+            // User Dropdown functionality
+            if (userMenuBtn && userDropdown) {
+                console.log('✅ Inicializando dropdown del usuario');
+                
+                // Toggle dropdown on button click
+                userMenuBtn.addEventListener('click', (e) => {
+                    console.log('👤 Click en botón del usuario');
+                    e.stopPropagation();
+                    userDropdown.classList.toggle('hidden');
+                    console.log('👤 Dropdown estado:', userDropdown.classList.contains('hidden') ? 'cerrado' : 'abierto');
+                });
+                
+                // Close dropdown when clicking outside
+                document.addEventListener('click', (e) => {
+                    if (!userDropdown.contains(e.target) && !userMenuBtn.contains(e.target)) {
+                        userDropdown.classList.add('hidden');
+                        console.log('👤 Dropdown cerrado por click externo');
+                    }
+                });
+                
+                // Handle dropdown menu items
+                userDropdown.querySelectorAll('a').forEach(item => {
+                    item.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        const action = e.currentTarget.querySelector('span').textContent;
+                        console.log('👤 Acción seleccionada:', action);
+                        
+                        switch(action) {
+                            case 'Ver perfil':
+                                console.log('Ver perfil clicked');
+                                // TODO: Implementar página de perfil
+                                break;
+                            case 'Gestionar usuarios':
+                                console.log('Redirigiendo a gestionar usuarios...');
+                                window.location.href = '../admin/users.html';
+                                break;
+                            case 'Cerrar sesión':
+                                console.log('Cerrando sesión...');
+                                if (window.authService) {
+                                    window.authService.logout();
+                                } else {
+                                    window.location.href = '/index.html';
+                                }
+                                break;
+                        }
+                        
+                        userDropdown.classList.add('hidden');
+                    });
+                });
+            } else {
+                console.error('❌ No se encontraron elementos del dropdown del usuario');
+            }
+
+            // Close alert functionality
+            if (closeAlertBtn) {
+                console.log('✅ Inicializando botón de cerrar alerta');
+                closeAlertBtn.addEventListener('click', (e) => {
+                    console.log('🚨 Click en botón de cerrar alerta');
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const alertContainer = closeAlertBtn.closest('.bg-red-50');
+                    if (alertContainer) {
+                        alertContainer.style.display = 'none';
+                        console.log('✅ Alerta cerrada');
+                    } else {
+                        console.error('❌ No se encontró el contenedor de la alerta');
+                    }
+                });
+            } else {
+                console.error('❌ No se encontró el botón de cerrar alerta');
+            }
+
+            // User Management functionality
+            const newUserBtn = document.getElementById('newUserBtn');
+            const filtersBtn = document.getElementById('filtersBtn');
+
+            if (newUserBtn) {
+                newUserBtn.addEventListener('click', () => {
+                    console.log('👤 Crear nuevo usuario');
+                    // TODO: Implementar modal o página para crear usuario
+                    alert('Funcionalidad de "Nuevo Usuario" - Por implementar');
+                });
+            }
+
+            if (filtersBtn) {
+                filtersBtn.addEventListener('click', () => {
+                    console.log('🔍 Mostrar filtros');
+                    // TODO: Implementar panel de filtros
+                    alert('Funcionalidad de "Filtros" - Por implementar');
+                });
+            }
+
+            // Edit and Delete button functionality
+            document.querySelectorAll('table tbody tr').forEach(row => {
+                const editBtn = row.querySelector('.fa-edit').parentElement;
+                const deleteBtn = row.querySelector('.fa-trash').parentElement;
+                const userName = row.cells[2].textContent; // Nombre del usuario
+
+                editBtn.addEventListener('click', () => {
+                    console.log('✏️ Editar usuario:', userName);
+                    // TODO: Implementar modal de edición
+                    alert(`Editar usuario: ${userName} - Por implementar`);
+                });
+
+                deleteBtn.addEventListener('click', () => {
+                    console.log('🗑️ Eliminar usuario:', userName);
+                    if (confirm(`¿Estás seguro de que quieres eliminar al usuario "${userName}"?`)) {
+                        console.log('Usuario eliminado:', userName);
+                        // TODO: Implementar eliminación real
+                        row.remove();
+                    }
+                });
+            });
+
+            // Pagination functionality
+            document.querySelectorAll('[class*="w-8 h-8"]').forEach(pageBtn => {
+                if (pageBtn.textContent.trim() && !isNaN(pageBtn.textContent.trim())) {
+                    pageBtn.addEventListener('click', () => {
+                        const pageNumber = pageBtn.textContent.trim();
+                        console.log('📄 Cambiar a página:', pageNumber);
+                        
+                        // Remove active state from all buttons
+                        document.querySelectorAll('[class*="w-8 h-8"]').forEach(btn => {
+                            btn.className = 'w-8 h-8 rounded text-sm text-gray-500 hover:bg-gray-100';
+                        });
+                        
+                        // Add active state to clicked button
+                        pageBtn.className = 'w-8 h-8 rounded text-sm bg-[#8B7EC7] text-white font-medium';
+                        
+                        // TODO: Implementar carga real de página
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
