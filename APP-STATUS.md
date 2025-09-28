@@ -43,7 +43,6 @@ cemac/
 
 ### ❌ **Funcionalidades de API Removidas**
 - ~~Conexión a API externa~~
-- ~~Wake up de servidores~~
 - ~~Autenticación real con tokens~~
 - ~~Calls HTTP a backend~~
 - ~~Manejo de CORS~~
