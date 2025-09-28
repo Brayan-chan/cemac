@@ -70,7 +70,7 @@ const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
     console.log(`🚀 Servidor CEMAC corriendo en: http://localhost:${PORT}`);
-    console.log(`📡 API backend externa: https://cemac-api.onrender.com/`);
+    console.log(`📡 API backend externa: https://cemac-api.vercel.app/`);
     console.log(`🔗 Rutas disponibles:`);
     console.log(`   - GET  /                    - Página de login`);
     console.log(`   - POST /auth/login          - Autenticación de usuarios`);
