@@ -6,7 +6,6 @@ La aplicación CEMAC tenía problemas de **rutas relativas** que causaban errore
 
 ### **Errores que estaban ocurriendo:**
 ```
-[Error] Failed to load resource: the server responded with a status of 404 () (wakeup, line 0)
 [Error] Failed to load resource: the server responded with a status of 404 () (login, line 0)
 ```
 
