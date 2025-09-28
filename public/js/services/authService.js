@@ -23,7 +23,7 @@ class AuthService {
             console.log('🔧 Modo desarrollo: usando servidor proxy local');
         } else {
             // Producción: usar API externa directamente
-            this.baseURL = 'https://cemac-api.onrender.com';
+            this.baseURL = 'https://cemac-api.vercel.app';
             this.isDirectAPI = true;
             this.environment = 'production';
             console.log('🌐 Modo producción: usando API externa directa');
