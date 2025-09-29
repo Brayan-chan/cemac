@@ -159,10 +159,48 @@
         </header>
 
         <!-- Main Content -->
-        <div class="p-6">
-            <div class="bg-white rounded-lg shadow p-6">
-                <div class="w-64 mb-6">
+        <div class="p-6 flex gap-6">
+            <!-- Historial de Ventas Panel -->
+            <div class="w-72">
+                <div class="bg-gray-200 rounded-lg p-4 h-full">
+                    <div class="flex items-center gap-2 mb-4">
+                        <i class="fas fa-history"></i>
+                        <h2 class="font-medium text-gray-700">HISTORIAL DE VENTAS</h2>
+                    </div>
+                    <!-- Lista de productos en el historial -->
+                    <div class="space-y-3">
+                        <div class="bg-white p-3 rounded-lg">
+                            <div class="text-sm font-medium">Cuadernos de cuadros</div>
+                            <div class="text-xs text-gray-500">Lapiz</div>
+                            <div class="text-xs text-gray-500">borrador</div>
+                        </div>
+                        <div class="bg-white p-3 rounded-lg">
+                            <div class="text-sm font-medium">Cuadernos de cuadros</div>
+                            <div class="text-xs text-gray-500">Lapiz</div>
+                            <div class="text-xs text-gray-500">borrador</div>
+                        </div>
+                        <div class="bg-white p-3 rounded-lg">
+                            <div class="text-sm font-medium">Cuadernos de cuadros</div>
+                            <div class="text-xs text-gray-500">Lapiz</div>
+                            <div class="text-xs text-gray-500">borrador</div>
+                        </div>
+                        <div class="bg-white p-3 rounded-lg">
+                            <div class="text-sm font-medium">Cuadernos de cuadros</div>
+                            <div class="text-xs text-gray-500">Lapiz</div>
+                            <div class="text-xs text-gray-500">borrador</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Formulario de Venta -->
+            <div class="flex-1 bg-white rounded-lg shadow p-6">
+                <div class="flex justify-between items-center mb-6">
                     <h1 class="text-2xl font-bold">Ventas</h1>
+                    <button class="flex items-center gap-2 text-white bg-[#8B7EC7] px-4 py-2 rounded-lg hover:bg-[#7A6DB4] transition-colors">
+                        <i class="fas fa-download"></i>
+                        <span>Exportar</span>
+                    </button>
                 </div>
                 <!-- Cliente y Vendedor -->
                 <div class="grid grid-cols-2 gap-6 mb-6">
