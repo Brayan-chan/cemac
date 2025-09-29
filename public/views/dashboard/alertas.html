@@ -141,12 +141,13 @@
             </div>
         </header>
 
-        <main class="p-6 bg-gray-50 min-h-screen">
-            <div class="mb-6">
-                <h1 class="text-2xl font-bold text-gray-900 mb-6">Historial de alertas de stock bajo</h1>
-            </div>
+        <main class="flex flex-col h-[calc(100vh-4rem)] bg-gray-50">
+            <div class="flex-1 overflow-auto p-6">
+                <div class="mb-6">
+                    <h1 class="text-2xl font-bold text-gray-900 mb-6">Historial de alertas de stock bajo</h1>
+                </div>
 
-            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center space-x-2">
                         <div class="flex items-center border border-gray-300 rounded-lg px-3 py-2">
@@ -196,7 +197,10 @@
 
             </div>
 
-            <div id="paginationContainer" class="flex items-center justify-center space-x-2 mt-8">
+            </div>
+
+            <!-- Paginador fijo en la parte inferior -->
+            <div id="paginationContainer" class="flex items-center justify-center space-x-2 py-4 bg-white border-t border-gray-200">
                 <button id="prevPageBtn" class="flex items-center px-3 py-2 text-gray-500 hover:text-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
                     <i class="fas fa-chevron-left mr-2 text-sm"></i>
                     Previous
