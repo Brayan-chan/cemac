@@ -29,3 +29,176 @@
     width: 0;
     overflow: hidden;
 }
+
+/* Estilos para la tabla de productos */
+.product-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.product-table th,
+.product-table td {
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.product-table th {
+    background-color: #f9fafb;
+    font-weight: 600;
+    color: #374151;
+}
+
+/* Estilos para las tarjetas de productos */
+.product-card {
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.product-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+/* Estilos para los filtros */
+.filter-container {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    align-items: center;
+    padding: 1rem;
+    background-color: white;
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.filter-select {
+    padding: 0.5rem;
+    border-radius: 0.375rem;
+    border: 1px solid #e5e7eb;
+    background-color: white;
+    min-width: 150px;
+}
+
+/* Estilos para la paginación */
+.pagination-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1rem;
+    background-color: white;
+    border-top: 1px solid #e5e7eb;
+}
+
+.pagination-button {
+    padding: 0.5rem 1rem;
+    border-radius: 0.375rem;
+    border: 1px solid #e5e7eb;
+    background-color: white;
+    color: #374151;
+    font-weight: 500;
+    transition: all 0.2s ease-in-out;
+}
+
+.pagination-button:hover:not(:disabled) {
+    background-color: #f9fafb;
+    border-color: #d1d5db;
+}
+
+.pagination-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Estilos para el modal */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 50;
+}
+
+.modal-content {
+    background-color: white;
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    max-width: 32rem;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+/* Estilos para el formulario */
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: #374151;
+}
+
+.form-input {
+    width: 100%;
+    padding: 0.5rem;
+    border-radius: 0.375rem;
+    border: 1px solid #e5e7eb;
+    transition: border-color 0.2s ease-in-out;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: #8B7EC7;
+    box-shadow: 0 0 0 2px rgba(139, 126, 199, 0.2);
+}
+
+/* Estilos para mensajes de error y éxito */
+.alert {
+    padding: 1rem;
+    border-radius: 0.375rem;
+    margin-bottom: 1rem;
+}
+
+.alert-success {
+    background-color: #def7ec;
+    color: #03543f;
+}
+
+.alert-error {
+    background-color: #fde8e8;
+    color: #9b1c1c;
+}
+
+/* Estilos para el estado de carga */
+.loading-overlay {
+    position: absolute;
+    inset: 0;
+    background-color: rgba(255, 255, 255, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.loading-spinner {
+    width: 2rem;
+    height: 2rem;
+    border: 3px solid #e5e7eb;
+    border-top-color: #8B7EC7;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
