@@ -1,11 +1,364 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es" class="h-full">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - Ventas</title>
+    <title>CEMAC - Ventas</title>
+    <link rel="stylesheet" href="/css/customsidebar.css">
+    <link rel="stylesheet" href="/css/inicio.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="icon" type="image/png" sizes="32x32" href="https://res.cloudinary.com/dmyejrbs7/image/upload/v1757894655/CEMAC-LOGO_nrow82.png" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="/js/tailwind.config.js"></script>
 </head>
-<body>
-    
+<body class="h-full bg-gray-50">
+    <div id="sidebar" class="fixed left-0 top-0 bg-[#8B7EC7] sidebar-expanded sidebar-transition z-40 sidebar-flex">        
+        <nav class="sidebar-nav">
+            <!-- Botón toggle en la parte superior -->
+            <div class="px-4">
+                <button id="toggleSidebar" class="flex items-center justify-center w-10 h-10 rounded-lg hover:bg-white/10 transition-colors">
+                    <i class="fas fa-bars text-white text-lg"></i>
+                </button>
+            </div>
+            
+            <!-- Elementos de navegación distribuidos uniformemente -->
+            <div class="sidebar-top">
+                <div class="px-4">
+                    <!-- Inicio -->
+                    <a href="/views/dashboard/inicio.html" class="flex items-center px-3 py-2 text-white/80 hover:bg-white/10 rounded-lg cursor-pointer transition-colors">
+                        <i class="fas fa-home text-white w-5"></i>
+                        <span class="sidebar-text ml-3">Inicio</span>
+                    </a>
+                </div>
+
+                <div class="px-4">
+                    <!-- Ventas -->
+                    <a href="/views/dashboard/ventas.html" class="flex items-center px-3 py-2 bg-white/20 rounded-lg">
+                        <i class="fas fa-shopping-cart text-white w-5"></i>
+                        <span class="sidebar-text ml-3 text-white font-medium">Ventas</span>
+                    </a>
+                </div>
+
+                <div class="px-4">
+                    <!-- Inventario -->
+                    <a href="/views/dashboard/inventario.html" class="flex items-center px-3 py-2 text-white/80 hover:bg-white/10 rounded-lg cursor-pointer transition-colors">
+                        <i class="fas fa-boxes text-white w-5"></i>
+                        <span class="sidebar-text ml-3">Inventario</span>
+                    </a>
+                </div>
+                
+                <div class="px-4">
+                    <!-- Análisis -->
+                    <a href="/views/dashboard/analisis.html" class="flex items-center px-3 py-2 text-white/80 hover:bg-white/10 rounded-lg cursor-pointer transition-colors">
+                        <i class="fas fa-chart-line text-white w-5"></i>
+                        <span class="sidebar-text ml-3">Análisis</span>
+                    </a>
+                </div>
+                
+                <div class="px-4">
+                    <!-- Sugerencias -->
+                    <a href="/views/dashboard/sugerencias.html" class="flex items-center px-3 py-2 text-white/80 hover:bg-white/10 rounded-lg cursor-pointer transition-colors">
+                        <i class="fas fa-lightbulb text-white w-5"></i>
+                        <span class="sidebar-text ml-3">Sugerencias</span>
+                    </a>
+                </div>
+                
+                <div class="px-4">
+                    <!-- Alertas - Active -->
+                    <a href="/views/dashboard/alertas.html" class="flex items-center px-3 py-2 text-white/80 hover:bg-white/10 rounded-lg cursor-pointer transition-colors">
+                        <i class="fas fa-bell text-white w-5"></i>
+                        <span class="sidebar-text ml-3 text-white font-medium">Alertas</span>
+                    </a>
+                </div>
+                
+                <div class="px-4">
+                    <!-- Buscar -->
+                    <a href="/views/dashboard/buscar.html" class="flex items-center px-3 py-2 text-white/80 hover:bg-white/10 rounded-lg cursor-pointer transition-colors">
+                        <i class="fas fa-search text-white w-5"></i>
+                        <span class="sidebar-text ml-3">Buscar</span>
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Parte inferior con Salir -->
+            <div class="sidebar-bottom">
+                <div class="px-4">
+                    <!-- Salir -->
+                    <a href="/index.html" class="flex items-center px-3 py-2 text-white/80 hover:bg-white/10 rounded-lg cursor-pointer transition-colors">
+                        <i class="fas fa-sign-out-alt text-white w-5"></i>
+                        <span class="sidebar-text ml-3">Salir</span>
+                    </a>
+                </div>
+            </div>
+        </nav>
+    </div>
+
+    <div id="mainContent" class="main-expanded sidebar-transition">
+        <header class="bg-white h-16">
+            <div class="flex items-center justify-between h-full px-6">
+                
+                <!-- Search Bar (Centered) -->
+                <div class="flex-1 flex justify-center">
+                    <div class="relative w-full max-w-md mx-4">
+                        <input type="text" 
+                               placeholder="Search" 
+                               class="w-full bg-gray-100 border-0 rounded-full px-4 py-2 pl-10 text-sm focus:outline-none focus:ring-2 focus:ring-[#8B7EC7]">
+                        <button class="absolute left-3 top-1/2 transform -translate-y-1/2">
+                            <i class="fas fa-search text-gray-400"></i>
+                        </button>
+                        <button class="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 bg-gray-200 rounded-full flex items-center justify-center">
+                            <i class="fas fa-times text-xs text-gray-500"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Header Actions -->
+                <div class="w-64 flex items-center justify-end space-x-2">
+                    <!-- Messages -->
+                    <button class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                        <i class="far fa-envelope text-gray-600 text-xl"></i>
+                    </button>
+                    
+                    <!-- Notifications -->
+                    <button class="p-2 hover:bg-gray-100 rounded-lg transition-colors relative">
+                        <i class="far fa-bell text-gray-600 text-xl"></i>
+                        <span class="absolute top-1 right-1 w-4 h-4 bg-red-500 rounded-full text-xs text-white flex items-center justify-center">3</span>
+                    </button>
+
+                    <!-- Separator -->
+                    <div class="w-px h-6 bg-gray-300 mx-2"></div>
+                    
+                    <!-- User Menu -->
+                    <div class="relative">
+                        <button id="userMenuBtn" class="flex items-center space-x-2 px-2 py-1 hover:bg-gray-100 rounded-lg transition-colors">
+                            <span class="text-sm font-medium text-gray-700">jh6466011</span>
+                            <i class="fas fa-chevron-down text-xs text-gray-500"></i>
+                        </button>
+                        
+                        <!-- Dropdown Menu -->
+                        <div id="userDropdown" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg z-50 border border-gray-100">
+                            <div class="py-1">
+                                <a href="#" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                                    <i class="far fa-user-circle w-5"></i>
+                                    <span>Ver perfil</span>
+                                </a>
+                                <a href="../admin/users.html" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                                    <i class="fas fa-users-cog w-5"></i>
+                                    <span>Gestionar usuarios</span>
+                                </a>
+                                <hr class="my-1 border-gray-100">
+                                <a href="/index.html" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                                    <i class="fas fa-sign-out-alt w-5"></i>
+                                    <span>Cerrar sesión</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <div class="p-6">
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="w-64 mb-6">
+                    <h1 class="text-2xl font-bold">Ventas</h1>
+                </div>
+                <!-- Cliente y Vendedor -->
+                <div class="grid grid-cols-2 gap-6 mb-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Cliente</label>
+                        <input type="text" placeholder="Buscar cliente..." class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-[#8B7EC7] focus:border-[#8B7EC7] focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Vendedor</label>
+                        <select class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-[#8B7EC7] focus:border-[#8B7EC7] focus:outline-none">
+                            <option value="">No asignado</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Búsqueda de Producto -->
+                <div class="grid grid-cols-2 gap-6 mb-6">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-barcode text-gray-400"></i>
+                            <label class="block text-sm font-medium text-gray-700">Buscar producto</label>
+                        </div>
+                        <input type="text" placeholder="Buscar producto..." class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-[#8B7EC7] focus:border-[#8B7EC7] focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Descuento</label>
+                        <select class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-[#8B7EC7] focus:border-[#8B7EC7] focus:outline-none">
+                            <option value="">No asignado</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Tabla de Productos -->
+                <div class="mb-6">
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <div class="grid grid-cols-3 gap-4 font-medium text-gray-700 mb-4">
+                            <div>Producto</div>
+                            <div class="text-center">Cantidad</div>
+                            <div class="text-right">Precio</div>
+                        </div>
+                        <div class="grid grid-cols-3 gap-4 items-center border-b border-gray-200 py-2">
+                            <div>Nombre del producto</div>
+                            <div class="text-center">1</div>
+                            <div class="text-right">$ 0.00</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Totales y Botones -->
+                <div class="flex justify-between items-end">
+                    <div>
+                        <button class="bg-[#8B7EC7] text-white px-4 py-2 rounded-lg hover:bg-[#7A6DB4] transition-colors">
+                            Agregar producto
+                        </button>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="flex justify-between gap-8">
+                            <span class="text-gray-600">Subtotal</span>
+                            <span class="font-medium">$0.00</span>
+                        </div>
+                        <div class="flex justify-between gap-8">
+                            <span class="text-gray-600">IVA</span>
+                            <span class="font-medium">$0.00</span>
+                        </div>
+                        <div class="flex justify-between gap-8">
+                            <span class="text-gray-600">Total</span>
+                            <span class="font-medium">$0.00</span>
+                        </div>
+                        <button class="w-full bg-[#8B7EC7] text-white px-6 py-2 rounded-lg hover:bg-[#7A6DB4] transition-colors">
+                            Cobrar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="/js/services/authService.js"></script>
+    <script type="module" src="/js/utils/uiUtils.js"></script>
+    <script type="module" src="/js/modules/dashboardHandler.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('🚀 Inicializando dashboard...');
+            
+            // DOM Elements
+            const toggleBtn = document.getElementById('toggleSidebar');
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.getElementById('mainContent');
+            const userMenuBtn = document.getElementById('userMenuBtn');
+            const userDropdown = document.getElementById('userDropdown');
+            const closeAlertBtn = document.getElementById('closeAlertBtn');
+
+            console.log('🔍 Elementos encontrados:', {
+                toggleBtn: !!toggleBtn,
+                sidebar: !!sidebar,
+                mainContent: !!mainContent,
+                userMenuBtn: !!userMenuBtn,
+                userDropdown: !!userDropdown,
+                closeAlertBtn: !!closeAlertBtn
+            });
+
+            // Initialize states
+            let isCollapsed = false;
+            
+            // Sidebar Toggle
+            if (toggleBtn) {
+                toggleBtn.addEventListener('click', () => {
+                    isCollapsed = !isCollapsed;
+                    if (isCollapsed) {
+                        sidebar.classList.remove('sidebar-expanded');
+                        sidebar.classList.add('sidebar-collapsed');
+                        mainContent.classList.remove('main-expanded');
+                        mainContent.classList.add('main-collapsed');
+                        // Ocultar textos del sidebar
+                        document.querySelectorAll('.sidebar-text').forEach(text => {
+                            text.classList.add('hidden');
+                        });
+                    } else {
+                        sidebar.classList.remove('sidebar-collapsed');
+                        sidebar.classList.add('sidebar-expanded');
+                        mainContent.classList.remove('main-collapsed');
+                        mainContent.classList.add('main-expanded');
+                        // Mostrar textos del sidebar
+                        document.querySelectorAll('.sidebar-text').forEach(text => {
+                            text.classList.remove('hidden');
+                        });
+                    }
+                });
+            }
+
+            // Navigation hover effects
+            const navItems = document.querySelectorAll('nav > div > a');
+            navItems.forEach(item => {
+                if (!item.classList.contains('bg-white/20')) {
+                    item.addEventListener('mouseenter', () => {
+                        item.classList.add('bg-white/10');
+                    });
+                    item.addEventListener('mouseleave', () => {
+                        item.classList.remove('bg-white/10');
+                    });
+                }
+            });
+
+            // User Dropdown functionality
+            if (userMenuBtn && userDropdown) {
+                console.log('✅ Inicializando dropdown del usuario');
+                
+                // Toggle dropdown on button click
+                userMenuBtn.addEventListener('click', (e) => {
+                    console.log('👤 Click en botón del usuario');
+                    e.stopPropagation();
+                    userDropdown.classList.toggle('hidden');
+                    console.log('👤 Dropdown estado:', userDropdown.classList.contains('hidden') ? 'cerrado' : 'abierto');
+                });
+                
+                // Close dropdown when clicking outside
+                document.addEventListener('click', (e) => {
+                    if (!userDropdown.contains(e.target) && !userMenuBtn.contains(e.target)) {
+                        userDropdown.classList.add('hidden');
+                        console.log('👤 Dropdown cerrado por click externo');
+                    }
+                });
+                
+                // Handle dropdown menu items
+                userDropdown.querySelectorAll('a').forEach(item => {
+                    item.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        const action = e.currentTarget.querySelector('span').textContent;
+                        console.log('👤 Acción seleccionada:', action);
+                        
+                        switch(action) {
+                            case 'Ver perfil':
+                                console.log('Ver perfil clicked');
+                                // TODO: Implementar página de perfil
+                                break;
+                            case 'Gestionar usuarios':
+                                console.log('Redirigiendo a gestionar usuarios...');
+                                window.location.href = '../admin/users.html';
+                                break;
+                            case 'Cerrar sesión':
+                                console.log('Cerrando sesión...');
+                                if (window.authService) {
+                                    window.authService.logout();
+                                } else {
+                                    window.location.href = '/index.html';
+                                }
+                                break;
+                        }
+                        
+                        userDropdown.classList.add('hidden');
+                    });
+                });
+            } else {
+                console.error('❌ No se encontraron elementos del dropdown del usuario');
+            }
+        });
+    </script>
 </body>
 </html>
