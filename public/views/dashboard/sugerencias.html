@@ -11,6 +11,16 @@
     <link rel="icon" type="image/png" sizes="32x32" href="https://res.cloudinary.com/dmyejrbs7/image/upload/v1757894655/CEMAC-LOGO_nrow82.png" />
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="../../js/tailwind.config.js"></script>
+    <!-- Adding required scripts for JAVI AI assistant -->
+    <script type="importmap">
+    {
+        "imports": {
+            "@google/generative-ai": "https://esm.run/@google/generative-ai"
+        }
+    }
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/5.1.1/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.5/dist/purify.min.js"></script>
 </head>
 <body class="h-full bg-gray-50">
     <div id="sidebar" class="fixed left-0 top-0 bg-[#8B7EC7] sidebar-expanded sidebar-transition z-40 sidebar-flex">        
@@ -162,182 +172,174 @@
 
         <!-- Main Content Area -->
         <main class="p-6 bg-gray-50 min-h-screen">
-            <!-- Suggestions List -->
-            <div class="suggestions-list mx-auto">
-                <!-- List Items -->
-                <div class="space-y-4 mb-8">
-                    <!-- List Item 1 -->
-                    <div class="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
-                        <div class="flex items-center">
-                            <div class="w-12 h-12 bg-gray-300 rounded-lg mr-4 flex items-center justify-center">
-                                <div class="w-6 h-6 bg-gray-400 rounded"></div>
-                            </div>
-                            <div class="flex-1">
-                                <h3 class="font-medium text-gray-900">List item</h3>
-                                <p class="text-sm text-gray-500">Category • $$ • 1.2 miles away</p>
-                                <p class="text-sm text-gray-600 mt-1">Supporting line text lorem ipsum dolor sit amet, consectetur.</p>
-                            </div>
-                            <div class="flex items-center space-x-2 ml-4">
-                                <div class="flex text-yellow-400">
-                                    <i class="fas fa-star text-xs"></i>
-                                    <i class="fas fa-star text-xs"></i>
-                                    <i class="fas fa-star text-xs"></i>
-                                    <i class="fas fa-star text-xs"></i>
-                                    <i class="fas fa-star text-xs"></i>
+            <!-- JAVI AI Assistant Header -->
+            <div class="max-w-6xl mx-auto">
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
+                    <div class="p-6 border-b border-gray-200">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-4">
+                                <div class="w-12 h-12 bg-gradient-to-br from-[#8B7EC7] to-[#7A6DB8] rounded-full flex items-center justify-center">
+                                    <i class="fas fa-robot text-white text-xl"></i>
                                 </div>
-                                <button class="text-gray-400 hover:text-red-500">
-                                    <i class="fas fa-heart"></i>
+                                <div>
+                                    <h1 class="text-2xl font-bold text-gray-900">JAVI - Asistente Inteligente</h1>
+                                    <p class="text-gray-600">Análisis y recomendaciones estratégicas para tu papelería</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-3">
+                                <button id="refreshRecommendationsBtn" class="flex items-center space-x-2 px-4 py-2 bg-[#8B7EC7] text-white rounded-lg hover:bg-[#7A6DB8] transition-colors">
+                                    <i class="fas fa-sync-alt"></i>
+                                    <span>Actualizar</span>
+                                </button>
+                                <button id="settingsBtn" class="p-2 text-gray-400 hover:text-gray-600 transition-colors">
+                                    <i class="fas fa-cog text-xl"></i>
                                 </button>
                             </div>
                         </div>
                     </div>
 
-                    <!-- List Item 2 - Highlighted with Dashed Border -->
-                    <div class="bg-white rounded-lg p-4 shadow-sm border border-gray-200 dashed-border">
-                        <div class="flex items-center">
-                            <div class="w-12 h-12 bg-gray-300 rounded-lg mr-4 flex items-center justify-center">
-                                <div class="w-6 h-6 bg-gray-400 rounded"></div>
+                    <!-- API Key Alert -->
+                    <div id="apiKeyAlert" class="bg-yellow-50 border-l-4 border-yellow-400 p-4 hidden">
+                        <div class="flex">
+                            <div class="flex-shrink-0">
+                                <i class="fas fa-exclamation-triangle text-yellow-400"></i>
                             </div>
-                            <div class="flex-1">
-                                <h3 class="font-medium text-gray-900 dark:text-white">List item</h3>
-                                <p class="text-sm text-gray-500 dark:text-gray-400">Category • $$ • 1.2 miles away</p>
-                                <p class="text-sm text-gray-600 dark:text-gray-300 mt-1">Supporting line text lorem ipsum dolor sit amet, consectetur.</p>
+                            <div class="ml-3">
+                                <p class="text-sm text-yellow-700">
+                                    Para usar JAVI, necesitas configurar tu API Key de Google Gemini.
+                                    <button id="showSettingsBtn" class="font-medium underline hover:text-yellow-800">
+                                        Configurar ahora
+                                    </button>
+                                </p>
                             </div>
-                            <div class="flex items-center space-x-2 ml-4">
-                                <div class="flex text-yellow-400">
-                                    <i class="fas fa-star text-xs"></i>
-                                    <i class="fas fa-star text-xs"></i>
-                                    <i class="fas fa-star text-xs"></i>
-                                    <i class="fas fa-star text-xs"></i>
-                                    <i class="fas fa-star text-xs"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chat Interface -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Chat Area -->
+                    <div class="lg:col-span-2">
+                        <div class="bg-white rounded-lg shadow-sm border border-gray-200 h-96 flex flex-col">
+                            <div class="p-4 border-b border-gray-200">
+                                <h3 class="font-medium text-gray-900">Conversación con JAVI</h3>
+                            </div>
+                            <div id="chatMessages" class="flex-1 p-4 overflow-y-auto space-y-4">
+                                <!-- Messages will be added here -->
+                            </div>
+                            <div class="p-4 border-t border-gray-200">
+                                <div class="flex space-x-3">
+                                    <input 
+                                        type="text" 
+                                        id="messageInput" 
+                                        placeholder="Pregúntale a JAVI sobre tu inventario, precios, recomendaciones..."
+                                        class="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:ring-[#8B7EC7] focus:border-[#8B7EC7] focus:outline-none"
+                                    >
+                                    <button id="sendMessageBtn" class="px-4 py-2 bg-[#8B7EC7] text-white rounded-lg hover:bg-[#7A6DB8] transition-colors">
+                                        <i class="fas fa-paper-plane"></i>
+                                    </button>
                                 </div>
-                                <button class="text-gray-400 hover:text-red-500">
-                                    <i class="fas fa-heart"></i>
-                                </button>
                             </div>
                         </div>
                     </div>
 
-                    <!-- List Item 3 -->
-                    <div class="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
-                        <div class="flex items-center">
-                            <div class="w-12 h-12 bg-gray-300 rounded-lg mr-4 flex items-center justify-center">
-                                <div class="w-6 h-6 bg-gray-400 rounded"></div>
-                            </div>
-                            <div class="flex-1">
-                                <h3 class="font-medium text-gray-900 dark:text-white">List item</h3>
-                                <p class="text-sm text-gray-500 dark:text-gray-400">Category • $$ • 1.2 miles away</p>
-                                <p class="text-sm text-gray-600 dark:text-gray-300 mt-1">Supporting line text lorem ipsum dolor sit amet, consectetur.</p>
-                            </div>
-                            <div class="flex items-center space-x-2 ml-4">
-                                <div class="flex text-yellow-400">
-                                    <i class="fas fa-star text-xs"></i>
-                                    <i class="fas fa-star text-xs"></i>
-                                    <i class="fas fa-star text-xs"></i>
-                                    <i class="fas fa-star text-xs"></i>
-                                    <i class="fas fa-star text-xs"></i>
-                                </div>
-                                <button class="text-gray-400 hover:text-red-500">
-                                    <i class="fas fa-heart"></i>
-                                </button>
+                    <!-- Quick Actions & Status -->
+                    <div class="space-y-6">
+                        <!-- JAVI Status -->
+                        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                            <h3 class="font-medium text-gray-900 mb-3">Estado de JAVI</h3>
+                            <div class="flex items-center space-x-3">
+                                <div id="javiStatusIndicator" class="w-3 h-3 bg-gray-400 rounded-full"></div>
+                                <span id="javiStatusText" class="text-sm text-gray-600">Desconectado</span>
                             </div>
                         </div>
-                    </div>
 
-                    <!-- List Item 4 -->
-                    <div class="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
-                        <div class="flex items-center">
-                            <div class="w-12 h-12 bg-gray-300 rounded-lg mr-4 flex items-center justify-center">
-                                <div class="w-6 h-6 bg-gray-400 rounded"></div>
-                            </div>
-                            <div class="flex-1">
-                                <h3 class="font-medium text-gray-900 dark:text-white">List item</h3>
-                                <p class="text-sm text-gray-500 dark:text-gray-400">Category • $$ • 1.2 miles away</p>
-                                <p class="text-sm text-gray-600 dark:text-gray-300 mt-1">Supporting line text lorem ipsum dolor sit amet, consectetur.</p>
-                            </div>
-                            <div class="flex items-center space-x-2 ml-4">
-                                <div class="flex text-yellow-400">
-                                    <i class="fas fa-star text-xs"></i>
-                                    <i class="fas fa-star text-xs"></i>
-                                    <i class="fas fa-star text-xs"></i>
-                                    <i class="fas fa-star text-xs"></i>
-                                    <i class="fas fa-star text-xs"></i>
-                                </div>
-                                <button class="text-gray-400 hover:text-red-500">
-                                    <i class="fas fa-heart"></i>
+                        <!-- Quick Actions -->
+                        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                            <h3 class="font-medium text-gray-900 mb-3">Acciones Rápidas</h3>
+                            <div class="space-y-2">
+                                <button id="analyzeInventoryBtn" class="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors">
+                                    <i class="fas fa-boxes w-4 mr-2"></i>
+                                    Analizar inventario
                                 </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- List Item 5 -->
-                    <div class="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
-                        <div class="flex items-center">
-                            <div class="w-12 h-12 bg-gray-300 rounded-lg mr-4 flex items-center justify-center">
-                                <div class="w-6 h-6 bg-gray-400 rounded"></div>
-                            </div>
-                            <div class="flex-1">
-                                <h3 class="font-medium text-gray-900 dark:text-white">List item</h3>
-                                <p class="text-sm text-gray-500 dark:text-gray-400">Category • $$ • 1.2 miles away</p>
-                                <p class="text-sm text-gray-600 dark:text-gray-300 mt-1">Supporting line text lorem ipsum dolor sit amet, consectetur.</p>
-                            </div>
-                            <div class="flex items-center space-x-2 ml-4">
-                                <div class="flex text-yellow-400">
-                                    <i class="fas fa-star text-xs"></i>
-                                    <i class="fas fa-star text-xs"></i>
-                                    <i class="fas fa-star text-xs"></i>
-                                    <i class="fas fa-star text-xs"></i>
-                                    <i class="fas fa-star text-xs"></i>
-                                </div>
-                                <button class="text-gray-400 hover:text-red-500">
-                                    <i class="fas fa-heart"></i>
+                                <button id="priceAnalysisBtn" class="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors">
+                                    <i class="fas fa-chart-line w-4 mr-2"></i>
+                                    Análisis de precios
+                                </button>
+                                <button id="restockSuggestionsBtn" class="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors">
+                                    <i class="fas fa-truck w-4 mr-2"></i>
+                                    Sugerencias de restock
+                                </button>
+                                <button id="competitorAnalysisBtn" class="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors">
+                                    <i class="fas fa-search-dollar w-4 mr-2"></i>
+                                    Análisis competencia
                                 </button>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Pagination -->
-                <div class="flex items-center justify-center space-x-2">
-                    <button class="flex items-center px-3 py-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors">
-                        <i class="fas fa-chevron-left mr-2 text-sm"></i>
-                        Previous
-                    </button>
-                    
-                    <button class="w-10 h-10 bg-primary text-white rounded-lg font-medium hover:bg-primary/80 transition-colors">
-                        1
-                    </button>
-                    
-                    <button class="w-10 h-10 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
-                        2
-                    </button>
-                    
-                    <button class="w-10 h-10 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
-                        3
-                    </button>
-                    
-                    <span class="px-2 text-gray-500 dark:text-gray-400">...</span>
-                    
-                    <button class="w-10 h-10 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
-                        67
-                    </button>
-                    
-                    <button class="w-10 h-10 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
-                        68
-                    </button>
-                    
-                    <button class="flex items-center px-3 py-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors">
-                        Next
-                        <i class="fas fa-chevron-right ml-2 text-sm"></i>
-                    </button>
+                <!-- Recommendations Grid -->
+                <div class="mt-6">
+                    <h2 class="text-xl font-bold text-gray-900 mb-4">Recomendaciones Recientes</h2>
+                    <div id="recommendationsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <!-- Recommendations will be loaded here -->
+                    </div>
                 </div>
             </div>
         </main>
     </div>
 
-    <script type="module" src="../../js/services/authService.js"></script>
-    <script type="module" src="../../js/utils/uiUtils.js"></script>
-    <script type="module" src="../../js/modules/dashboardHandler.js"></script>
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
+                <div class="p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-medium text-gray-900">Configuración de JAVI</h3>
+                        <button id="closeSettingsBtn" class="text-gray-400 hover:text-gray-600">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                API Key de Google Gemini
+                            </label>
+                            <input 
+                                type="password" 
+                                id="apiKeyInput" 
+                                placeholder="Ingresa tu API Key de Gemini"
+                                class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-[#8B7EC7] focus:border-[#8B7EC7] focus:outline-none"
+                            >
+                            <p class="text-xs text-gray-500 mt-1">
+                                Obtén tu API Key en <a href="https://makersuite.google.com/app/apikey" target="_blank" class="text-[#8B7EC7] hover:underline">Google AI Studio</a>
+                            </p>
+                        </div>
+                    </div>
+                    <div class="flex justify-end space-x-3 mt-6">
+                        <button id="cancelSettingsBtn" class="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                            Cancelar
+                        </button>
+                        <button id="saveApiKeyBtn" class="px-4 py-2 bg-[#8B7EC7] text-white rounded-lg hover:bg-[#7A6DB8] transition-colors">
+                            Guardar
+                        </button>
+                        <button id="removeApiKeyBtn" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors hidden">
+                            Eliminar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="/js/services/authService.js"></script>
+    <script type="module" src="/js/utils/uiUtils.js"></script>
+    <script type="module" src="/js/modules/dashboardHandler.js"></script>
+    <script type="module" src="/js/services/inventoryService.js"></script>
+    <script type="module" src="/js/services/salesService.js"></script>
+    <script type="module" src="/js/modules/javiAssistant.js"></script>
+
     <script>
         // Función principal para inicializar el dropdown
         function initializeUserDropdown() {
@@ -382,7 +384,6 @@
             });
         }
 
-            
         document.addEventListener('DOMContentLoaded', () => {
             initializeUserDropdown();
 
@@ -394,6 +395,12 @@
             const userMenuBtn = document.getElementById('userMenuBtn');
             const userDropdown = document.getElementById('userDropdown');
             const closeAlertBtn = document.querySelector('.fa-times');
+            const settingsBtn = document.getElementById('settingsBtn');
+            const settingsModal = document.getElementById('settingsModal');
+            const closeSettingsBtn = document.getElementById('closeSettingsBtn');
+            const saveApiKeyBtn = document.getElementById('saveApiKeyBtn');
+            const apiKeyAlert = document.getElementById('apiKeyAlert');
+            const showSettingsBtn = document.getElementById('showSettingsBtn');
 
             // Initialize states
             let isCollapsed = false;
@@ -477,6 +484,32 @@
                         
                         userDropdown.classList.add('hidden');
                     });
+                });
+            }
+
+            // Settings Modal functionality
+            if (settingsBtn && settingsModal) {
+                settingsBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    settingsModal.classList.remove('hidden');
+                });
+
+                closeSettingsBtn.addEventListener('click', () => {
+                    settingsModal.classList.add('hidden');
+                });
+
+                saveApiKeyBtn.addEventListener('click', () => {
+                    const apiKeyInput = document.getElementById('apiKeyInput');
+                    const apiKey = apiKeyInput.value;
+                    // Save API Key logic here
+                    console.log('API Key saved:', apiKey);
+                    settingsModal.classList.add('hidden');
+                    apiKeyAlert.classList.add('hidden');
+                });
+
+                showSettingsBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    settingsModal.classList.remove('hidden');
                 });
             }
         });
