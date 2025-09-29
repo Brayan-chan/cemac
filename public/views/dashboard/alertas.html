@@ -3,324 +3,381 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - Alertas</title>
-    <link rel="stylesheet" href="/css/alertas.css">
+    <title>CEMAC - Alertas</title>
+    <link rel="stylesheet" href="/css/customsidebar.css">
+    <link rel="stylesheet" href="/css/inicio.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link rel="icon" type="image/png" sizes="32x32" href="https://res.cloudinary.com/dmyejrbs7/image/upload/v1757894655/CEMAC-LOGO_nrow82.png" />
-    <link rel="icon" type="image/png" sizes="16x16" href="https://res.cloudinary.com/dmyejrbs7/image/upload/v1757894655/CEMAC-LOGO_nrow82.png" />
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="/js/tailwind.config.js"></script>
 </head>
-<body class="h-full bg-gray-100">
-    <!-- Sidebar -->
-    <div id="sidebar" class="fixed left-0 top-0 h-full bg-sidebar sidebar-collapsed transition-all z-40">        
-        <!-- Navigation -->
-        <nav class="mt-6">
-            <div class="px-4 space-y-2">
-                <!-- Toggle Button -->
-                <button id="toggleSidebar" class="flex items-center justify-center w-10 h-10 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors  ">
-                    <i class="fas fa-bars text-gray-600 dark:text-gray-300"></i>
+<body class="h-full bg-gray-50">
+    <div id="sidebar" class="fixed left-0 top-0 bg-[#8B7EC7] sidebar-expanded sidebar-transition z-40 sidebar-flex">        
+        <nav class="sidebar-nav">
+            <div class="px-4">
+                <button id="toggleSidebar" class="flex items-center justify-center w-10 h-10 rounded-lg hover:bg-white/10 transition-colors">
+                    <i class="fas fa-bars text-white text-lg"></i>
                 </button>
-                <!-- Inicio -->
-                <a href="/views/dashboard/inicio.html" class="flex items-center px-3 py-2 text-white/80 hover:bg-white/10 rounded-lg cursor-pointer transition-colors">
-                    <i class="fas fa-home text-white w-5"></i>
-                    <span class="sidebar-text ml-3 text-white font-medium">Inicio</span>
-                </a>
+            </div>
+            
+            <div class="sidebar-top">
+                <div class="px-4">
+                    <a href="/views/dashboard/inicio.html" class="flex items-center px-3 py-2 text-white/80 hover:bg-white/10 rounded-lg cursor-pointer transition-colors">
+                        <i class="fas fa-home text-white w-5"></i>
+                        <span class="sidebar-text ml-3">Inicio</span>
+                    </a>
+                </div>
 
-                <!-- Ventas -->
-                <a href="/views/dashboard/ventas.html" class="flex items-center px-3 py-2 text-white/80 hover:bg-white/10 rounded-lg cursor-pointer transition-colors">
-                    <i class="fas fa-shopping-cart text-white w-5"></i>
-                    <span class="sidebar-text ml-3">Ventas</span>
-                </a>
+                <div class="px-4">
+                    <a href="/views/dashboard/ventas.html" class="flex items-center px-3 py-2 text-white/80 hover:bg-white/10 rounded-lg cursor-pointer transition-colors">
+                        <i class="fas fa-shopping-cart text-white w-5"></i>
+                        <span class="sidebar-text ml-3">Ventas</span>
+                    </a>
+                </div>
+
+                <div class="px-4">
+                    <a href="/views/dashboard/inventario.html" class="flex items-center px-3 py-2 text-white/80 hover:bg-white/10 rounded-lg cursor-pointer transition-colors">
+                        <i class="fas fa-boxes text-white w-5"></i>
+                        <span class="sidebar-text ml-3">Inventario</span>
+                    </a>
+                </div>
                 
-                <!-- Inventario -->
-                <a href="/views/dashboard/inventario.html" class="flex items-center px-3 py-2 text-white/80 hover:bg-white/10 rounded-lg cursor-pointer transition-colors">
-                    <i class="fas fa-boxes text-white w-5"></i>
-                    <span class="sidebar-text ml-3">Inventario</span>
-                </a>
+                <div class="px-4">
+                    <a href="/views/dashboard/analisis.html" class="flex items-center px-3 py-2 text-white/80 hover:bg-white/10 rounded-lg cursor-pointer transition-colors">
+                        <i class="fas fa-chart-line text-white w-5"></i>
+                        <span class="sidebar-text ml-3">Análisis</span>
+                    </a>
+                </div>
                 
-                <!-- Análisis -->
-                <a href="/views/dashboard/analisis.html" class="flex items-center px-3 py-2 text-white/80 hover:bg-white/10 rounded-lg cursor-pointer transition-colors">
-                    <i class="fas fa-chart-line text-white w-5"></i>
-                    <span class="sidebar-text ml-3">Análisis</span>
-                </a>
+                <div class="px-4">
+                    <a href="/views/dashboard/sugerencias.html" class="flex items-center px-3 py-2 text-white/80 hover:bg-white/10 rounded-lg cursor-pointer transition-colors">
+                        <i class="fas fa-lightbulb text-white w-5"></i>
+                        <span class="sidebar-text ml-3">Sugerencias</span>
+                    </a>
+                </div>
                 
-                <!-- Sugerencias -->
-                <a href="/views/dashboard/sugerencias.html" class="flex items-center px-3 py-2 text-white/80 hover:bg-white/10 rounded-lg cursor-pointer transition-colors">
-                    <i class="fas fa-lightbulb text-white w-5"></i>
-                    <span class="sidebar-text ml-3">Sugerencias</span>
-                </a>
+                <div class="px-4">
+                    <a href="/views/dashboard/alertas.html" class="flex items-center px-3 py-2 bg-white/20 rounded-lg">
+                        <i class="fas fa-bell text-white w-5"></i>
+                        <span class="sidebar-text ml-3 text-white font-medium">Alertas</span>
+                    </a>
+                </div>
                 
-                <!-- Alertas - Active -->
-                <a href="/views/dashboard/alertas.html" class="flex items-center px-3 py-2 bg-white/20 rounded-lg">
-                    <i class="fas fa-bell text-white w-5"></i>
-                    <span class="sidebar-text ml-3 text-white font-medium">Alertas</span>
-                </a>
-                
-                <!-- Buscar -->
-                <a href="/views/dashboard/buscar.html" class="flex items-center px-3 py-2 text-white/80 hover:bg-white/10 rounded-lg cursor-pointer transition-colors">
-                    <i class="fas fa-search text-white w-5"></i>
-                    <span class="sidebar-text ml-3">Buscar</span>
-                </a>
-                
-                <!-- Salir -->
-                <a href="/views/dashboard/login.html" class="flex items-center px-3 py-2 text-white/80 hover:bg-white/10 rounded-lg cursor-pointer transition-colors">
-                    <i class="fas fa-sign-out-alt text-white w-5"></i>
-                    <span class="sidebar-text ml-3">Salir</span>
-                </a>
+                <div class="px-4">
+                    <a href="/views/dashboard/buscar.html" class="flex items-center px-3 py-2 text-white/80 hover:bg-white/10 rounded-lg cursor-pointer transition-colors">
+                        <i class="fas fa-search text-white w-5"></i>
+                        <span class="sidebar-text ml-3">Buscar</span>
+                    </a>
+                </div>
+            </div>
+            
+            <div class="sidebar-bottom">
+                <div class="px-4">
+                    <a href="/index.html" class="flex items-center px-3 py-2 text-white/80 hover:bg-white/10 rounded-lg cursor-pointer transition-colors">
+                        <i class="fas fa-sign-out-alt text-white w-5"></i>
+                        <span class="sidebar-text ml-3">Salir</span>
+                    </a>
+                </div>
             </div>
         </nav>
     </div>
 
-    <!-- Main Content -->
-    <div id="mainContent" class="main-collapsed transition-all">
-        <!-- Header -->
-        <header class="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 h-16">
+    <div id="mainContent" class="main-expanded sidebar-transition">
+        <header class="bg-white h-16">
             <div class="flex items-center justify-between h-full px-6">
+                <div class="w-64"></div>
                 
-                <!-- Search Bar -->
-                <div class="flex-1 max-w-md mx-6">
-                    <div class="relative">
-                        <input type="text" placeholder="Search" class="w-full bg-gray-100 dark:bg-gray-700 border-0 rounded-full px-4 py-2 pl-10 text-base focus:outline-none focus:ring-2 focus:ring-primary">
-                        <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-                        <button class="absolute right-3 top-1/2 transform -translate-y-1/2 w-6 h-6 bg-gray-300 dark:bg-gray-600 rounded-full flex items-center justify-center">
-                            <i class="fas fa-times text-xs text-gray-600 dark:text-gray-300"></i>
+                <div class="flex-1 flex justify-center">
+                    <div class="relative w-full max-w-md mx-4">
+                        <input type="text" 
+                               placeholder="Search" 
+                               class="w-full bg-gray-100 border-0 rounded-full px-4 py-2 pl-10 text-sm focus:outline-none focus:ring-2 focus:ring-[#8B7EC7]">
+                        <button class="absolute left-3 top-1/2 transform -translate-y-1/2">
+                            <i class="fas fa-search text-gray-400"></i>
+                        </button>
+                        <button class="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 bg-gray-200 rounded-full flex items-center justify-center">
+                            <i class="fas fa-times text-xs text-gray-500"></i>
                         </button>
                     </div>
                 </div>
                 
-                <!-- Header Actions -->
-                <div class="flex items-center space-x-4">
-                    <button class="p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">
-                        <i class="fas fa-envelope text-lg"></i>
+                <div class="w-64 flex items-center justify-end space-x-2">
+                    <button class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                        <i class="far fa-envelope text-gray-600 text-xl"></i>
                     </button>
-                    <button class="p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">
-                        <i class="fas fa-bell text-lg"></i>
+                    
+                    <button class="p-2 hover:bg-gray-100 rounded-lg transition-colors relative">
+                        <i class="far fa-bell text-gray-600 text-xl"></i>
+                        <span class="absolute top-1 right-1 w-4 h-4 bg-red-500 rounded-full text-xs text-white flex items-center justify-center">3</span>
                     </button>
-                    <div class="w-px h-6 bg-gray-300 dark:bg-gray-600"></div>
-                    <button class="p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">
-                        <i class="fas fa-user text-lg"></i>
-                    </button>
+
+                    <div class="w-px h-6 bg-gray-300 mx-2"></div>
+                    
+                    <div class="relative">
+                        <button id="userMenuBtn" class="flex items-center space-x-2 px-2 py-1 hover:bg-gray-100 rounded-lg transition-colors">
+                            <span class="text-sm font-medium text-gray-700">jh6466011</span>
+                            <i class="fas fa-chevron-down text-xs text-gray-500"></i>
+                        </button>
+                        
+                        <div id="userDropdown" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg z-50 border border-gray-100">
+                            <div class="py-1">
+                                <a href="#" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                                    <i class="far fa-user-circle w-5"></i>
+                                    <span>Ver perfil</span>
+                                </a>
+                                <a href="../admin/users.html" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                                    <i class="fas fa-users-cog w-5"></i>
+                                    <span>Gestionar usuarios</span>
+                                </a>
+                                <hr class="my-1 border-gray-100">
+                                <a href="/index.html" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                                    <i class="fas fa-sign-out-alt w-5"></i>
+                                    <span>Cerrar sesión</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </header>
 
-        <!-- Main Content Area -->
-        <main class="p-6 bg-gray-50 dark:bg-gray-900 min-h-screen">
-            <!-- Page Title -->
+        <main class="p-6 bg-gray-50 min-h-screen">
             <div class="mb-6">
-                <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">Historial de alertas de stock bajo</h1>
+                <h1 class="text-2xl font-bold text-gray-900 mb-6">Historial de alertas de stock bajo</h1>
             </div>
 
-            <!-- Alerts List -->
-            <div class="max-w-4xl">
-                <!-- Alert Items -->
-                <div class="space-y-4 mb-8">
-                    <!-- Alert 1 - Orange/Yellow -->
-                    <div class="bg-yellow-100 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 relative">
-                        <div class="flex items-start">
-                            <div class="w-6 h-6 bg-yellow-500 rounded-full flex items-center justify-center mr-3 mt-1">
-                                <i class="fas fa-exclamation text-white text-xs"></i>
-                            </div>
-                            <div class="flex-1">
-                                <h3 class="font-medium text-yellow-800 dark:text-yellow-200">Alerta de stock bajo</h3>
-                                <p class="text-sm text-yellow-700 dark:text-yellow-300 mt-1">se detectó un decremento en la sección de papeles</p>
-                            </div>
-                            <div class="flex items-center space-x-3">
-                                <span class="text-sm text-yellow-700 dark:text-yellow-300">11/08/2020</span>
-                                <button class="text-yellow-600 hover:text-yellow-800 dark:text-yellow-400 dark:hover:text-yellow-200">
-                                    <i class="fas fa-ellipsis-h"></i>
-                                </button>
-                            </div>
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-2">
+                        <div class="flex items-center border border-gray-300 rounded-lg px-3 py-2">
+                            <i class="fas fa-calendar text-gray-400 mr-2"></i>
+                            <input type="date" id="startDate" class="border-0 text-sm focus:outline-none" value="2025-08-11">
+                            <span class="mx-2 text-gray-400">-</span>
+                            <input type="date" id="endDate" class="border-0 text-sm focus:outline-none" value="2025-08-11">
                         </div>
                     </div>
 
-                    <!-- Alert 2 - Red -->
-                    <div class="bg-red-100 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 relative">
-                        <div class="flex items-start">
-                            <div class="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center mr-3 mt-1">
-                                <i class="fas fa-exclamation text-white text-xs"></i>
-                            </div>
-                            <div class="flex-1">
-                                <h3 class="font-medium text-red-800 dark:text-red-200">Alerta de stock bajo</h3>
-                                <p class="text-sm text-red-700 dark:text-red-300 mt-1">se detectó un decremento en la sección de papeles</p>
-                            </div>
-                            <div class="flex items-center space-x-3">
-                                <span class="text-sm text-red-700 dark:text-red-300">11/08/2020</span>
-                                <button class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-200">
-                                    <i class="fas fa-ellipsis-h"></i>
-                                </button>
-                            </div>
+                    <div class="flex items-center space-x-4">
+                        <div class="flex items-center space-x-2">
+                            <span class="text-sm text-gray-600">Ordenar por:</span>
+                            <select id="sortFilter" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-[#8B7EC7] focus:border-[#8B7EC7]">
+                                <option value="date_desc">Defecto</option>
+                                <option value="date_asc">Fecha (más antigua)</option>
+                                <option value="priority_desc">Prioridad (alta a baja)</option>
+                                <option value="priority_asc">Prioridad (baja a alta)</option>
+                            </select>
                         </div>
-                    </div>
 
-                    <!-- Alert 3 - Orange/Yellow -->
-                    <div class="bg-yellow-100 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 relative">
-                        <div class="flex items-start">
-                            <div class="w-6 h-6 bg-yellow-500 rounded-full flex items-center justify-center mr-3 mt-1">
-                                <i class="fas fa-exclamation text-white text-xs"></i>
-                            </div>
-                            <div class="flex-1">
-                                <h3 class="font-medium text-yellow-800 dark:text-yellow-200">Alerta de stock bajo</h3>
-                                <p class="text-sm text-yellow-700 dark:text-yellow-300 mt-1">se detectó un decremento en la sección de papeles</p>
-                            </div>
-                            <div class="flex items-center space-x-3">
-                                <span class="text-sm text-yellow-700 dark:text-yellow-300">11/08/2020</span>
-                                <button class="text-yellow-600 hover:text-yellow-800 dark:text-yellow-400 dark:hover:text-yellow-200">
-                                    <i class="fas fa-ellipsis-h"></i>
-                                </button>
-                            </div>
-                        </div>
+                        <button id="applyFiltersBtn" class="flex items-center px-4 py-2 bg-[#8B7EC7] text-white rounded-lg hover:bg-[#7A6DB4] transition-colors">
+                            <i class="fas fa-filter mr-2"></i>
+                            Filtrar
+                        </button>
                     </div>
+                </div>
+            </div>
 
-                    <!-- Alert 4 - Orange/Yellow -->
-                    <div class="bg-yellow-100 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 relative">
-                        <div class="flex items-start">
-                            <div class="w-6 h-6 bg-yellow-500 rounded-full flex items-center justify-center mr-3 mt-1">
-                                <i class="fas fa-exclamation text-white text-xs"></i>
-                            </div>
-                            <div class="flex-1">
-                                <h3 class="font-medium text-yellow-800 dark:text-yellow-200">Alerta de stock bajo</h3>
-                                <p class="text-sm text-yellow-700 dark:text-yellow-300 mt-1">se detectó un decremento en la sección de papeles</p>
-                            </div>
-                            <div class="flex items-center space-x-3">
-                                <span class="text-sm text-yellow-700 dark:text-yellow-300">11/08/2020</span>
-                                <button class="text-yellow-600 hover:text-yellow-800 dark:text-yellow-400 dark:hover:text-yellow-200">
-                                    <i class="fas fa-ellipsis-h"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Alert 5 - Red -->
-                    <div class="bg-red-100 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 relative">
-                        <div class="flex items-start">
-                            <div class="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center mr-3 mt-1">
-                                <i class="fas fa-exclamation text-white text-xs"></i>
-                            </div>
-                            <div class="flex-1">
-                                <h3 class="font-medium text-red-800 dark:text-red-200">Alerta de stock bajo</h3>
-                                <p class="text-sm text-red-700 dark:text-red-300 mt-1">se detectó un decremento en la sección de papeles</p>
-                            </div>
-                            <div class="flex items-center space-x-3">
-                                <span class="text-sm text-red-700 dark:text-red-300">11/08/2020</span>
-                                <button class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-200">
-                                    <i class="fas fa-ellipsis-h"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Alert 6 - Orange/Yellow -->
-                    <div class="bg-yellow-100 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 relative">
-                        <div class="flex items-start">
-                            <div class="w-6 h-6 bg-yellow-500 rounded-full flex items-center justify-center mr-3 mt-1">
-                                <i class="fas fa-exclamation text-white text-xs"></i>
-                            </div>
-                            <div class="flex-1">
-                                <h3 class="font-medium text-yellow-800 dark:text-yellow-200">Alerta de stock bajo</h3>
-                                <p class="text-sm text-yellow-700 dark:text-yellow-300 mt-1">se detectó un decremento en la sección de papeles</p>
-                            </div>
-                            <div class="flex items-center space-x-3">
-                                <span class="text-sm text-yellow-700 dark:text-yellow-300">11/08/2020</span>
-                                <button class="text-yellow-600 hover:text-yellow-800 dark:text-yellow-400 dark:hover:text-yellow-200">
-                                    <i class="fas fa-ellipsis-h"></i>
-                                </button>
-                            </div>
-                        </div>
+            <div class="space-y-4" id="alertsContainer">
+                <div id="loadingState" class="hidden">
+                    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-8 text-center">
+                        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-[#8B7EC7] mx-auto mb-4"></div>
+                        <p class="text-gray-600">Cargando alertas...</p>
                     </div>
                 </div>
 
-                <!-- Pagination -->
-                <div class="flex items-center justify-center space-x-2">
-                    <button class="flex items-center px-3 py-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors">
-                        <i class="fas fa-chevron-left mr-2 text-sm"></i>
-                        Previous
-                    </button>
-                    
-                    <button class="w-10 h-10 bg-primary text-white rounded-lg font-medium hover:bg-primary/80 transition-colors">
-                        1
-                    </button>
-                    
-                    <button class="w-10 h-10 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
-                        2
-                    </button>
-                    
-                    <button class="w-10 h-10 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
-                        3
-                    </button>
-                    
-                    <span class="px-2 text-gray-500 dark:text-gray-400">...</span>
-                    
-                    <button class="w-10 h-10 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
-                        67
-                    </button>
-                    
-                    <button class="w-10 h-10 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
-                        68
-                    </button>
-                    
-                    <button class="flex items-center px-3 py-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors">
-                        Next
-                        <i class="fas fa-chevron-right ml-2 text-sm"></i>
-                    </button>
+                <div id="emptyState" class="hidden">
+                    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
+                        <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-bell-slash text-2xl text-gray-400"></i>
+                        </div>
+                        <h3 class="text-lg font-medium text-gray-900 mb-2">No hay alertas</h3>
+                        <p class="text-gray-600">No se encontraron alertas con los filtros aplicados.</p>
+                    </div>
                 </div>
+
+            </div>
+
+            <div id="paginationContainer" class="flex items-center justify-center space-x-2 mt-8">
+                <button id="prevPageBtn" class="flex items-center px-3 py-2 text-gray-500 hover:text-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                    <i class="fas fa-chevron-left mr-2 text-sm"></i>
+                    Previous
+                </button>
+                
+                <div id="paginationNumbers" class="flex items-center space-x-1">
+                </div>
+                
+                <button id="nextPageBtn" class="flex items-center px-3 py-2 text-gray-500 hover:text-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                    Next
+                    <i class="fas fa-chevron-right ml-2 text-sm"></i>
+                </button>
             </div>
         </main>
     </div>
 
+    <div id="alertActionModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold text-gray-900">Acciones de Alerta</h3>
+                    <button id="closeActionModal" class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <div class="space-y-3">
+                    <button id="markAsReadBtn" class="w-full flex items-center px-4 py-3 text-left text-gray-700 hover:bg-gray-50 rounded-lg transition-colors">
+                        <i class="fas fa-check-circle text-green-500 mr-3"></i>
+                        <div>
+                            <div class="font-medium">Marcar como atendida</div>
+                            <div class="text-sm text-gray-500">La alerta se marcará como resuelta</div>
+                        </div>
+                    </button>
+                    
+                    <button id="markInProgressBtn" class="w-full flex items-center px-4 py-3 text-left text-gray-700 hover:bg-gray-50 rounded-lg transition-colors">
+                        <i class="fas fa-clock text-yellow-500 mr-3"></i>
+                        <div>
+                            <div class="font-medium">Marcar en proceso</div>
+                            <div class="text-sm text-gray-500">Indica que se está trabajando en la alerta</div>
+                        </div>
+                    </button>
+                    
+                    <button id="dismissAlertBtn" class="w-full flex items-center px-4 py-3 text-left text-gray-700 hover:bg-gray-50 rounded-lg transition-colors">
+                        <i class="fas fa-times-circle text-red-500 mr-3"></i>
+                        <div>
+                            <div class="font-medium">Descartar alerta</div>
+                            <div class="text-sm text-gray-500">La alerta se ocultará de la lista</div>
+                        </div>
+                    </button>
+                    
+                    <button id="viewProductBtn" class="w-full flex items-center px-4 py-3 text-left text-gray-700 hover:bg-gray-50 rounded-lg transition-colors">
+                        <i class="fas fa-box text-blue-500 mr-3"></i>
+                        <div>
+                            <div class="font-medium">Ver producto</div>
+                            <div class="text-sm text-gray-500">Ir al detalle del producto en inventario</div>
+                        </div>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="/js/services/authService.js"></script>
+    <script type="module" src="/js/utils/uiUtils.js"></script>
+    <script type="module" src="/js/modules/dashboardHandler.js"></script>
+    <script type="module" src="/js/services/inventoryService.js"></script>
+    <script type="module" src="/js/modules/alertsHandler.js"></script>
     <script>
-        //sidebar toggle functionality
-        const toggleBtn = document.getElementById('toggleSidebar');
-        const sidebar = document.getElementById('sidebar');
-        const mainContent = document.getElementById('mainContent');
-        const sidebarTexts = document.querySelectorAll('.sidebar-text');
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('🚀 Inicializando dashboard...');
+            
+            // DOM Elements
+            const toggleBtn = document.getElementById('toggleSidebar');
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.getElementById('mainContent');
+            const userMenuBtn = document.getElementById('userMenuBtn');
+            const userDropdown = document.getElementById('userDropdown');
 
-        // Initialize sidebar state
-        let isCollapsed = false;
+            console.log('🔍 Elementos encontrados:', {
+                toggleBtn: !!toggleBtn,
+                sidebar: !!sidebar,
+                mainContent: !!mainContent,
+                userMenuBtn: !!userMenuBtn,
+                userDropdown: !!userDropdown
+            });
 
-        // Toggle sidebar
-        toggleBtn.addEventListener('click', () => {
-            isCollapsed = !isCollapsed;
-            if (isCollapsed) {
-                sidebar.classList.remove('sidebar-expanded');
-                sidebar.classList.add('sidebar-collapsed');
-                mainContent.classList.remove('main-expanded');
-                mainContent.classList.add('main-collapsed');
-            } else {
-                sidebar.classList.remove('sidebar-collapsed');
-                sidebar.classList.add('sidebar-expanded');
-                mainContent.classList.remove('main-collapsed');
-                mainContent.classList.add('main-expanded');
-            }
-        });
-
-         // Add hover effects for navigation items
-        const navItems = document.querySelectorAll('nav > div > div');
-        navItems.forEach(item => {
-            if (!item.classList.contains('bg-white/20')) {
-                item.addEventListener('mouseenter', () => {
-                    item.classList.add('bg-white/10');
+            // Initialize states
+            let isCollapsed = false;
+            
+            // Sidebar Toggle
+            if (toggleBtn) {
+                toggleBtn.addEventListener('click', () => {
+                    isCollapsed = !isCollapsed;
+                    if (isCollapsed) {
+                        sidebar.classList.remove('sidebar-expanded');
+                        sidebar.classList.add('sidebar-collapsed');
+                        mainContent.classList.remove('main-expanded');
+                        mainContent.classList.add('main-collapsed');
+                        // Ocultar textos del sidebar
+                        document.querySelectorAll('.sidebar-text').forEach(text => {
+                            text.classList.add('hidden');
+                        });
+                    } else {
+                        sidebar.classList.remove('sidebar-collapsed');
+                        sidebar.classList.add('sidebar-expanded');
+                        mainContent.classList.remove('main-collapsed');
+                        mainContent.classList.add('main-expanded');
+                        // Mostrar textos del sidebar
+                        document.querySelectorAll('.sidebar-text').forEach(text => {
+                            text.classList.remove('hidden');
+                        });
+                    }
                 });
-                item.addEventListener('mouseleave', () => {
-                    item.classList.remove('bg-white/10');
-                });
             }
-        });
 
-        // Pagination click handlers
-        document.querySelectorAll('[class*="w-10 h-10"]').forEach(button => {
-            button.addEventListener('click', function() {
-                // Remove active state from all pagination buttons
-                document.querySelectorAll('[class*="w-10 h-10"]').forEach(btn => {
-                    btn.classList.remove('bg-primary', 'text-white');
-                    btn.classList.add('text-gray-600', 'dark:text-gray-400', 'hover:bg-gray-100', 'dark:hover:bg-gray-700');
+            // Navigation hover effects
+            const navItems = document.querySelectorAll('nav > div > a');
+            navItems.forEach(item => {
+                if (!item.classList.contains('bg-white/20')) {
+                    item.addEventListener('mouseenter', () => {
+                        item.classList.add('bg-white/10');
+                    });
+                    item.addEventListener('mouseleave', () => {
+                        item.classList.remove('bg-white/10');
+                    });
+                }
+            });
+
+            // User Dropdown functionality
+            if (userMenuBtn && userDropdown) {
+                console.log('✅ Inicializando dropdown del usuario');
+                
+                // Toggle dropdown on button click
+                userMenuBtn.addEventListener('click', (e) => {
+                    console.log('👤 Click en botón del usuario');
+                    e.stopPropagation();
+                    userDropdown.classList.toggle('hidden');
+                    console.log('👤 Dropdown estado:', userDropdown.classList.contains('hidden') ? 'cerrado' : 'abierto');
                 });
                 
-                // Add active state to clicked button
-                this.classList.add('bg-primary', 'text-white');
-                this.classList.remove('text-gray-600', 'dark:text-gray-400', 'hover:bg-gray-100', 'dark:hover:bg-gray-700');
-            });
+                // Close dropdown when clicking outside
+                document.addEventListener('click', (e) => {
+                    if (!userDropdown.contains(e.target) && !userMenuBtn.contains(e.target)) {
+                        userDropdown.classList.add('hidden');
+                        console.log('👤 Dropdown cerrado por click externo');
+                    }
+                });
+                
+                // Handle dropdown menu items
+                userDropdown.querySelectorAll('a').forEach(item => {
+                    item.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        const action = e.currentTarget.querySelector('span').textContent;
+                        console.log('👤 Acción seleccionada:', action);
+                        
+                        switch(action) {
+                            case 'Ver perfil':
+                                console.log('Ver perfil clicked');
+                                // TODO: Implementar página de perfil
+                                break;
+                            case 'Gestionar usuarios':
+                                console.log('Redirigiendo a gestionar usuarios...');
+                                window.location.href = '../admin/users.html';
+                                break;
+                            case 'Cerrar sesión':
+                                console.log('Cerrando sesión...');
+                                if (window.authService) {
+                                    window.authService.logout();
+                                } else {
+                                    window.location.href = '/index.html';
+                                }
+                                break;
+                        }
+                        
+                        userDropdown.classList.add('hidden');
+                    });
+                });
+            } else {
+                console.error('❌ No se encontraron elementos del dropdown del usuario');
+            }
         });
     </script>
 </body>
