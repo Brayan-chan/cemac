@@ -62,6 +62,10 @@ class LoginHandler {
             const result = await window.authService.login(email, password);
 
             if (result.success) {
+                // Guardar el token
+                localStorage.setItem('authToken', result.token);
+                console.log('Token guardado:', result.token); // Para depuración
+                
                 this.showSuccess('¡Login exitoso! Redirigiendo...');
                 
                 setTimeout(() => {
