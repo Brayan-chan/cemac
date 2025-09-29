@@ -347,10 +347,20 @@
     </div>
 
     <script type="module" src="/js/services/authService.js"></script>
-    <!--<script type="module" src="/js/services/inventoryService.js"></script>-->
     <script type="module" src="/js/utils/uiUtils.js"></script>
     <script type="module" src="/js/modules/dashboardHandler.js"></script>
-    <!--<script type="module" src="/js/modules/inventoryPageHandler.js"></script>-->
+    <script type="module" src="/js/services/inventoryService.js"></script>
+    <script type="module" src="/js/modules/inventoryHandler.js"></script>
+    <script>
+        // Verificar autenticación al cargar la página
+        document.addEventListener('DOMContentLoaded', () => {
+            const token = localStorage.getItem('authToken');
+            if (!token) {
+                window.location.href = '/index.html';
+                return;
+            }
+        });
+    </script>
     <script>
         // Función principal para inicializar el dropdown
         function initializeUserDropdown() {
