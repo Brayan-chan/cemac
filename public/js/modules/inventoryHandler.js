@@ -1,250 +1,487 @@
-import { InventoryService } from '/js/services/inventoryService.js';
+import { InventoryService } from "/js/services/inventoryService.js"
 
 class InventoryHandler {
-    constructor() {
-        // Verificar autenticación usando el mismo método que authService
-        const token = localStorage.getItem('authToken');
-        if (!token) {
-            window.location.href = '/index.html';
-            return;
-        }
-
-        this.inventoryService = new InventoryService();
-        this.currentFilters = {
-            category: '',
-            price: '',
-            availability: '',
-            page: 1,
-            limit: 10,
-            sort: 'createdAt',
-            order: 'desc'
-        };
-        this.totalPages = 1;
-        this.products = [];
-        
-        this.initializeEventListeners();
-        this.loadProducts();
+  constructor() {
+    // Verificar autenticación usando el mismo método que authService
+    const token = localStorage.getItem("authToken")
+    if (!token) {
+      window.location.href = "/index.html"
+      return
     }
 
-    initializeEventListeners() {
-        // Filtros
-        document.getElementById('categoryFilter')?.addEventListener('change', (e) => {
-            this.currentFilters.category = e.target.value;
-            this.loadProducts();
-        });
+    this.inventoryService = new InventoryService()
+    this.currentFilters = {
+      category: "",
+      price: "",
+      status: "",
+      sort: "name",
+      page: 1,
+      limit: 10,
+    }
+    this.totalPages = 1
+    this.totalProducts = 0
+    this.products = []
 
-        document.getElementById('priceFilter')?.addEventListener('change', (e) => {
-            this.currentFilters.price = e.target.value;
-            this.loadProducts();
-        });
+    this.initializeEventListeners()
+    this.loadProducts()
+  }
 
-        document.getElementById('availabilityFilter')?.addEventListener('change', (e) => {
-            this.currentFilters.availability = e.target.value;
-            this.loadProducts();
-        });
+  initializeEventListeners() {
+    // Filter event listeners
+    document.getElementById("categoryFilter")?.addEventListener("change", (e) => {
+      this.currentFilters.category = e.target.value
+      this.currentFilters.page = 1 // Reset to first page
+    })
 
-        // Botón de añadir producto
-        document.getElementById('addProductButton')?.addEventListener('click', () => {
-            this.showAddProductModal();
-        });
+    document.getElementById("priceFilter")?.addEventListener("change", (e) => {
+      this.currentFilters.price = e.target.value
+      this.currentFilters.page = 1
+    })
 
-        // Paginación
-        document.getElementById('prevPage')?.addEventListener('click', () => {
-            if (this.currentFilters.page > 1) {
-                this.currentFilters.page--;
-                this.loadProducts();
-            }
-        });
+    document.getElementById("statusFilter")?.addEventListener("change", (e) => {
+      this.currentFilters.status = e.target.value
+      this.currentFilters.page = 1
+    })
 
-        document.getElementById('nextPage')?.addEventListener('click', () => {
-            if (this.currentFilters.page < this.totalPages) {
-                this.currentFilters.page++;
-                this.loadProducts();
-            }
-        });
+    document.getElementById("sortFilter")?.addEventListener("change", (e) => {
+      this.currentFilters.sort = e.target.value
+      this.currentFilters.page = 1
+    })
 
-        // Formulario de añadir/editar producto
-        document.getElementById('productForm')?.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const formData = new FormData(e.target);
-            const productData = {
-                name: formData.get('name'),
-                description: formData.get('description'),
-                category: formData.get('category'),
-                price: parseFloat(formData.get('price')),
-                promotionalPrice: parseFloat(formData.get('promotionalPrice')) || null,
-                stock: parseInt(formData.get('stock')),
-                availability: formData.get('availability'),
-                image: formData.get('image')
-            };
+    // Apply filters button
+    document.getElementById("applyFiltersBtn")?.addEventListener("click", () => {
+      this.loadProducts()
+    })
 
-            const productId = formData.get('productId');
-            if (productId) {
-                this.updateProduct(productId, productData);
-            } else {
-                this.createProduct(productData);
-            }
-        });
+    // Add product button
+    document.getElementById("addProductBtn")?.addEventListener("click", () => {
+      this.showAddProductModal()
+    })
+
+    // Pagination
+    document.getElementById("prevPageBtn")?.addEventListener("click", () => {
+      if (this.currentFilters.page > 1) {
+        this.currentFilters.page--
+        this.loadProducts()
+      }
+    })
+
+    document.getElementById("nextPageBtn")?.addEventListener("click", () => {
+      if (this.currentFilters.page < this.totalPages) {
+        this.currentFilters.page++
+        this.loadProducts()
+      }
+    })
+
+    // Modal event listeners
+    document.getElementById("closeModal")?.addEventListener("click", () => {
+      this.hideModal()
+    })
+
+    document.getElementById("cancelBtn")?.addEventListener("click", () => {
+      this.hideModal()
+    })
+
+    // Form submission
+    document.getElementById("productForm")?.addEventListener("submit", (e) => {
+      e.preventDefault()
+      const formData = new FormData(e.target)
+      const productData = {
+        name: formData.get("nombre"),
+        description: formData.get("descripcion"),
+        category: formData.get("categoria"),
+        price: Number.parseFloat(formData.get("precio")),
+        stock: Number.parseInt(formData.get("stock")) || 0,
+        availability: formData.get("disponible") ? "unlimited" : "limited",
+      }
+
+      const productId = e.target.getAttribute("data-product-id")
+      if (productId) {
+        this.updateProduct(productId, productData)
+      } else {
+        this.createProduct(productData)
+      }
+    })
+
+    // Unlimited stock checkbox
+    document.getElementById("disponible")?.addEventListener("change", (e) => {
+      const stockInput = document.getElementById("stock")
+      if (e.target.checked) {
+        stockInput.disabled = true
+        stockInput.value = ""
+        stockInput.placeholder = "∞"
+      } else {
+        stockInput.disabled = false
+        stockInput.placeholder = "0"
+      }
+    })
+  }
+
+  async loadProducts() {
+    try {
+      this.showLoadingState()
+
+      // Build query parameters
+      const queryParams = {}
+      if (this.currentFilters.category) queryParams.category = this.currentFilters.category
+      if (this.currentFilters.price) queryParams.price = this.currentFilters.price
+      if (this.currentFilters.status) queryParams.status = this.currentFilters.status
+      if (this.currentFilters.sort) queryParams.sort = this.currentFilters.sort
+      queryParams.page = this.currentFilters.page
+      queryParams.limit = this.currentFilters.limit
+
+      const response = await this.inventoryService.getProducts(queryParams)
+
+      // Handle different response structures
+      if (Array.isArray(response)) {
+        this.products = response
+        this.totalProducts = response.length
+        this.totalPages = Math.ceil(this.totalProducts / this.currentFilters.limit)
+      } else if (response.products) {
+        this.products = response.products
+        this.totalProducts = response.total || response.products.length
+        this.totalPages = response.totalPages || Math.ceil(this.totalProducts / this.currentFilters.limit)
+      } else {
+        this.products = []
+        this.totalProducts = 0
+        this.totalPages = 1
+      }
+
+      this.hideLoadingState()
+      this.renderProducts()
+      this.updatePagination()
+    } catch (error) {
+      console.error("Error al cargar productos:", error)
+      this.hideLoadingState()
+
+      if (error.message.includes("401")) {
+        localStorage.removeItem("authToken")
+        window.location.href = "/index.html"
+      } else {
+        this.showError("Error al cargar los productos. Por favor, intenta de nuevo.")
+        this.showEmptyState()
+      }
+    }
+  }
+
+  renderProducts() {
+    const tableBody = document.getElementById("productsTableBody")
+    if (!tableBody) return
+
+    if (this.products.length === 0) {
+      this.showEmptyState()
+      return
     }
 
-    async loadProducts() {
-        try {
-            const products = await this.inventoryService.getProducts(this.currentFilters);
-            this.products = products;
-            this.renderProducts();
-            this.updatePagination();
-        } catch (error) {
-            console.error('Error al cargar productos:', error);
-            if (error.message.includes('401')) {
-                // Si el error es de autenticación, redirigir al login
-                localStorage.removeItem('authData');
-                window.location.href = '/index.html';
-            } else {
-                this.showError('Error al cargar los productos. Por favor, intenta de nuevo.');
-            }
-        }
-    }
+    this.hideEmptyState()
 
-    renderProducts() {
-        const productsList = document.getElementById('productsList');
-        if (!productsList) return;
+    tableBody.innerHTML = this.products
+      .map((product) => {
+        const statusClass = this.getStatusClass(product.stock)
+        const statusText = this.getStatusText(product.stock)
 
-        productsList.innerHTML = this.products.map(product => `
-            <div class="product-card bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-                <div class="flex items-center space-x-4">
-                    <div class="flex-shrink-0">
-                        <img src="${product.imageUrl || 'placeholder.png'}" alt="${product.name}" 
-                             class="w-20 h-20 object-cover rounded-lg">
-                    </div>
-                    <div class="flex-1">
-                        <h3 class="text-lg font-medium">${product.name}</h3>
-                        <p class="text-sm text-gray-600">${product.description}</p>
-                        <div class="mt-2 flex items-center space-x-4">
-                            <span class="text-sm font-medium">$${product.price.toFixed(2)}</span>
-                            ${product.promotionalPrice ? 
-                              `<span class="text-sm text-red-600">$${product.promotionalPrice.toFixed(2)}</span>` : ''}
-                            <span class="text-sm ${product.stock > 10 ? 'text-green-600' : 'text-red-600'}">
-                                Stock: ${product.stock}
-                            </span>
+        return `
+                <tr class="hover:bg-gray-50 transition-colors">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="flex items-center space-x-4">
+                            <div class="flex-shrink-0 w-12 h-12">
+                                <img src="${product.imageUrl || "/diverse-products-still-life.png"}" 
+                                     alt="${product.name}" 
+                                     class="w-12 h-12 object-cover rounded-lg bg-gray-100">
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="text-sm font-medium text-gray-900 truncate">
+                                    ${product.name || "Sin nombre"}
+                                </div>
+                                <div class="text-xs text-gray-500 font-mono">
+                                    ${product.code || product.id || "N/A"}
+                                </div>
+                                <div class="text-xs text-gray-600 truncate max-w-xs">
+                                    ${product.description || "Sin descripción"}
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                    <div class="flex-shrink-0">
-                        <button onclick="inventoryHandler.showEditProductModal('${product.id}')" 
-                                class="text-blue-600 hover:text-blue-800">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button onclick="inventoryHandler.deleteProduct('${product.id}')"
-                                class="ml-2 text-red-600 hover:text-red-800">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        `).join('');
-    }
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="text-sm text-gray-900">${product.category || "Sin categoría"}</span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">
+                            $${(product.price || 0).toFixed(2)}
+                        </div>
+                        ${
+                          product.promotionalPrice
+                            ? `<div class="text-xs text-red-600">$${product.promotionalPrice.toFixed(2)}</div>`
+                            : ""
+                        }
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="text-sm text-gray-900">
+                            ${product.stock !== undefined ? `${product.stock} unidades` : "N/A"}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="inline-flex px-2 py-1 text-xs font-medium rounded-full ${statusClass}">
+                            ${statusText}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <div class="flex items-center space-x-2">
+                            <button onclick="inventoryHandler.showEditProductModal('${product.id}')" 
+                                    class="text-[#8B7EC7] hover:text-[#7A6DB8] transition-colors"
+                                    title="Editar producto">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button onclick="inventoryHandler.deleteProduct('${product.id}')"
+                                    class="text-red-600 hover:text-red-800 transition-colors"
+                                    title="Eliminar producto">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `
+      })
+      .join("")
+  }
 
-    updatePagination() {
-        const pagination = document.getElementById('pagination');
-        if (!pagination) return;
+  getStatusClass(stock) {
+    if (stock === undefined || stock === null) return "bg-gray-100 text-gray-800"
+    if (stock === 0) return "bg-red-100 text-red-800"
+    if (stock <= 10) return "bg-yellow-100 text-yellow-800"
+    return "bg-green-100 text-green-800"
+  }
 
-        pagination.innerHTML = `
-            <button id="prevPage" class="pagination-button" ${this.currentFilters.page <= 1 ? 'disabled' : ''}>
-                Anterior
-            </button>
-            <span>Página ${this.currentFilters.page} de ${this.totalPages}</span>
-            <button id="nextPage" class="pagination-button" 
-                    ${this.currentFilters.page >= this.totalPages ? 'disabled' : ''}>
-                Siguiente
-            </button>
-        `;
-    }
+  getStatusText(stock) {
+    if (stock === undefined || stock === null) return "Sin datos"
+    if (stock === 0) return "Agotado"
+    if (stock <= 10) return "Stock bajo"
+    return "Disponible"
+  }
 
-    async createProduct(productData) {
-        try {
-            await this.inventoryService.createProduct(productData);
-            this.loadProducts();
-            this.hideModal();
-            this.showSuccess('Producto creado exitosamente');
-        } catch (error) {
-            console.error('Error al crear producto:', error);
-            this.showError('Error al crear el producto');
+  updatePagination() {
+    const paginationNumbers = document.getElementById("paginationNumbers")
+    const prevBtn = document.getElementById("prevPageBtn")
+    const nextBtn = document.getElementById("nextPageBtn")
+
+    if (!paginationNumbers || !prevBtn || !nextBtn) return
+
+    // Update button states
+    prevBtn.disabled = this.currentFilters.page <= 1
+    nextBtn.disabled = this.currentFilters.page >= this.totalPages
+
+    // Generate page numbers
+    const pageNumbers = this.generatePageNumbers()
+    paginationNumbers.innerHTML = pageNumbers
+      .map((page) => {
+        if (page === "...") {
+          return `<span class="px-3 py-2 text-gray-500">...</span>`
         }
-    }
 
-    async updateProduct(productId, productData) {
-        try {
-            await this.inventoryService.updateProduct(productId, productData);
-            this.loadProducts();
-            this.hideModal();
-            this.showSuccess('Producto actualizado exitosamente');
-        } catch (error) {
-            console.error('Error al actualizar producto:', error);
-            this.showError('Error al actualizar el producto');
+        const isActive = page === this.currentFilters.page
+        return `
+                <button 
+                    onclick="inventoryHandler.goToPage(${page})"
+                    class="w-10 h-10 flex items-center justify-center rounded-lg text-sm font-medium transition-colors
+                           ${isActive ? "bg-gray-900 text-white" : "text-gray-600 hover:bg-gray-100"}"
+                >
+                    ${page}
+                </button>
+            `
+      })
+      .join("")
+  }
+
+  generatePageNumbers() {
+    const current = this.currentFilters.page
+    const total = this.totalPages
+    const pages = []
+
+    if (total <= 7) {
+      // Show all pages if 7 or fewer
+      for (let i = 1; i <= total; i++) {
+        pages.push(i)
+      }
+    } else {
+      // Always show first page
+      pages.push(1)
+
+      if (current <= 4) {
+        // Show 1, 2, 3, 4, 5, ..., last
+        for (let i = 2; i <= 5; i++) {
+          pages.push(i)
         }
-    }
-
-    async deleteProduct(productId) {
-        if (!confirm('¿Estás seguro de que deseas eliminar este producto?')) return;
-
-        try {
-            await this.inventoryService.deleteProduct(productId);
-            this.loadProducts();
-            this.showSuccess('Producto eliminado exitosamente');
-        } catch (error) {
-            console.error('Error al eliminar producto:', error);
-            this.showError('Error al eliminar el producto');
+        pages.push("...")
+        pages.push(total)
+      } else if (current >= total - 3) {
+        // Show 1, ..., last-4, last-3, last-2, last-1, last
+        pages.push("...")
+        for (let i = total - 4; i <= total; i++) {
+          pages.push(i)
         }
-    }
-
-    showAddProductModal() {
-        const modal = document.getElementById('productModal');
-        const form = document.getElementById('productForm');
-        if (!modal || !form) return;
-
-        form.reset();
-        form.removeAttribute('data-product-id');
-        modal.classList.remove('hidden');
-    }
-
-    async showEditProductModal(productId) {
-        const product = this.products.find(p => p.id === productId);
-        if (!product) return;
-
-        const modal = document.getElementById('productModal');
-        const form = document.getElementById('productForm');
-        if (!modal || !form) return;
-
-        form.elements.name.value = product.name;
-        form.elements.description.value = product.description;
-        form.elements.category.value = product.category;
-        form.elements.price.value = product.price;
-        form.elements.promotionalPrice.value = product.promotionalPrice || '';
-        form.elements.stock.value = product.stock;
-        form.elements.availability.value = product.availability;
-        form.setAttribute('data-product-id', productId);
-
-        modal.classList.remove('hidden');
-    }
-
-    hideModal() {
-        const modal = document.getElementById('productModal');
-        if (modal) {
-            modal.classList.add('hidden');
+      } else {
+        // Show 1, ..., current-1, current, current+1, ..., last
+        pages.push("...")
+        for (let i = current - 1; i <= current + 1; i++) {
+          pages.push(i)
         }
+        pages.push("...")
+        pages.push(total)
+      }
     }
 
-    showSuccess(message) {
-        // Implementar notificación de éxito
-        alert(message); // Temporal, mejorar con una notificación más elegante
+    return pages
+  }
+
+  goToPage(page) {
+    if (page >= 1 && page <= this.totalPages && page !== this.currentFilters.page) {
+      this.currentFilters.page = page
+      this.loadProducts()
+    }
+  }
+
+  showLoadingState() {
+    const loadingState = document.getElementById("loadingState")
+    const tableBody = document.getElementById("productsTableBody")
+    const emptyState = document.getElementById("emptyState")
+
+    if (loadingState) loadingState.classList.remove("hidden")
+    if (tableBody) tableBody.innerHTML = ""
+    if (emptyState) emptyState.classList.add("hidden")
+  }
+
+  hideLoadingState() {
+    const loadingState = document.getElementById("loadingState")
+    if (loadingState) loadingState.classList.add("hidden")
+  }
+
+  showEmptyState() {
+    const emptyState = document.getElementById("emptyState")
+    const tableBody = document.getElementById("productsTableBody")
+
+    if (emptyState) emptyState.classList.remove("hidden")
+    if (tableBody) tableBody.innerHTML = ""
+  }
+
+  hideEmptyState() {
+    const emptyState = document.getElementById("emptyState")
+    if (emptyState) emptyState.classList.add("hidden")
+  }
+
+  async createProduct(productData) {
+    try {
+      await this.inventoryService.createProduct(productData)
+      this.loadProducts()
+      this.hideModal()
+      this.showSuccess("Producto creado exitosamente")
+    } catch (error) {
+      console.error("Error al crear producto:", error)
+      this.showError("Error al crear el producto")
+    }
+  }
+
+  async updateProduct(productId, productData) {
+    try {
+      await this.inventoryService.updateProduct(productId, productData)
+      this.loadProducts()
+      this.hideModal()
+      this.showSuccess("Producto actualizado exitosamente")
+    } catch (error) {
+      console.error("Error al actualizar producto:", error)
+      this.showError("Error al actualizar el producto")
+    }
+  }
+
+  async deleteProduct(productId) {
+    if (!confirm("¿Estás seguro de que deseas eliminar este producto?")) return
+
+    try {
+      await this.inventoryService.deleteProduct(productId)
+      this.loadProducts()
+      this.showSuccess("Producto eliminado exitosamente")
+    } catch (error) {
+      console.error("Error al eliminar producto:", error)
+      this.showError("Error al eliminar el producto")
+    }
+  }
+
+  showAddProductModal() {
+    const modal = document.getElementById("productModal")
+    const form = document.getElementById("productForm")
+    const modalTitle = document.getElementById("modalTitle")
+
+    if (!modal || !form) return
+
+    form.reset()
+    form.removeAttribute("data-product-id")
+    modalTitle.textContent = "Añadir producto"
+
+    // Reset unlimited checkbox
+    const unlimitedCheckbox = document.getElementById("disponible")
+    const stockInput = document.getElementById("stock")
+    if (unlimitedCheckbox && stockInput) {
+      unlimitedCheckbox.checked = true
+      stockInput.disabled = true
+      stockInput.value = ""
+      stockInput.placeholder = "∞"
     }
 
-    showError(message) {
-        // Implementar notificación de error
-        alert(message); // Temporal, mejorar con una notificación más elegante
+    modal.classList.remove("hidden")
+  }
+
+  async showEditProductModal(productId) {
+    const product = this.products.find((p) => p.id === productId)
+    if (!product) return
+
+    const modal = document.getElementById("productModal")
+    const form = document.getElementById("productForm")
+    const modalTitle = document.getElementById("modalTitle")
+
+    if (!modal || !form) return
+
+    // Fill form with product data
+    form.elements.nombre.value = product.name || ""
+    form.elements.descripcion.value = product.description || ""
+    form.elements.categoria.value = product.category || ""
+    form.elements.precio.value = product.price || ""
+    form.elements.stock.value = product.stock || ""
+
+    // Handle unlimited availability
+    const unlimitedCheckbox = document.getElementById("disponible")
+    const stockInput = document.getElementById("stock")
+    if (unlimitedCheckbox && stockInput) {
+      const isUnlimited = product.availability === "unlimited" || product.stock === null
+      unlimitedCheckbox.checked = isUnlimited
+      stockInput.disabled = isUnlimited
+      if (!isUnlimited) {
+        stockInput.placeholder = "0"
+      }
     }
+
+    form.setAttribute("data-product-id", productId)
+    modalTitle.textContent = "Editar producto"
+    modal.classList.remove("hidden")
+  }
+
+  hideModal() {
+    const modal = document.getElementById("productModal")
+    if (modal) {
+      modal.classList.add("hidden")
+    }
+  }
+
+  showSuccess(message) {
+    // Implementar notificación de éxito
+    alert(message) // Temporal, mejorar con una notificación más elegante
+  }
+
+  showError(message) {
+    // Implementar notificación de error
+    alert(message) // Temporal, mejorar con una notificación más elegante
+  }
 }
 
 // Inicializar el manejador cuando el documento esté listo
-document.addEventListener('DOMContentLoaded', () => {
-    window.inventoryHandler = new InventoryHandler();
-});
+document.addEventListener("DOMContentLoaded", () => {
+  window.inventoryHandler = new InventoryHandler()
+})
