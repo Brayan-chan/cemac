@@ -71,6 +71,15 @@ class JAVIAssistant {
     this.elements.priceAnalysisBtn?.addEventListener("click", () => this.analyzePrices())
     this.elements.restockSuggestionsBtn?.addEventListener("click", () => this.generateRestockSuggestions())
     this.elements.competitorAnalysisBtn?.addEventListener("click", () => this.analyzeCompetition())
+
+    // Add refresh conversations button listener if it exists
+    const refreshConversationsBtn = document.querySelector('[onclick="javiAssistant.displayRecentConversations()"]')
+    if (refreshConversationsBtn) {
+      refreshConversationsBtn.addEventListener("click", (e) => {
+        e.preventDefault()
+        this.displayRecentConversations()
+      })
+    }
   }
 
   async checkApiKey() {
@@ -430,8 +439,173 @@ Enfócate en: optimización de inventario, estrategias de precios, y oportunidad
       .join("")
   }
 
+  displayRecentConversations() {
+    if (!this.elements.recommendationsGrid) {
+      console.warn("recommendationsGrid element not found")
+      return
+    }
+
+    const conversations = this.getRecentConversations()
+    
+    if (conversations.length === 0) {
+      this.elements.recommendationsGrid.innerHTML = `
+        <div class="col-span-full bg-white rounded-lg shadow-sm border border-gray-200 p-8 text-center">
+          <i class="fas fa-comments text-gray-300 text-4xl mb-4"></i>
+          <p class="text-gray-500">No hay conversaciones recientes</p>
+          <p class="text-sm text-gray-400 mt-2">Comienza a chatear con JAVI para ver tus conversaciones aquí</p>
+        </div>
+      `
+      return
+    }
+
+    this.elements.recommendationsGrid.innerHTML = conversations
+      .map((conversation, index) => {
+        const userMessage = conversation.user || "Sin mensaje"
+        const assistantResponse = conversation.assistant || "Sin respuesta"
+        const timestamp = conversation.timestamp || new Date().toISOString()
+        
+        // Truncar mensajes largos
+        const truncatedUser = userMessage.length > 100 ? userMessage.substring(0, 100) + "..." : userMessage
+        const truncatedAssistant = assistantResponse.length > 150 ? assistantResponse.substring(0, 150) + "..." : assistantResponse
+
+        return `
+          <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 hover:shadow-md transition-shadow">
+            <div class="flex items-start space-x-3">
+              <div class="w-8 h-8 bg-[#8B7EC7] text-white rounded-full flex items-center justify-center text-sm font-medium">
+                <i class="fas fa-robot"></i>
+              </div>
+              <div class="flex-1">
+                <div class="mb-3">
+                  <div class="text-xs text-gray-500 mb-1">
+                    <i class="fas fa-user mr-1"></i>
+                    Tu pregunta:
+                  </div>
+                  <p class="text-sm text-gray-800 bg-gray-50 rounded p-2">${truncatedUser}</p>
+                </div>
+                
+                <div class="mb-3">
+                  <div class="text-xs text-gray-500 mb-1">
+                    <i class="fas fa-robot mr-1"></i>
+                    Respuesta de JAVI:
+                  </div>
+                  <p class="text-sm text-gray-600">${this.formatMessage(truncatedAssistant)}</p>
+                </div>
+                
+                <div class="flex items-center justify-between">
+                  <span class="text-xs text-gray-400">
+                    <i class="fas fa-clock mr-1"></i>
+                    ${this.formatTimestamp(timestamp)}
+                  </span>
+                  <button onclick="javiAssistant.viewFullConversation(${index})" class="text-xs text-[#8B7EC7] hover:text-[#7A6DB8] font-medium">
+                    <i class="fas fa-eye mr-1"></i>
+                    Ver completa
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        `
+      })
+      .join("")
+  }
+
+  getRecentConversations() {
+    const conversations = []
+    const history = this.conversationHistory
+    
+    // Agrupar conversaciones de usuario y asistente en pares
+    for (let i = 0; i < history.length; i += 2) {
+      if (history[i] && history[i + 1]) {
+        conversations.push({
+          user: history[i].content,
+          assistant: history[i + 1].content,
+          timestamp: new Date().toISOString() // Podrías agregar timestamp real si lo guardas
+        })
+      }
+    }
+    
+    // Mostrar solo las 6 conversaciones más recientes
+    const recentConversations = conversations.slice(-6).reverse()
+    
+    return recentConversations
+  }
+
+  formatTimestamp(timestamp) {
+    const date = new Date(timestamp)
+    const now = new Date()
+    const diffMs = now - date
+    const diffMins = Math.floor(diffMs / 60000)
+    const diffHours = Math.floor(diffMs / 3600000)
+    const diffDays = Math.floor(diffMs / 86400000)
+
+    if (diffMins < 1) return "Ahora mismo"
+    if (diffMins < 60) return `Hace ${diffMins} min`
+    if (diffHours < 24) return `Hace ${diffHours}h`
+    if (diffDays < 7) return `Hace ${diffDays} días`
+    
+    return date.toLocaleDateString('es-ES', { 
+      day: 'numeric', 
+      month: 'short',
+      hour: '2-digit',
+      minute: '2-digit'
+    })
+  }
+
+  viewFullConversation(index) {
+    const conversations = this.getRecentConversations()
+    const conversation = conversations[index]
+    
+    if (!conversation) return
+
+    const modal = document.createElement("div")
+    modal.className = "fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+    modal.innerHTML = `
+      <div class="bg-white rounded-lg max-w-2xl w-full max-h-[80vh] overflow-hidden">
+        <div class="p-4 border-b border-gray-200 flex items-center justify-between">
+          <h3 class="text-lg font-medium text-gray-900">
+            <i class="fas fa-comments text-[#8B7EC7] mr-2"></i>
+            Conversación con JAVI
+          </h3>
+          <button onclick="this.closest('.fixed').remove()" class="text-gray-400 hover:text-gray-600">
+            <i class="fas fa-times text-xl"></i>
+          </button>
+        </div>
+        
+        <div class="p-4 max-h-96 overflow-y-auto">
+          <div class="space-y-4">
+            <div class="flex justify-end">
+              <div class="max-w-md bg-[#8B7EC7] text-white px-4 py-2 rounded-lg">
+                ${conversation.user}
+              </div>
+            </div>
+            
+            <div class="flex justify-start">
+              <div class="max-w-md bg-gray-200 text-gray-800 px-4 py-2 rounded-lg">
+                ${this.formatMessage(conversation.assistant)}
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="p-4 border-t border-gray-200 bg-gray-50">
+          <div class="flex items-center justify-between text-sm text-gray-500">
+            <span>
+              <i class="fas fa-clock mr-1"></i>
+              ${this.formatTimestamp(conversation.timestamp)}
+            </span>
+            <button onclick="this.closest('.fixed').remove()" class="text-[#8B7EC7] hover:text-[#7A6DB8] font-medium">
+              Cerrar
+            </button>
+          </div>
+        </div>
+      </div>
+    `
+    document.body.appendChild(modal)
+  }
+
   saveConversation() {
     localStorage.setItem("javi_conversation", JSON.stringify(this.conversationHistory))
+    this.displayRecentConversations()
   }
 
   saveRecommendations(recommendations) {
@@ -452,16 +626,34 @@ Enfócate en: optimización de inventario, estrategias de precios, y oportunidad
     const conversation = localStorage.getItem("javi_conversation")
     if (conversation) {
       this.conversationHistory = JSON.parse(conversation)
+    } else {
+      // Add sample conversations for testing if none exist
+      this.conversationHistory = [
+        {
+          role: "user",
+          content: "¿Cuáles son mis productos más vendidos este mes?"
+        },
+        {
+          role: "assistant", 
+          content: "Basándome en el análisis de tus ventas, tus productos más vendidos este mes son:\n\n**1. Cuadernos Universitarios** - 45 unidades vendidas\n**2. Bolígrafos BIC azules** - 38 unidades vendidas\n**3. Folders Manila** - 32 unidades vendidas\n\nEstos productos representan el 60% de tus ventas totales. Te recomiendo mantener un stock mínimo de 50 unidades para cada uno."
+        },
+        {
+          role: "user",
+          content: "¿Qué productos necesito reabastecer urgentemente?"
+        },
+        {
+          role: "assistant",
+          content: "⚠️ **Productos que requieren reabastecimiento urgente:**\n\n**Stock crítico (≤5 unidades):**\n• Papel bond A4 - 3 unidades\n• Marcadores permanentes - 2 unidades\n• Grapas estándar - 1 unidad\n\n**Stock bajo (6-10 unidades):**\n• Correctores líquidos - 8 unidades\n• Reglas de 30cm - 6 unidades\n\nTe sugiero hacer un pedido inmediato de estos productos para evitar pérdidas de ventas."
+        }
+      ]
+      // Save sample data
+      localStorage.setItem("javi_conversation", JSON.stringify(this.conversationHistory))
     }
 
-    // Load and display recent recommendations
-    const recommendations = localStorage.getItem("javi_recommendations")
-    if (recommendations) {
-      const parsed = JSON.parse(recommendations)
-      if (parsed.length > 0) {
-        this.displayRecommendations(parsed[0].content)
-      }
-    }
+    // Delay to ensure DOM elements are available
+    setTimeout(() => {
+      this.displayRecentConversations()
+    }, 100)
   }
 }
 
