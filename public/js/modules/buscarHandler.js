@@ -311,8 +311,7 @@ class BuscarHandler {
                 ${product.categoria} • ${product.ofertas.length} proveedor${product.ofertas.length > 1 ? "es" : ""}
                 ${tieneMultiplesOfertas ? ` • Ahorra hasta ${product.porcentajeAhorro}%` : ""}
               </p>
-              
-               Best offer 
+               
               <div class="mt-2 p-2 bg-green-50 rounded-lg border border-green-200">
                 <div class="flex items-center justify-between">
                   <div>
@@ -326,7 +325,6 @@ class BuscarHandler {
               ${
                 tieneMultiplesOfertas
                   ? `
-                 Other offers 
                 <div class="mt-2 space-y-1">
                   ${product.ofertas
                     .slice(1, 3)
