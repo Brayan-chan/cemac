@@ -278,11 +278,17 @@
                     </div>
                 </div>
 
-                <!-- Recommendations Grid -->
+                <!-- Conversations Grid -->
                 <div class="mt-6">
-                    <h2 class="text-xl font-bold text-gray-900 mb-4">Recomendaciones Recientes</h2>
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-xl font-bold text-gray-900">Conversaciones Recientes con JAVI</h2>
+                        <button onclick="javiAssistant.displayRecentConversations()" class="text-sm text-[#8B7EC7] hover:text-[#7A6DB8] font-medium">
+                            <i class="fas fa-sync-alt mr-1"></i>
+                            Actualizar
+                        </button>
+                    </div>
                     <div id="recommendationsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        <!-- Recommendations will be loaded here -->
+                        <!-- Conversations will be loaded here -->
                     </div>
                 </div>
             </div>
