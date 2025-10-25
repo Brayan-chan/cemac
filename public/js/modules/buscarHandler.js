@@ -20,8 +20,6 @@ class BuscarHandler {
       rightSearchInput: document.querySelector('.grid > div:last-child input[type="text"]'),
       rightResultsContainer: document.querySelector(".grid > div:last-child .space-y-4"),
     }
-
-    console.log("[v0] Elements initialized:", this.elements)
   }
 
   initializeEventListeners() {
@@ -52,10 +50,10 @@ class BuscarHandler {
       }
       const text = await response.text()
       this.parseProveedoresData(text)
-      console.log(`[v0] ✅ Cargados ${this.proveedoresData.length} registros de proveedores`)
-      console.log(`[v0] ✅ Cargados ${this.historicalData.length} registros históricos`)
+      console.log(`✅ Cargados ${this.proveedoresData.length} registros de proveedores`)
+      console.log(`✅ Cargados ${this.historicalData.length} registros históricos`)
     } catch (error) {
-      console.error("[v0] Error cargando datos de proveedores:", error)
+      console.error("Error cargando datos de proveedores:", error)
       this.showError("No se pudieron cargar los datos de proveedores")
     }
   }
@@ -820,6 +818,5 @@ class BuscarHandler {
 
 // Initialize when DOM is ready
 document.addEventListener("DOMContentLoaded", () => {
-  console.log("[v0] Inicializando BuscarHandler...")
   window.buscarHandler = new BuscarHandler()
 })
