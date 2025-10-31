@@ -1,80 +1,148 @@
 class DashboardHandler {
-    constructor() {
-        this.userInfo = null;
+  constructor() {
+    this.userInfo = null
+    this.userRole = null
+  }
+
+  async init() {
+    console.log("[DASHBOARD] Inicializando...")
+
+    if (!this.checkAuthentication()) {
+      return
     }
 
-    async init() {
-        console.log('Dashboard inicializando...');
-        
-        if (!this.checkAuthentication()) {
-            return;
-        }
+    this.loadUserInfo()
+    this.setupEventListeners()
+    this.applyRoleBasedPermissions()
 
-        this.loadUserInfo();
-        this.setupEventListeners();
-        
-        console.log('Dashboard inicializado');
+    console.log("[DASHBOARD] Inicializado correctamente")
+  }
+
+  checkAuthentication() {
+    if (!window.authService?.isAuthenticated()) {
+      console.log("[DASHBOARD] Usuario no autenticado, redirigiendo...")
+      setTimeout(() => {
+        window.location.href = "/index.html"
+      }, 1000)
+      return false
+    }
+    return true
+  }
+
+  loadUserInfo() {
+    const user = window.authService?.getUser()
+    if (user) {
+      this.userInfo = user
+      this.userRole = user.role
+      console.log("[DASHBOARD] Usuario cargado:", user)
+      console.log("[DASHBOARD] Rol del usuario:", this.userRole)
+      this.updateUserDisplay(user)
+    }
+  }
+
+  updateUserDisplay(user) {
+    // Actualizar nombre de usuario en el header
+    const userNameElement = document.querySelector(".user-name")
+    if (userNameElement) {
+      const displayName =
+        user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : user.firstName || user.email
+      userNameElement.textContent = displayName
     }
 
-    checkAuthentication() {
-        if (!window.authService?.isAuthenticated()) {
-            console.log('Usuario no autenticado, redirigiendo...');
-            setTimeout(() => {
-                window.location.href = '/index.html';
-            }, 1000);
-            return false;
-        }
-        return true;
+    // Actualizar badge de rol si existe
+    const roleBadge = document.querySelector(".user-role-badge")
+    if (roleBadge) {
+      const roleText = user.role === "admin" ? "Administrador" : "Empleado"
+      const roleClass = user.role === "admin" ? "bg-purple-100 text-purple-800" : "bg-blue-100 text-blue-800"
+      roleBadge.textContent = roleText
+      roleBadge.className = `user-role-badge px-2 py-1 rounded-full text-xs font-medium ${roleClass}`
+    }
+  }
+
+  applyRoleBasedPermissions() {
+    if (this.userRole === "user") {
+      console.log("[DASHBOARD] Aplicando restricciones para empleado")
+
+      // Ocultar o deshabilitar elementos solo para administradores
+      const adminOnlyElements = document.querySelectorAll('[data-admin-only="true"]')
+      adminOnlyElements.forEach((element) => {
+        element.style.display = "none"
+      })
+
+      // Deshabilitar acciones de administrador
+      const adminActions = document.querySelectorAll('[data-role-required="admin"]')
+      adminActions.forEach((element) => {
+        element.disabled = true
+        element.classList.add("opacity-50", "cursor-not-allowed")
+        element.title = "Requiere permisos de administrador"
+      })
+    } else {
+      console.log("[DASHBOARD] Usuario con permisos de administrador")
+    }
+  }
+
+  hasPermission(requiredRole) {
+    if (requiredRole === "admin") {
+      return this.userRole === "admin"
+    }
+    return true // Todos tienen acceso a funciones básicas
+  }
+
+  setupEventListeners() {
+    // Botón de logout en sidebar
+    const sidebarLogoutBtn = document.querySelector('a[href="/index.html"]')
+    if (sidebarLogoutBtn) {
+      sidebarLogoutBtn.addEventListener("click", (e) => {
+        e.preventDefault()
+        this.handleLogout()
+      })
     }
 
-    loadUserInfo() {
-        const user = window.authService?.getUser();
-        if (user) {
-            this.userInfo = user;
-            console.log('Usuario cargado:', user);
-            this.updateUserDisplay(user);
-        }
-    }
+    // Todos los botones de logout
+    const logoutButtons = document.querySelectorAll('[data-action="logout"]')
+    logoutButtons.forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        e.preventDefault()
+        this.handleLogout()
+      })
+    })
+  }
 
-    updateUserDisplay(user) {
-        const userNameElement = document.querySelector('.user-name');
-        if (userNameElement && user.email) {
-            userNameElement.textContent = user.name || user.email;
-        }
+  async handleLogout() {
+    try {
+      console.log("[DASHBOARD] Cerrando sesión...")
+      await window.authService?.logout()
+    } catch (error) {
+      console.error("[DASHBOARD] Error en logout:", error)
+      // Forzar redirección incluso si hay error
+      window.location.href = "/index.html"
     }
+  }
 
-    setupEventListeners() {
-        const sidebarLogoutBtn = document.querySelector('a[href="/index.html"]');
-        if (sidebarLogoutBtn) {
-            sidebarLogoutBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                this.handleLogout();
-            });
-        }
+  getUserInfo() {
+    return this.userInfo
+  }
 
-        const logoutButtons = document.querySelectorAll('[data-action="logout"]');
-        logoutButtons.forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.preventDefault();
-                this.handleLogout();
-            });
-        });
-    }
+  getUserRole() {
+    return this.userRole
+  }
 
-    async handleLogout() {
-        try {
-            console.log('Cerrando sesion...');
-            await window.authService?.logout();
-        } catch (error) {
-            console.error('Error en logout:', error);
-            window.location.href = '/index.html';
-        }
-    }
+  isAdmin() {
+    return this.userRole === "admin"
+  }
+
+  isEmployee() {
+    return this.userRole === "user"
+  }
 }
 
-document.addEventListener('DOMContentLoaded', async () => {
-    const dashboardHandler = new DashboardHandler();
-    await dashboardHandler.init();
-});
+// Inicializar cuando el DOM esté listo
+document.addEventListener("DOMContentLoaded", async () => {
+  const dashboardHandler = new DashboardHandler()
+  await dashboardHandler.init()
 
-export default DashboardHandler;
+  // Hacer disponible globalmente para otros módulos
+  window.dashboardHandler = dashboardHandler
+})
+
+export default DashboardHandler
