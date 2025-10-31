@@ -9,6 +9,7 @@ class JAVIAssistant {
     this.salesService = new SalesService()
     this.conversationHistory = []
     this.recommendations = []
+    this.currentApiKey = null // Mantener la API key en memoria
 
     this.initializeElements()
     this.initializeEventListeners()
@@ -74,21 +75,41 @@ class JAVIAssistant {
   }
 
   async checkApiKey() {
-    const apiKey = localStorage.getItem("javi_api_key")
-    if (apiKey) {
-      try {
-        await this.initializeGemini(apiKey)
-        this.elements.apiKeyAlert?.classList.add("hidden")
-        this.elements.removeApiKeyBtn?.classList.remove("hidden")
-        this.addMessage(
-          "system",
-          "¡Hola! Soy JAVI, tu asistente inteligente para la papelería. ¿En qué puedo ayudarte hoy?",
-        )
-      } catch (error) {
-        this.showApiKeyAlert()
+    try {
+      // Intentar obtener la API key del almacenamiento local
+      const storedApiKey = localStorage.getItem("javi_api_key")
+      
+      if (storedApiKey) {
+        // Sanitizar la API key almacenada
+        const sanitizedApiKey = DOMPurify.sanitize(storedApiKey)
+        
+        if (this.validateApiKey(sanitizedApiKey)) {
+          // Intentar inicializar Gemini
+          await this.initializeGemini(sanitizedApiKey)
+          
+          // Si es exitoso, actualizar el estado
+          this.currentApiKey = sanitizedApiKey
+          this.elements.apiKeyAlert?.classList.add("hidden")
+          this.elements.removeApiKeyBtn?.classList.remove("hidden")
+          if (this.elements.apiKeyInput) {
+            this.elements.apiKeyInput.value = sanitizedApiKey
+          }
+          
+          this.addMessage(
+            "system",
+            "¡Hola! Soy JAVI, tu asistente inteligente para la papelería. ¿En qué puedo ayudarte hoy?",
+          )
+          return true
+        }
       }
-    } else {
+      
+      // Si no hay key o no es válida, mostrar alerta
       this.showApiKeyAlert()
+      return false
+    } catch (error) {
+      console.error("Error checking API key:", error)
+      this.showApiKeyAlert()
+      return false
     }
   }
 
@@ -132,33 +153,79 @@ class JAVIAssistant {
   }
 
   async saveApiKey() {
-    const apiKey = this.elements.apiKeyInput?.value.trim()
-    if (!apiKey) {
+    const rawApiKey = this.elements.apiKeyInput?.value.trim()
+    if (!rawApiKey) {
       alert("Por favor ingresa una API Key válida.")
       return
     }
 
+    // Sanitizar la API key antes de usarla
+    const apiKey = DOMPurify.sanitize(rawApiKey)
+    
     try {
+      // Validar que la API key tenga el formato correcto (alfanumérico y longitud adecuada)
+      if (!this.validateApiKey(apiKey)) {
+        throw new Error("Formato de API Key inválido")
+      }
+
+      // Intentar inicializar Gemini con la nueva key
       await this.initializeGemini(apiKey)
+      
+      // Si la inicialización es exitosa, guardar la key
       localStorage.setItem("javi_api_key", apiKey)
+      this.currentApiKey = apiKey // Mantener en memoria
+      
+      // Actualizar UI
       this.elements.removeApiKeyBtn?.classList.remove("hidden")
       this.elements.apiKeyAlert?.classList.add("hidden")
       this.hideSettings()
       this.addMessage("system", "✅ API Key guardada correctamente. ¡Comencemos a analizar tu negocio!")
     } catch (error) {
+      console.error("Error saving API key:", error)
       alert("Error: API Key inválida. Por favor verifica tu clave.")
     }
   }
 
+  validateApiKey(apiKey) {
+    // Verificar que la key sea alfanumérica y tenga la longitud correcta
+    return /^[a-zA-Z0-9_-]{20,}$/.test(apiKey.trim())
+  }
+
   removeApiKey() {
     if (confirm("¿Seguro que quieres eliminar la API Key?")) {
-      localStorage.removeItem("javi_api_key")
-      this.elements.apiKeyInput.value = ""
-      this.elements.removeApiKeyBtn?.classList.add("hidden")
-      this.geminiModel = null
-      this.showApiKeyAlert()
-      this.elements.chatMessages.innerHTML = ""
+      try {
+        // Limpiar almacenamiento local
+        localStorage.removeItem("javi_api_key")
+        
+        // Limpiar estado en memoria
+        this.currentApiKey = null
+        this.geminiModel = null
+        
+        // Limpiar UI
+        if (this.elements.apiKeyInput) {
+          this.elements.apiKeyInput.value = ""
+        }
+        this.elements.removeApiKeyBtn?.classList.add("hidden")
+        this.showApiKeyAlert()
+        
+        // Limpiar chat
+        if (this.elements.chatMessages) {
+          this.elements.chatMessages.innerHTML = DOMPurify.sanitize("")
+        }
+        
+        // Reiniciar estado del asistente
+        this.conversationHistory = []
+        this.recommendations = []
+        this.saveConversation() // Actualizar almacenamiento local
+        
+        return true
+      } catch (error) {
+        console.error("Error removing API key:", error)
+        alert("Error al eliminar la API Key. Por favor intenta de nuevo.")
+        return false
+      }
     }
+    return false
   }
 
   async sendMessage() {
@@ -398,36 +465,72 @@ Enfócate en: optimización de inventario, estrategias de precios, y oportunidad
   }
 
   displayRecommendations(recommendations) {
-    if (!this.elements.recommendationsGrid) return
+    if (!this.elements.recommendationsGrid || !recommendations) {
+      console.warn("No recommendations to display or grid element not found")
+      return
+    }
 
-    const recommendationItems = recommendations.split(/\d+\./).filter((item) => item.trim())
+    try {
+      // Sanitizar las recomendaciones
+      const sanitizedRecommendations = DOMPurify.sanitize(recommendations)
+      
+      // Dividir las recomendaciones en items individuales
+      const recommendationItems = sanitizedRecommendations
+        .split(/\d+\./)
+        .filter(item => item && item.trim())
+        .map(item => item.trim())
 
-    this.elements.recommendationsGrid.innerHTML = recommendationItems
-      .map((item, index) => {
-        const [title, ...descParts] = item.split(":")
-        const description = descParts.join(":").trim()
+      if (recommendationItems.length === 0) {
+        this.elements.recommendationsGrid.innerHTML = `
+          <div class="col-span-3 text-center py-8">
+            <p class="text-gray-500">No hay recomendaciones disponibles</p>
+          </div>
+        `
+        return
+      }
 
-        return `
-                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-                    <div class="flex items-start space-x-3">
-                        <div class="w-8 h-8 bg-[#8B7EC7] text-white rounded-full flex items-center justify-center text-sm font-medium">
-                            ${index + 1}
-                        </div>
-                        <div class="flex-1">
-                            <h3 class="font-medium text-gray-900 mb-2">${title.replace(/\*\*/g, "").trim()}</h3>
-                            <p class="text-sm text-gray-600">${description}</p>
-                            <div class="mt-3 flex items-center justify-between">
-                                <span class="text-xs text-gray-500">Generado por JAVI</span>
-                                <button class="text-xs text-[#8B7EC7] hover:text-[#7A6DB8] font-medium">
-                                    Ver detalles
-                                </button>
-                            </div>
-                        </div>
+      this.elements.recommendationsGrid.innerHTML = recommendationItems
+        .map((item, index) => {
+          try {
+            // Separar título y descripción de forma más robusta
+            const parts = item.split(":")
+            const title = parts[0] || "Recomendación"
+            const description = parts.slice(1).join(":").trim() || "No hay descripción disponible"
+
+            return `
+              <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                <div class="flex items-start space-x-3">
+                  <div class="w-8 h-8 bg-[#8B7EC7] text-white rounded-full flex items-center justify-center text-sm font-medium">
+                    ${index + 1}
+                  </div>
+                  <div class="flex-1">
+                    <h3 class="font-medium text-gray-900 mb-2">${DOMPurify.sanitize(title.replace(/\*\*/g, "").trim())}</h3>
+                    <p class="text-sm text-gray-600">${DOMPurify.sanitize(description)}</p>
+                    <div class="mt-3 flex items-center justify-between">
+                      <span class="text-xs text-gray-500">Generado por JAVI</span>
+                      <button class="text-xs text-[#8B7EC7] hover:text-[#7A6DB8] font-medium">
+                        Ver detalles
+                      </button>
                     </div>
+                  </div>
                 </div>
+              </div>
             `
-      })
-      .join("")
+          } catch (error) {
+            console.error("Error processing recommendation item:", error)
+            return ""
+          }
+        })
+        .filter(Boolean) // Eliminar items vacíos
+        .join("")
+    } catch (error) {
+      console.error("Error displaying recommendations:", error)
+      this.elements.recommendationsGrid.innerHTML = `
+        <div class="col-span-3 text-center py-8">
+          <p class="text-gray-500">Error al mostrar las recomendaciones</p>
+        </div>
+      `
+    }
   }
 
   saveConversation() {
@@ -448,19 +551,51 @@ Enfócate en: optimización de inventario, estrategias de precios, y oportunidad
   }
 
   loadStoredData() {
-    // Load conversation history
-    const conversation = localStorage.getItem("javi_conversation")
-    if (conversation) {
-      this.conversationHistory = JSON.parse(conversation)
-    }
-
-    // Load and display recent recommendations
-    const recommendations = localStorage.getItem("javi_recommendations")
-    if (recommendations) {
-      const parsed = JSON.parse(recommendations)
-      if (parsed.length > 0) {
-        this.displayRecommendations(parsed[0].content)
+    try {
+      // Cargar historial de conversación
+      const conversation = localStorage.getItem("javi_conversation")
+      if (conversation) {
+        try {
+          const parsedConversation = JSON.parse(conversation)
+          if (Array.isArray(parsedConversation)) {
+            this.conversationHistory = parsedConversation
+          } else {
+            console.warn("Invalid conversation history format")
+            this.conversationHistory = []
+          }
+        } catch (error) {
+          console.error("Error parsing conversation history:", error)
+          this.conversationHistory = []
+        }
       }
+
+      // Cargar y mostrar recomendaciones recientes
+      const recommendations = localStorage.getItem("javi_recommendations")
+      if (recommendations) {
+        try {
+          const parsed = JSON.parse(recommendations)
+          if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].content) {
+            this.recommendations = parsed
+            this.displayRecommendations(parsed[0].content)
+          } else {
+            console.warn("No valid recommendations found")
+            this.recommendations = []
+            this.displayRecommendations(null)
+          }
+        } catch (error) {
+          console.error("Error parsing recommendations:", error)
+          this.recommendations = []
+          this.displayRecommendations(null)
+        }
+      } else {
+        this.displayRecommendations(null)
+      }
+    } catch (error) {
+      console.error("Error loading stored data:", error)
+      // Reiniciar estado si hay error
+      this.conversationHistory = []
+      this.recommendations = []
+      this.displayRecommendations(null)
     }
   }
 }
