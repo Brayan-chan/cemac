@@ -27,6 +27,33 @@ class InventoryHandler {
   }
 
   initializeEventListeners() {
+    // Manejo de imágenes
+    const imageInput = document.getElementById("imageInput")
+    const uploadButton = document.getElementById("uploadButton")
+    const previewContainer = document.getElementById("previewContainer")
+    const imagePreview = document.getElementById("imagePreview")
+    const uploadText = document.getElementById("uploadText")
+
+    if (uploadButton && imageInput) {
+      uploadButton.addEventListener("click", () => {
+        imageInput.click()
+      })
+
+      imageInput.addEventListener("change", (e) => {
+        const file = e.target.files[0]
+        if (file) {
+          // Mostrar vista previa
+          const reader = new FileReader()
+          reader.onload = (e) => {
+            imagePreview.src = e.target.result
+            previewContainer.classList.remove("hidden")
+            uploadText.textContent = file.name
+          }
+          reader.readAsDataURL(file)
+        }
+      })
+    }
+
     // Filter event listeners
     document.getElementById("categoryFilter")?.addEventListener("change", (e) => {
       this.currentFilters.category = e.target.value
@@ -370,13 +397,38 @@ class InventoryHandler {
 
   async createProduct(productData) {
     try {
-      await this.inventoryService.createProduct(productData)
-      this.loadProducts()
-      this.hideModal()
+      // Obtener el archivo de imagen
+      const imageInput = document.getElementById("imageInput")
+      const imageFile = imageInput.files[0]
+      
+      // Si hay una imagen, añadirla a los datos del producto
+      if (imageFile) {
+        productData.image = imageFile
+      }
+
+      const response = await this.inventoryService.createProduct(productData)
       this.showSuccess("Producto creado exitosamente")
+      this.hideModal()
+      await this.loadProducts()
+
+      // Limpiar la vista previa de la imagen
+      const previewContainer = document.getElementById("previewContainer")
+      const uploadText = document.getElementById("uploadText")
+      if (previewContainer) {
+        previewContainer.classList.add("hidden")
+      }
+      if (uploadText) {
+        uploadText.textContent = "Cargar una imagen"
+      }
+      if (imageInput) {
+        imageInput.value = ""
+      }
+
+      return response
     } catch (error) {
-      console.error("Error al crear producto:", error)
-      this.showError("Error al crear el producto")
+      console.error("Error creating product:", error)
+      this.showError(error.message || "Error al crear el producto")
+      throw error
     }
   }
 
