@@ -132,7 +132,7 @@
                     <!-- User Menu -->
                     <div class="relative">
                         <button id="userMenuBtn" class="flex items-center space-x-2 px-2 py-1 hover:bg-gray-100 rounded-lg transition-colors">
-                            <span class="text-sm font-medium text-gray-700">jh6466011</span>
+                            <span id="userDisplayName" class="text-sm font-medium text-gray-700">Cargando...</span>
                             <i class="fas fa-chevron-down text-xs text-gray-500"></i>
                         </button>
                         
@@ -451,6 +451,41 @@
                 userDropdown: !!userDropdown,
                 closeAlertBtn: !!closeAlertBtn
             });
+
+            // Cargar datos del usuario actual
+            const loadUserData = () => {
+                const userDisplayName = document.getElementById('userDisplayName');
+                if (window.authService) {
+                    const user = window.authService.getUser();
+                    if (user) {
+                        let displayName;
+                        if (user.firstName && user.lastName) {
+                            const fullName = `${user.firstName} ${user.lastName}`;
+                            // Si el nombre completo es muy largo, mostramos solo el primer nombre y la inicial del apellido
+                            if (fullName.length > 20) {
+                                displayName = `${user.firstName} ${user.lastName.charAt(0)}.`;
+                            } else {
+                                displayName = fullName;
+                            }
+                        } else {
+                            // Si no hay nombre, usamos el email pero lo acortamos
+                            const email = user.email;
+                            const atIndex = email.indexOf('@');
+                            displayName = atIndex > 0 ? email.substring(0, atIndex) : email;
+                        }
+                        userDisplayName.textContent = displayName;
+                    } else {
+                        userDisplayName.textContent = 'Usuario';
+                        console.error('❌ No se encontró información del usuario');
+                    }
+                } else {
+                    console.error('❌ AuthService no está disponible');
+                    userDisplayName.textContent = 'Usuario';
+                }
+            };
+
+            // Cargar datos del usuario al inicio
+            loadUserData();
 
             // Initialize states
             let isCollapsed = false;
