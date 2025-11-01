@@ -137,6 +137,54 @@ const verifyAuth = async (req, res) => {
 };
 
 /**
+ * Controlador para recuperar contraseña
+ */
+const recoverPassword = async (req, res) => {
+    try {
+        const { email } = req.body;
+
+        if (!email) {
+            return res.status(400).json({
+                success: false,
+                error: 'El email es requerido'
+            });
+        }
+
+        console.log(`[AUTH CONTROLLER] Intentando recuperar contraseña para: ${email}`);
+
+        // Configurar timeout para la petición
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+        const response = await fetch(`${API_BASE_URL}/auth/recover`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ email }),
+            signal: controller.signal
+        });
+
+        clearTimeout(timeoutId);
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.error || 'Error en el servidor');
+        }
+
+        res.json(data);
+
+    } catch (error) {
+        console.error('[AUTH CONTROLLER] Error en recuperación de contraseña:', error);
+        res.status(error.name === 'AbortError' ? 504 : 500).json({
+            success: false,
+            error: error.message || 'Error al procesar la solicitud de recuperación'
+        });
+    }
+};
+
+/**
  * Controlador para registrar nuevos usuarios
  * @param {Object} req - Objeto de solicitud de Express
  * @param {Object} res - Objeto de respuesta de Express
@@ -155,7 +203,6 @@ const register = async (req, res) => {
 
         console.log(`[AUTH CONTROLLER] Intentando registro para: ${email}`);
 
-        // Aquí harías la petición a la API externa para registrar el usuario
         // Por ahora, devolvemos un mensaje indicando que no está implementado
         return res.status(501).json({
             success: false,
@@ -175,5 +222,6 @@ export {
     login, 
     logout, 
     verifyAuth, 
-    register
+    register, 
+    recoverPassword
 };
