@@ -11,6 +11,8 @@
     <link rel="icon" type="image/png" sizes="32x32"
         href="https://res.cloudinary.com/dmyejrbs7/image/upload/v1757894655/CEMAC-LOGO_nrow82.png" />
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Added Chart.js for interactive charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="/js/tailwind.config.js"></script>
 </head>
 
@@ -185,15 +187,17 @@
                             <h2 class="text-2xl font-bold text-gray-900">Ventas de hoy</h2>
                             <p class="text-gray-600">resumen de ventas</p>
                         </div>
-                        <button id="refreshAnalytics" class="px-4 py-2 bg-[#8B7EC7] text-white rounded-lg hover:bg-[#7A6DB8] transition-colors">
+                        <button id="refreshAnalytics"
+                            class="px-4 py-2 bg-[#8B7EC7] text-white rounded-lg hover:bg-[#7A6DB8] transition-colors">
                             <i class="fas fa-sync-alt mr-2"></i>
                             Actualizar
                         </button>
                     </div>
-                    
+
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                         <!-- Total de ventas -->
-                        <div class="bg-gradient-to-br from-red-100 to-red-200 rounded-xl p-6 relative overflow-hidden" data-stat="revenue">
+                        <div class="bg-gradient-to-br from-red-100 to-red-200 rounded-xl p-6 relative overflow-hidden"
+                            data-stat="revenue">
                             <div class="flex items-center justify-between mb-4">
                                 <div class="w-12 h-12 bg-red-500 rounded-lg flex items-center justify-center">
                                     <i class="fas fa-chart-bar text-white text-xl"></i>
@@ -207,7 +211,8 @@
                         </div>
 
                         <!-- Órdenes totales -->
-                        <div class="bg-gradient-to-br from-yellow-100 to-yellow-200 rounded-xl p-6 relative overflow-hidden" data-stat="orders">
+                        <div class="bg-gradient-to-br from-yellow-100 to-yellow-200 rounded-xl p-6 relative overflow-hidden"
+                            data-stat="orders">
                             <div class="flex items-center justify-between mb-4">
                                 <div class="w-12 h-12 bg-yellow-500 rounded-lg flex items-center justify-center">
                                     <i class="fas fa-file-alt text-white text-xl"></i>
@@ -221,7 +226,8 @@
                         </div>
 
                         <!-- Productos vendidos -->
-                        <div class="bg-gradient-to-br from-green-100 to-green-200 rounded-xl p-6 relative overflow-hidden" data-stat="products">
+                        <div class="bg-gradient-to-br from-green-100 to-green-200 rounded-xl p-6 relative overflow-hidden"
+                            data-stat="products">
                             <div class="flex items-center justify-between mb-4">
                                 <div class="w-12 h-12 bg-green-500 rounded-lg flex items-center justify-center">
                                     <i class="fas fa-users text-white text-xl"></i>
@@ -235,7 +241,8 @@
                         </div>
 
                         <!-- Nuevos clientes -->
-                        <div class="bg-gradient-to-br from-purple-100 to-purple-200 rounded-xl p-6 relative overflow-hidden" data-stat="clients">
+                        <div class="bg-gradient-to-br from-purple-100 to-purple-200 rounded-xl p-6 relative overflow-hidden"
+                            data-stat="clients">
                             <div class="flex items-center justify-between mb-4">
                                 <div class="w-12 h-12 bg-purple-500 rounded-lg flex items-center justify-center">
                                     <i class="fas fa-tag text-white text-xl"></i>
@@ -252,92 +259,65 @@
 
                 <!-- Charts Row -->
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-                    <!-- Estado de Inventario -->
+                    <!-- Estado de Inventario - Wide circular chart -->
                     <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-                        <div class="flex items-center justify-between mb-6">
+                        <div class="flex items-center justify-between mb-4">
                             <div>
                                 <h3 class="text-lg font-semibold text-gray-900">Estado de Inventario</h3>
                                 <p class="text-sm text-gray-600">Productos agotados</p>
                             </div>
                         </div>
-                        <div class="flex items-center justify-center h-64">
-                            <canvas id="inventoryChart" width="300" height="200"></canvas>
-                        </div>
-                        <div class="mt-4 flex justify-center space-x-6">
-                            <div class="flex items-center">
-                                <div class="w-3 h-3 bg-[#8B7EC7] rounded-full mr-2"></div>
-                                <span class="text-sm text-gray-600">Stock disponible 58.3%</span>
-                            </div>
-                            <div class="flex items-center">
-                                <div class="w-3 h-3 bg-[#A78BFA] rounded-full mr-2"></div>
-                                <span class="text-sm text-gray-600">Stock bajo 29.1%</span>
-                            </div>
+                        <div class="flex items-center justify-center" style="height: 280px;">
+                            <canvas id="inventoryChart"></canvas>
                         </div>
                     </div>
 
-                    <!-- Resumen Anual -->
+                    <!-- Resumen Anual - Wide chart -->
                     <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-                        <div class="flex items-center justify-between mb-6">
+                        <div class="flex items-center justify-between mb-4">
                             <div>
                                 <h3 class="text-lg font-semibold text-gray-900">Resumen Anual</h3>
+                                <p class="text-sm text-gray-600">Ingresos por mes</p>
                             </div>
                         </div>
-                        <div class="h-64">
-                            <canvas id="annualChart" width="400" height="200"></canvas>
-                        </div>
-                        <div class="mt-4 flex justify-between text-sm text-gray-600">
-                            <span>Enero</span>
-                            <span>Febrero</span>
-                            <span>Marzo</span>
-                            <span>Abril</span>
-                            <span>Mayo</span>
-                            <span>Junio</span>
-                            <span>Julio</span>
-                            <span>Agosto</span>
-                            <span>Septiembre</span>
-                            <span>Octubre</span>
-                            <span>Noviembre</span>
-                            <span>Diciembre</span>
+                        <div style="height: 280px;">
+                            <canvas id="annualChart"></canvas>
                         </div>
                     </div>
                 </div>
 
-                <!-- Bottom Charts Row -->
+                <!-- Bottom Charts Row - Better proportioned -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <!-- Rotación de Inventario -->
+                    <!-- Rotación de Inventario - Compact circular chart -->
                     <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
                         <div class="mb-4">
                             <h3 class="text-lg font-semibold text-gray-900">Rotación de Inventario</h3>
                             <p class="text-sm text-gray-600">Productos vendidos</p>
                         </div>
-                        <div class="flex items-center justify-center h-48">
-                            <canvas id="rotationChart" width="200" height="150"></canvas>
-                        </div>
-                        <div class="mt-4 flex justify-center space-x-4">
-                            <div class="flex items-center">
-                                <div class="w-3 h-3 bg-[#8B7EC7] rounded-full mr-2"></div>
-                                <span class="text-xs text-gray-600">Muy frecuente 45.1%</span>
-                            </div>
+                        <div class="flex items-center justify-center" style="height: 220px;">
+                            <canvas id="rotationChart"></canvas>
                         </div>
                     </div>
 
-                    <!-- Ingresos -->
+                    <!-- Ingresos - Line chart -->
                     <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
                         <div class="mb-4">
                             <h3 class="text-lg font-semibold text-gray-900">Ingresos</h3>
+                            <p class="text-sm text-gray-600">Últimos 7 días</p>
                         </div>
-                        <div class="h-48">
-                            <canvas id="incomeChart" width="250" height="150"></canvas>
+                        <div style="height: 220px;">
+                            <canvas id="incomeChart"></canvas>
                         </div>
                     </div>
 
-                    <!-- Egresos -->
+                    <!-- Egresos - Line chart -->
                     <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
                         <div class="mb-4">
                             <h3 class="text-lg font-semibold text-gray-900">Egresos</h3>
+                            <p class="text-sm text-gray-600">Últimos 7 días</p>
                         </div>
-                        <div class="h-48">
-                            <canvas id="expensesChart" width="250" height="150"></canvas>
+                        <div style="height: 220px;">
+                            <canvas id="expensesChart"></canvas>
                         </div>
                     </div>
                 </div>
