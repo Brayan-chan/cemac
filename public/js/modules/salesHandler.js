@@ -52,10 +52,13 @@ export class SalesHandler {
     }
 
     // Campos del formulario
-    const clienteInput = document.querySelector('input[placeholder="Buscar cliente..."]')
+    const clienteInput = document.querySelector('input[placeholder="Nombre del cliente..."]')
     if (clienteInput) {
       clienteInput.addEventListener("input", (e) => {
-        this.currentSale.cliente = e.target.value
+        this.currentSale.cliente = e.target.value.trim()
+        // Actualizar el valor del input sin espacios extra
+        e.target.value = this.currentSale.cliente
+        console.log('Cliente actualizado:', this.currentSale.cliente) // Para debugging
       })
     }
 
@@ -363,10 +366,16 @@ export class SalesHandler {
         this.showError("Agrega al menos un producto a la venta")
         return
       }
+      
+      // Obtener el valor actual del input del cliente
+      const clienteInput = document.querySelector('input[placeholder="Nombre del cliente..."]')
+      if (clienteInput) {
+        this.currentSale.cliente = clienteInput.value.trim()
+      }
 
       // Preparar datos de la venta
       const saleData = {
-        cliente: this.currentSale.cliente || "Cliente General",
+        cliente: this.currentSale.cliente.trim() || "Cliente General",
         vendedor: this.currentSale.vendedor || "No asignado",
         products: this.currentSale.products.map((product) => ({
           productId: product.productId,
@@ -412,7 +421,7 @@ export class SalesHandler {
     }
 
     // Limpiar formulario
-    const clienteInput = document.querySelector('input[placeholder="Buscar cliente..."]')
+    const clienteInput = document.querySelector('input[placeholder="Nombre del cliente..."]')
     const vendedorSelect = document.querySelector("select")
     const productSearchInput = document.querySelector('input[placeholder="Buscar producto..."]')
 
