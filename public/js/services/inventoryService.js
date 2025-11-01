@@ -25,7 +25,7 @@ export class InventoryService {
         limit: 1000 // Un número grande para obtener todos los productos
       }).toString()
 
-      console.log("[v0] Fetching all products...")
+      console.log("Fetching all products...")
       const response = await fetch(`${this.baseUrl}?${queryParams}`, {
         method: "GET",
         headers: {
@@ -38,7 +38,7 @@ export class InventoryService {
         let errorMessage = `Error al obtener productos: ${response.status}`
         try {
           const errorText = await response.text()
-          console.error("[v0] Error response:", {
+          console.error("Error response:", {
             status: response.status,
             statusText: response.statusText,
             body: errorText
@@ -64,14 +64,14 @@ export class InventoryService {
             throw new Error("Sesión expirada o inválida")
           }
         } catch (error) {
-          console.error("[v0] Error processing error response:", error)
+          console.error("Error processing error response:", error)
         }
         
         throw new Error(errorMessage)
       }
 
       let data = await response.json()
-      console.log("[v0] Initial products response:", data)
+      console.log("Initial products response:", data)
 
       // Extraer los productos de la respuesta
       let allProducts = []
@@ -90,13 +90,13 @@ export class InventoryService {
               ...(typeof value === 'object' ? value : { value })
             }))
           } catch (error) {
-            console.error("[v0] Error processing products:", error)
+            console.error("Error processing products:", error)
             allProducts = []
           }
         }
       }
 
-      console.log("[v0] Processed products count:", allProducts.length)
+      console.log("Processed products count:", allProducts.length)
 
       // Filtrar productos según los criterios
       let filteredProducts = allProducts.filter(product => {
@@ -144,7 +144,7 @@ export class InventoryService {
       
       const paginatedProducts = filteredProducts.slice(start, end)
       
-      console.log("[v0] Pagination details:", {
+      console.log("Pagination details:", {
         totalProducts: total,
         totalPages,
         currentPage: page,
@@ -165,7 +165,7 @@ export class InventoryService {
         allProductsTotal: allProducts.length
       }
 
-      console.log("[v0] Final response:", {
+      console.log("Final response:", {
         productsInCurrentPage: paginatedProducts.length,
         totalProducts: total,
         totalPages,
@@ -177,7 +177,7 @@ export class InventoryService {
 
       return result
     } catch (error) {
-      console.error("[v0] Error fetching products:", error)
+      console.error("Error fetching products:", error)
       throw error
     }
   }
@@ -207,7 +207,7 @@ export class InventoryService {
       })
 
       if (!response.ok) {
-        throw new Error("Error al crear producto")
+        throw new Error("No tienes permisos para agregar productos. Solo administradores pueden hacerlo.")
       }
 
       return await response.json()
@@ -253,7 +253,7 @@ export class InventoryService {
 
       return await response.json()
     } catch (error) {
-      console.error("[v0] Error updating product:", error)
+      console.error("Error updating product:", error)
       throw error
     }
   }
@@ -284,7 +284,7 @@ export class InventoryService {
 
       return await response.json()
     } catch (error) {
-      console.error("[v0] Error deleting product:", error)
+      console.error("Error deleting product:", error)
       throw error
     }
   }

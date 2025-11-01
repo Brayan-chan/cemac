@@ -185,7 +185,7 @@ class InventoryHandler {
         sort: this.currentFilters.sort || "name"
       }
 
-      console.log("[v0] Loading products with filters:", queryParams)
+      console.log("Loading products with filters:", queryParams)
 
       const response = await this.inventoryService.getProducts(queryParams)
 
@@ -205,14 +205,14 @@ class InventoryHandler {
         this.currentFilters.page = 1
       }
 
-      console.log("[v0] Pagination info:", {
+      console.log("Pagination info:", {
         currentPage: this.currentFilters.page,
         totalPages: this.totalPages,
         totalProducts: this.totalProducts,
         productsPerPage: this.currentFilters.limit
       })
 
-      console.log("[v0] Products loaded:", {
+      console.log("Products loaded:", {
         count: this.products.length,
         total: this.totalProducts,
         totalPages: this.totalPages,
@@ -222,7 +222,7 @@ class InventoryHandler {
       this.renderProducts()
       this.updatePagination()
     } catch (error) {
-      console.error("[v0] Error al cargar productos:", error)
+      console.error("Error al cargar productos:", error)
       this.hideLoadingState()
 
       if (error.message.includes("401")) {
@@ -338,11 +338,11 @@ class InventoryHandler {
     const totalPagesSpan = document.getElementById("totalPages")
 
     if (!paginationNumbers || !prevBtn || !nextBtn) {
-      console.log("[v0] Pagination elements not found")
+      console.log("Pagination elements not found")
       return
     }
 
-    console.log("[v0] Updating pagination:", {
+    console.log("Updating pagination:", {
       currentPage: this.currentFilters.page,
       totalPages: this.totalPages,
       totalProducts: this.totalProducts,
@@ -374,7 +374,7 @@ class InventoryHandler {
 
     // Generar números de página
     const pageNumbers = this.generatePageNumbers()
-    console.log("[v0] Generated page numbers:", pageNumbers)
+    console.log("Generated page numbers:", pageNumbers)
 
     paginationNumbers.innerHTML = pageNumbers
       .map((page) => {
@@ -407,7 +407,7 @@ class InventoryHandler {
     const total = Math.max(1, parseInt(this.totalPages))
     const pages = []
 
-    console.log("[v0] Generating page numbers:", { 
+    console.log("Generating page numbers:", { 
       currentPage: current, 
       totalPages: total,
       totalProducts: this.totalProducts,
@@ -452,12 +452,12 @@ class InventoryHandler {
       }
     }
 
-    console.log("[v0] Final page numbers:", pages)
+    console.log("Final page numbers:", pages)
     return pages
   }
 
   goToPage(page) {
-    console.log("[v0] Going to page:", page)
+    console.log("Going to page:", page)
     if (page >= 1 && page <= this.totalPages && page !== this.currentFilters.page) {
       this.currentFilters.page = page
       this.loadProducts()
@@ -523,8 +523,8 @@ class InventoryHandler {
 
       return response
     } catch (error) {
-      console.error("[v0] Error creating product:", error)
-      this.showError(error.message || "Error al crear el producto")
+      console.error("Error creating product:", error)
+      this.showError(error.message || "No tienes permisos para agregar productos. Solo administradores pueden hacerlo.")
       throw error
     }
   }
@@ -536,7 +536,7 @@ class InventoryHandler {
       this.hideModal()
       this.showSuccess("Producto actualizado exitosamente")
     } catch (error) {
-      console.error("[v0] Error al actualizar producto:", error)
+      console.error("Error al actualizar producto:", error)
       this.showError(error.message || "Error al actualizar el producto")
     }
   }
@@ -549,7 +549,7 @@ class InventoryHandler {
       this.loadProducts()
       this.showSuccess("Producto eliminado exitosamente")
     } catch (error) {
-      console.error("[v0] Error al eliminar producto:", error)
+      console.error("Error al eliminar producto:", error)
       this.showError(error.message || "Error al eliminar el producto")
     }
   }
@@ -621,13 +621,13 @@ class InventoryHandler {
   }
 
   showSuccess(message) {
-    console.log("[v0] Success:", message)
+    console.log("Success:", message)
     // Implementar notificación de éxito
     alert(message) // Temporal, mejorar con una notificación más elegante
   }
 
   showError(message) {
-    console.log("[v0] Error:", message)
+    console.log("Error:", message)
     // Implementar notificación de error
     alert(message) // Temporal, mejorar con una notificación más elegante
   }

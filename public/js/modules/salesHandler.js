@@ -29,13 +29,13 @@ export class SalesHandler {
    */
   async init() {
     try {
-      console.log("[v0] Inicializando SalesHandler...")
+      console.log("Inicializando SalesHandler...")
       this.bindEvents()
       await this.loadSalesHistory()
       await this.loadInitialData()
-      console.log("[v0] SalesHandler inicializado correctamente")
+      console.log("SalesHandler inicializado correctamente")
     } catch (error) {
-      console.error("[v0] Error inicializando SalesHandler:", error)
+      console.error("Error inicializando SalesHandler:", error)
       this.showError("Error inicializando el sistema de ventas")
     }
   }
@@ -116,12 +116,12 @@ export class SalesHandler {
     }
 
     try {
-      console.log("[v0] Buscando productos:", searchTerm)
+      console.log("Buscando productos:", searchTerm)
       const response = await this.salesService.searchProducts(searchTerm, 10)
       this.productSearchResults = response.products || []
       this.showProductSearchResults()
     } catch (error) {
-      console.error("[v0] Error buscando productos:", error)
+      console.error("Error buscando productos:", error)
       this.showError("Error buscando productos")
     }
   }
@@ -205,7 +205,7 @@ export class SalesHandler {
    * Seleccionar producto de la búsqueda
    */
   selectProduct(product) {
-    console.log("[v0] Producto seleccionado:", product)
+    console.log("Producto seleccionado:", product)
 
     // Verificar si el producto ya está en la venta
     const existingProduct = this.currentSale.products.find((p) => p.productId === product.id)
@@ -379,7 +379,7 @@ export class SalesHandler {
         notes: this.currentSale.notes,
       }
 
-      console.log("[v0] Procesando venta:", saleData)
+      console.log("Procesando venta:", saleData)
 
       // Crear venta
       const response = await this.salesService.createSale(saleData)
@@ -392,7 +392,7 @@ export class SalesHandler {
         throw new Error(response.message || "Error procesando la venta")
       }
     } catch (error) {
-      console.error("[v0] Error procesando venta:", error)
+      console.error("Error procesando venta:", error)
       this.showError(error.message || "Error procesando la venta")
     }
   }
@@ -429,7 +429,7 @@ export class SalesHandler {
    */
   async loadSalesHistory() {
     try {
-      console.log("[v0] Cargando historial de ventas...")
+      console.log("Cargando historial de ventas...")
       const response = await this.salesService.getSales({
         page: 1,
         limit: 10,
@@ -440,7 +440,7 @@ export class SalesHandler {
       this.salesHistory = response.sales || []
       this.updateSalesHistory()
     } catch (error) {
-      console.error("[v0] Error cargando historial:", error)
+      console.error("Error cargando historial:", error)
       // No mostrar error al usuario para el historial
     }
   }
@@ -553,11 +553,11 @@ export class SalesHandler {
    */
   async handleExportSales() {
     try {
-      console.log("[v0] Exportando ventas...")
+      console.log("Exportando ventas...")
       await this.salesService.exportSales()
       this.showSuccess("Reporte exportado exitosamente")
     } catch (error) {
-      console.error("[v0] Error exportando ventas:", error)
+      console.error("Error exportando ventas:", error)
       this.showError("Error exportando el reporte")
     }
   }
@@ -660,6 +660,6 @@ export class SalesHandler {
 
 // Inicializar cuando el DOM esté listo
 document.addEventListener("DOMContentLoaded", () => {
-  console.log("[v0] Inicializando sistema de ventas...")
+  console.log("Inicializando sistema de ventas...")
   window.salesHandler = new SalesHandler()
 })

@@ -39,7 +39,7 @@ export class AnalyticsService {
 
       return await response.json()
     } catch (error) {
-      console.error(`[v0] Error en petición a ${endpoint}:`, error)
+      console.error(`Error en petición a ${endpoint}:`, error)
       throw error
     }
   }
@@ -54,7 +54,7 @@ export class AnalyticsService {
       const response = await this.makeRequest("/analysis/sales")
       return response.data
     } catch (error) {
-      console.warn("[v0] Endpoint de análisis no disponible, calculando desde ventas:", error.message)
+      console.warn("Endpoint de análisis no disponible, calculando desde ventas:", error.message)
       // Fallback: calcular desde datos de ventas
       return await this.calculateAnalyticsFromSales()
     }
@@ -68,7 +68,7 @@ export class AnalyticsService {
       const response = await this.makeRequest("/analysis/sales/summary")
       return response.data
     } catch (error) {
-      console.warn("[v0] Endpoint de resumen no disponible, calculando desde ventas:", error.message)
+      console.warn("Endpoint de resumen no disponible, calculando desde ventas:", error.message)
       return await this.calculateExecutiveSummaryFromSales()
     }
   }
@@ -83,7 +83,7 @@ export class AnalyticsService {
       )
       return response.data
     } catch (error) {
-      console.warn("[v0] Endpoint personalizado no disponible, calculando desde ventas:", error.message)
+      console.warn("Endpoint personalizado no disponible, calculando desde ventas:", error.message)
       return await this.calculateCustomPeriodFromSales(startDate, endDate, groupBy)
     }
   }
@@ -118,7 +118,7 @@ export class AnalyticsService {
         topProducts,
       }
     } catch (error) {
-      console.error("[v0] Error calculando análisis desde ventas:", error)
+      console.error("Error calculando análisis desde ventas:", error)
       return this.getDefaultAnalyticsData()
     }
   }
@@ -155,7 +155,7 @@ export class AnalyticsService {
         },
       }
     } catch (error) {
-      console.error("[v0] Error calculando resumen ejecutivo:", error)
+      console.error("Error calculando resumen ejecutivo:", error)
       return this.getDefaultExecutiveSummary()
     }
   }
@@ -207,7 +207,7 @@ export class AnalyticsService {
         },
       }
     } catch (error) {
-      console.error("[v0] Error obteniendo estadísticas de hoy:", error)
+      console.error("Error obteniendo estadísticas de hoy:", error)
       return this.getDefaultTodayStats()
     }
   }
@@ -253,7 +253,7 @@ export class AnalyticsService {
         },
       }
     } catch (error) {
-      console.error("[v0] Error obteniendo análisis de inventario:", error)
+      console.error("Error obteniendo análisis de inventario:", error)
       return {
         disponible: { count: 58, percentage: 58 },
         stockBajo: { count: 29, percentage: 29 },
