@@ -15,10 +15,17 @@ export class InventoryService {
 
       console.log("Fetching products from:", this.baseUrl)
 
-      const queryParams = new URLSearchParams(filters).toString()
-      console.log("Token:", this.token) // Para depuración
-      console.log("URL:", `${this.baseUrl}?${queryParams}`) // Para depuración
+      // Obtener todos los productos sin usar paginación
+      const queryParams = new URLSearchParams({
+        search: filters.search || "",
+        category: filters.category || "",
+        price: filters.price || "",
+        status: filters.status || "",
+        sort: filters.sort || "name",
+        limit: 1000 // Un número grande para obtener todos los productos
+      }).toString()
 
+      console.log("[v0] Fetching all products...")
       const response = await fetch(`${this.baseUrl}?${queryParams}`, {
         method: "GET",
         headers: {
@@ -28,36 +35,149 @@ export class InventoryService {
       })
 
       if (!response.ok) {
-        const errorText = await response.text()
-        console.error("Error response:", {
-          status: response.status,
-          statusText: response.statusText,
-          body: errorText,
-        })
+        let errorMessage = `Error al obtener productos: ${response.status}`
+        try {
+          const errorText = await response.text()
+          console.error("[v0] Error response:", {
+            status: response.status,
+            statusText: response.statusText,
+            body: errorText
+          })
 
-        if (response.status === 401) {
-          localStorage.removeItem("authToken")
-          localStorage.removeItem("user")
-          window.location.href = "/index.html"
-          throw new Error("Sesión expirada o inválida")
+          // Intentar parsear el error si es JSON
+          try {
+            const errorJson = JSON.parse(errorText)
+            if (errorJson.message) {
+              errorMessage = errorJson.message
+            }
+          } catch (e) {
+            // Si no es JSON, usar el texto como está
+            if (errorText) {
+              errorMessage = errorText
+            }
+          }
+
+          if (response.status === 401) {
+            localStorage.removeItem("authToken")
+            localStorage.removeItem("user")
+            window.location.href = "/index.html"
+            throw new Error("Sesión expirada o inválida")
+          }
+        } catch (error) {
+          console.error("[v0] Error processing error response:", error)
         }
-        throw new Error(`Error al obtener productos: ${response.status} ${response.statusText}`)
+        
+        throw new Error(errorMessage)
       }
 
-      const data = await response.json()
-      console.log("Products data:", data)
+      let data = await response.json()
+      console.log("[v0] Initial products response:", data)
 
-      // Manejar diferentes estructuras de respuesta
-      if (Array.isArray(data)) {
-        return data
-      } else if (data.products) {
-        return data.products
-      } else if (data.data) {
-        return data.data
+      // Extraer los productos de la respuesta
+      let allProducts = []
+      if (data && typeof data === 'object') {
+        if (Array.isArray(data)) {
+          allProducts = data
+        } else if (data.products && Array.isArray(data.products)) {
+          allProducts = data.products
+        } else if (data.data && Array.isArray(data.data)) {
+          allProducts = data.data
+        } else {
+          // Si es un objeto de Firebase, intentar convertirlo
+          try {
+            allProducts = Object.entries(data).map(([key, value]) => ({
+              id: key,
+              ...(typeof value === 'object' ? value : { value })
+            }))
+          } catch (error) {
+            console.error("[v0] Error processing products:", error)
+            allProducts = []
+          }
+        }
       }
-      return []
+
+      console.log("[v0] Processed products count:", allProducts.length)
+
+      // Filtrar productos según los criterios
+      let filteredProducts = allProducts.filter(product => {
+        // Filtrar por búsqueda
+        if (filters.search) {
+          const searchTerm = filters.search.toLowerCase()
+          if (!product.name?.toLowerCase().includes(searchTerm) &&
+              !product.description?.toLowerCase().includes(searchTerm)) {
+            return false
+          }
+        }
+
+        // Filtrar por categoría
+        if (filters.category && filters.category !== 'all') {
+          if (product.category !== filters.category) {
+            return false
+          }
+        }
+
+        return true
+      })
+
+      // Ordenar productos
+      if (filters.sort) {
+        filteredProducts.sort((a, b) => {
+          if (filters.sort === 'name') {
+            return (a.name || '').localeCompare(b.name || '')
+          }
+          if (filters.sort === 'price') {
+            return (a.price || 0) - (b.price || 0)
+          }
+          return 0
+        })
+      }
+
+      // Implementar paginación
+      const limit = parseInt(filters.limit) || 5
+      const page = parseInt(filters.page) || 1
+      const total = filteredProducts.length
+      const totalPages = Math.max(1, Math.ceil(total / limit))
+      
+      // Calcular slice para la página actual
+      const start = (page - 1) * limit
+      const end = Math.min(start + limit, total)
+      
+      const paginatedProducts = filteredProducts.slice(start, end)
+      
+      console.log("[v0] Pagination details:", {
+        totalProducts: total,
+        totalPages,
+        currentPage: page,
+        limit,
+        displayingProducts: paginatedProducts.length,
+        startIndex: start,
+        endIndex: end
+      })
+
+      const result = {
+        products: paginatedProducts,
+        total: total,
+        totalPages: totalPages,
+        page: page,
+        limit: limit,
+        hasMore: end < total,
+        filteredTotal: filteredProducts.length,
+        allProductsTotal: allProducts.length
+      }
+
+      console.log("[v0] Final response:", {
+        productsInCurrentPage: paginatedProducts.length,
+        totalProducts: total,
+        totalPages,
+        currentPage: page,
+        itemsPerPage: limit,
+        totalFiltered: filteredProducts.length,
+        totalInDatabase: allProducts.length
+      })
+
+      return result
     } catch (error) {
-      console.error("Error:", error)
+      console.error("[v0] Error fetching products:", error)
       throw error
     }
   }
