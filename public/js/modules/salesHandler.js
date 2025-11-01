@@ -55,10 +55,10 @@ export class SalesHandler {
     const clienteInput = document.querySelector('input[placeholder="Nombre del cliente..."]')
     if (clienteInput) {
       clienteInput.addEventListener("input", (e) => {
-        this.currentSale.cliente = e.target.value.trim()
-        // Actualizar el valor del input sin espacios extra
-        e.target.value = this.currentSale.cliente
-        console.log('Cliente actualizado:', this.currentSale.cliente) // Para debugging
+        // Permitir espacios entre palabras, solo eliminar espacios extras al inicio y final
+        this.currentSale.cliente = e.target.value.replace(/\s+/g, ' ').trim()
+        // No actualizar el valor del input para permitir edición normal
+        console.log('Cliente actualizado:', this.currentSale.cliente)
       })
     }
 
@@ -370,7 +370,8 @@ export class SalesHandler {
       // Obtener el valor actual del input del cliente
       const clienteInput = document.querySelector('input[placeholder="Nombre del cliente..."]')
       if (clienteInput) {
-        this.currentSale.cliente = clienteInput.value.trim()
+        // Permitir espacios entre palabras, solo normalizar múltiples espacios y eliminar espacios al inicio y final
+        this.currentSale.cliente = clienteInput.value.replace(/\s+/g, ' ').trim()
       }
 
       // Preparar datos de la venta
