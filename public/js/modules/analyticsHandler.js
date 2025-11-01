@@ -10,7 +10,7 @@ export class AnalyticsHandler {
     this.charts = {}
     this.isLoading = false
 
-    console.log("[v0] Inicializando AnalyticsHandler...")
+    console.log("Inicializando AnalyticsHandler...")
     this.init()
   }
 
@@ -18,9 +18,9 @@ export class AnalyticsHandler {
     try {
       this.bindEvents()
       await this.loadAnalyticsData()
-      console.log("[v0] AnalyticsHandler inicializado correctamente")
+      console.log("AnalyticsHandler inicializado correctamente")
     } catch (error) {
-      console.error("[v0] Error inicializando AnalyticsHandler:", error)
+      console.error("Error inicializando AnalyticsHandler:", error)
       this.showError("Error inicializando el sistema de análisis")
     }
   }
@@ -57,9 +57,9 @@ export class AnalyticsHandler {
       this.updateTodayStats(todayStats)
       this.updateCharts(analyticsData, inventoryAnalysis)
 
-      console.log("[v0] Datos de análisis cargados correctamente")
+      console.log("Datos de análisis cargados correctamente")
     } catch (error) {
-      console.error("[v0] Error cargando datos de análisis:", error)
+      console.error("Error cargando datos de análisis:", error)
       this.showError("Error cargando los datos de análisis")
     } finally {
       this.isLoading = false
@@ -297,13 +297,13 @@ export class AnalyticsHandler {
   }
 
   async refreshData() {
-    console.log("[v0] Refrescando datos de análisis...")
+    console.log("Refrescando datos de análisis...")
     await this.loadAnalyticsData()
   }
 
   async handlePeriodChange(event) {
     const period = event.target.value
-    console.log("[v0] Cambiando período a:", period)
+    console.log("Cambiando período a:", period)
 
     // Implementar lógica para cambiar período
     // Por ahora solo refrescar datos
@@ -325,7 +325,7 @@ export class AnalyticsHandler {
   }
 
   showError(message) {
-    console.error("[v0] Error en análisis:", message)
+    console.error("Error en análisis:", message)
 
     // Mostrar notificación de error
     const errorDiv = document.createElement("div")
