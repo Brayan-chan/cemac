@@ -143,6 +143,7 @@ class InventoryHandler {
         description: formData.get("descripcion"),
         category: formData.get("categoria"),
         price: Number.parseFloat(formData.get("precio")),
+        promotionalPrice: formData.get("precioPromocional") ? Number.parseFloat(formData.get("precioPromocional")) : null,
         stock: Number.parseInt(formData.get("stock")) || 0,
         availability: formData.get("disponible") ? "unlimited" : "limited",
       }
@@ -592,6 +593,7 @@ class InventoryHandler {
     form.elements.descripcion.value = product.description || ""
     form.elements.categoria.value = product.category || ""
     form.elements.precio.value = product.price || ""
+    form.elements.precioPromocional.value = product.promotionalPrice || ""
     form.elements.stock.value = product.stock || ""
 
     // Handle unlimited availability
