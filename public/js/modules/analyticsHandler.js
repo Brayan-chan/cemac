@@ -1,76 +1,67 @@
-/**
- * Manejador para la interfaz de análisis
- * Gestiona la visualización de datos y gráficos
- */
 import { AnalyticsService } from "../services/analyticsService.js"
+
+const Chart = window.Chart
 
 export class AnalyticsHandler {
   constructor() {
-    this.analyticsService = new AnalyticsService();
-    this.charts = {};
-    this.isLoading = false;
+    this.analyticsService = new AnalyticsService()
+    this.charts = {}
+    this.isLoading = false
 
-    console.log("Inicializando AnalyticsHandler...");
-    this.init();
+    console.log("Inicializando AnalyticsHandler...")
+    this.init()
   }
 
   async init() {
     try {
-      this.bindEvents();
-      await this.loadAnalyticsData();
-      console.log("AnalyticsHandler inicializado correctamente");
+      this.bindEvents()
+      await this.loadAnalyticsData()
+      console.log("AnalyticsHandler inicializado correctamente")
     } catch (error) {
-      console.error("Error inicializando AnalyticsHandler:", error);
-      this.showError("Error inicializando el sistema de análisis");
+      console.error("Error inicializando AnalyticsHandler:", error)
+      this.showError("Error inicializando el sistema de análisis")
     }
   }
 
   bindEvents() {
     // Evento para refrescar datos
-    const refreshBtn = document.querySelector("#refreshAnalytics");
+    const refreshBtn = document.querySelector("#refreshAnalytics")
     if (refreshBtn) {
-      refreshBtn.addEventListener("click", () => this.refreshData());
+      refreshBtn.addEventListener("click", () => this.refreshData())
     }
-
-    // Eventos para filtros de período
-    const periodSelectors = document.querySelectorAll(".period-selector");
-    periodSelectors.forEach((selector) => {
-      selector.addEventListener("change", (e) => this.handlePeriodChange(e));
-    });
   }
 
-    async loadAnalyticsData() {
-    if (this.isLoading) return;
+  async loadAnalyticsData() {
+    if (this.isLoading) return
 
-    this.isLoading = true;
-    this.showLoadingState();
+    this.isLoading = true
+    this.showLoadingState()
 
     try {
       // Obtener datos analíticos generales
-      const analyticsData = await this.analyticsService.getAnalyticsData();
-      
+      const analyticsData = await this.analyticsService.getAnalyticsData()
+
       // Obtener análisis de inventario
-      const inventoryAnalysis = await this.analyticsService.getInventoryAnalysis();
-      
+      const inventoryAnalysis = await this.analyticsService.getInventoryAnalysis()
+
       // Obtener estadísticas de hoy
-      const todayStats = await this.analyticsService.getTodayStats();
+      const todayStats = await this.analyticsService.getTodayStats()
 
       // Actualizar la interfaz
-      this.updateTodayStats(todayStats);
-      this.updateCharts(analyticsData, inventoryAnalysis);
+      this.updateTodayStats(todayStats)
+      this.updateCharts(analyticsData, inventoryAnalysis)
 
-      console.log("Datos de análisis cargados exitosamente");
+      console.log("Datos de análisis cargados exitosamente")
     } catch (error) {
-      console.error("Error cargando datos de análisis:", error);
-      this.showError("Error al cargar los datos de análisis. Intente de nuevo más tarde.");
+      console.error("Error cargando datos de análisis:", error)
+      this.showError("Error al cargar los datos de análisis. Intente de nuevo más tarde.")
     } finally {
-      this.isLoading = false;
-      this.hideLoadingState();
+      this.isLoading = false
+      this.hideLoadingState()
     }
   }
 
   updateTodayStats(stats) {
-    // Actualizar tarjetas de estadísticas de hoy
     this.updateStatCard("revenue", stats.revenue)
     this.updateStatCard("orders", stats.orders)
     this.updateStatCard("products", stats.products)
@@ -78,18 +69,18 @@ export class AnalyticsHandler {
   }
 
   updateStatCard(type, data) {
-    const card = document.querySelector(`[data-stat="${type}"]`);
-    if (!card) return;
+    const card = document.querySelector(`[data-stat="${type}"]`)
+    if (!card) return
 
-    const valueElement = card.querySelector(".stat-value");
-    const changeElement = card.querySelector(".stat-change");
-    const labelElement = card.querySelector(".stat-label");
+    const valueElement = card.querySelector(".stat-value")
+    const changeElement = card.querySelector(".stat-change")
+    const labelElement = card.querySelector(".stat-label")
 
     if (valueElement) {
       if (type === "revenue") {
-        valueElement.textContent = `$${this.formatNumber(data.value)}`;
+        valueElement.textContent = `$${this.formatNumber(data.value)}`
       } else {
-        valueElement.textContent = this.formatNumber(data.value);
+        valueElement.textContent = this.formatNumber(data.value)
       }
     }
 
@@ -105,211 +96,306 @@ export class AnalyticsHandler {
   }
 
   updateCharts(analyticsData, inventoryAnalysis) {
-    // Actualizar gráfico de inventario
-    this.updateInventoryChart(inventoryAnalysis)
+    Object.values(this.charts).forEach((chart) => {
+      if (chart) chart.destroy()
+    })
+    this.charts = {}
 
-    // Actualizar gráfico de resumen anual
-    this.updateAnnualChart(analyticsData.monthly)
-
-    // Actualizar gráfico de rotación de inventario
-    this.updateInventoryRotationChart(inventoryAnalysis)
-
-    // Actualizar gráficos de ingresos y egresos
-    this.updateIncomeChart(analyticsData.daily)
-    this.updateExpensesChart(analyticsData.daily)
+    // Crear gráficos con Chart.js
+    this.createInventoryChart(inventoryAnalysis)
+    this.createAnnualChart(analyticsData.monthly)
+    this.createRotationChart(inventoryAnalysis)
+    this.createIncomeChart(analyticsData.daily)
+    this.createExpensesChart(analyticsData.daily)
   }
 
-  updateInventoryChart(inventoryData) {
+  createInventoryChart(inventoryData) {
     const canvas = document.getElementById("inventoryChart")
     if (!canvas) return
 
-    const ctx = canvas.getContext("2d")
-
-    // Limpiar canvas
-    ctx.clearRect(0, 0, canvas.width, canvas.height)
-
-    // Configurar dimensiones
-    const centerX = canvas.width / 2
-    const centerY = canvas.height / 2
-    const radius = Math.min(centerX, centerY) - 20
-
-    // Datos del gráfico
-    const data = [
-      { label: "Stock disponible", value: inventoryData.disponible.percentage, color: "#8B7EC7" },
-      { label: "Stock bajo", value: inventoryData.stockBajo.percentage, color: "#A78BFA" },
-      { label: "Agotado", value: inventoryData.agotado.percentage, color: "#C4B5FD" },
-    ]
-
-    // Dibujar gráfico de dona
-    let currentAngle = -Math.PI / 2
-
-    data.forEach((item) => {
-      const sliceAngle = (item.value / 100) * 2 * Math.PI
-
-      ctx.beginPath()
-      ctx.arc(centerX, centerY, radius, currentAngle, currentAngle + sliceAngle)
-      ctx.arc(centerX, centerY, radius * 0.6, currentAngle + sliceAngle, currentAngle, true)
-      ctx.closePath()
-      ctx.fillStyle = item.color
-      ctx.fill()
-
-      currentAngle += sliceAngle
+    this.charts.inventory = new Chart(canvas, {
+      type: "doughnut",
+      data: {
+        labels: ["Stock disponible", "Stock bajo", "Agotado"],
+        datasets: [
+          {
+            data: [
+              inventoryData.disponible.percentage,
+              inventoryData.stockBajo.percentage,
+              inventoryData.agotado.percentage,
+            ],
+            backgroundColor: ["#8B7EC7", "#A78BFA", "#E9D5FF"],
+            borderColor: "#ffffff",
+            borderWidth: 3,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+          legend: {
+            position: "bottom",
+            labels: {
+              padding: 12,
+              font: { size: 11 },
+              usePointStyle: true,
+            },
+          },
+          tooltip: {
+            backgroundColor: "rgba(0, 0, 0, 0.8)",
+            padding: 12,
+            titleFont: { size: 12 },
+            bodyFont: { size: 11 },
+            callbacks: {
+              label: (context) => {
+                return context.label + ": " + context.parsed + "%"
+              },
+            },
+          },
+        },
+      },
     })
-
-    // Agregar texto en el centro
-    ctx.fillStyle = "#374151"
-    ctx.font = "bold 14px sans-serif"
-    ctx.textAlign = "center"
-    ctx.fillText("Productos agotados", centerX, centerY - 5)
-    ctx.font = "12px sans-serif"
-    ctx.fillText(`${inventoryData.agotado.percentage}%`, centerX, centerY + 15)
   }
 
-  updateAnnualChart(monthlyData) {
+  createAnnualChart(monthlyData) {
     const canvas = document.getElementById("annualChart")
     if (!canvas) return
 
-    const ctx = canvas.getContext("2d")
-    ctx.clearRect(0, 0, canvas.width, canvas.height)
-
-    const padding = 40
-    const chartWidth = canvas.width - padding * 2
-    const chartHeight = canvas.height - padding * 2
-
-    const maxValue = Math.max(...monthlyData.values)
-    const minValue = Math.min(...monthlyData.values)
-    const valueRange = maxValue - minValue || 1
-
-    // Dibujar línea
-    ctx.strokeStyle = "#8B7EC7"
-    ctx.lineWidth = 3
-    ctx.beginPath()
-
-    monthlyData.values.forEach((value, index) => {
-      const x = padding + index * (chartWidth / (monthlyData.values.length - 1))
-      const y = padding + chartHeight - ((value - minValue) / valueRange) * chartHeight
-
-      if (index === 0) {
-        ctx.moveTo(x, y)
-      } else {
-        ctx.lineTo(x, y)
-      }
-    })
-
-    ctx.stroke()
-
-    // Dibujar puntos
-    ctx.fillStyle = "#8B7EC7"
-    monthlyData.values.forEach((value, index) => {
-      const x = padding + index * (chartWidth / (monthlyData.values.length - 1))
-      const y = padding + chartHeight - ((value - minValue) / valueRange) * chartHeight
-
-      ctx.beginPath()
-      ctx.arc(x, y, 4, 0, 2 * Math.PI)
-      ctx.fill()
+    this.charts.annual = new Chart(canvas, {
+      type: "bar",
+      data: {
+        labels: monthlyData.labels,
+        datasets: [
+          {
+            label: "Ingresos mensuales",
+            data: monthlyData.values,
+            backgroundColor: "#8B7EC7",
+            borderColor: "#7A6DB8",
+            borderWidth: 0,
+            borderRadius: 6,
+            hoverBackgroundColor: "#7A6DB8",
+            barPercentage: 0.7,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: true,
+            labels: { font: { size: 12 } },
+          },
+          tooltip: {
+            backgroundColor: "rgba(0, 0, 0, 0.8)",
+            padding: 12,
+            titleFont: { size: 12 },
+            bodyFont: { size: 12 },
+            displayColors: false,
+            callbacks: {
+              label: (context) => "$" + context.parsed.y.toLocaleString("es-ES"),
+            },
+          },
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              callback: (value) => "$" + (value / 1000).toFixed(0) + "k",
+              font: { size: 11 },
+            },
+            grid: { color: "rgba(200, 200, 200, 0.1)" },
+          },
+          x: {
+            grid: { display: false },
+            ticks: {
+              font: { size: 10 },
+              maxRotation: 45,
+              minRotation: 0,
+            },
+          },
+        },
+      },
     })
   }
 
-  updateInventoryRotationChart(inventoryData) {
+  createRotationChart(inventoryData) {
     const canvas = document.getElementById("rotationChart")
     if (!canvas) return
 
-    // Similar al gráfico de inventario pero con datos de rotación
-    const ctx = canvas.getContext("2d")
-    ctx.clearRect(0, 0, canvas.width, canvas.height)
-
-    const centerX = canvas.width / 2
-    const centerY = canvas.height / 2
-    const radius = Math.min(centerX, centerY) - 20
-
-    // Datos simulados de rotación
-    const rotationData = [
-      { label: "Muy frecuente", value: 45, color: "#8B7EC7" },
-      { label: "Frecuente", value: 35, color: "#A78BFA" },
-      { label: "Poco frecuente", value: 20, color: "#C4B5FD" },
-    ]
-
-    let currentAngle = -Math.PI / 2
-
-    rotationData.forEach((item) => {
-      const sliceAngle = (item.value / 100) * 2 * Math.PI
-
-      ctx.beginPath()
-      ctx.arc(centerX, centerY, radius, currentAngle, currentAngle + sliceAngle)
-      ctx.arc(centerX, centerY, radius * 0.6, currentAngle + sliceAngle, currentAngle, true)
-      ctx.closePath()
-      ctx.fillStyle = item.color
-      ctx.fill()
-
-      currentAngle += sliceAngle
+    this.charts.rotation = new Chart(canvas, {
+      type: "doughnut",
+      data: {
+        labels: ["Muy frecuente", "Frecuente", "Poco frecuente"],
+        datasets: [
+          {
+            data: [45, 35, 20],
+            backgroundColor: ["#8B7EC7", "#A78BFA", "#E9D5FF"],
+            borderColor: "#ffffff",
+            borderWidth: 3,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+          legend: {
+            position: "bottom",
+            labels: {
+              padding: 12,
+              font: { size: 11 },
+              usePointStyle: true,
+            },
+          },
+          tooltip: {
+            backgroundColor: "rgba(0, 0, 0, 0.8)",
+            padding: 12,
+            titleFont: { size: 12 },
+            bodyFont: { size: 11 },
+            callbacks: {
+              label: (context) => context.label + ": " + context.parsed + "%",
+            },
+          },
+        },
+      },
     })
-
-    ctx.fillStyle = "#374151"
-    ctx.font = "bold 14px sans-serif"
-    ctx.textAlign = "center"
-    ctx.fillText("Muy frecuente", centerX, centerY - 5)
-    ctx.font = "12px sans-serif"
-    ctx.fillText("45%", centerX, centerY + 15)
   }
 
-  updateIncomeChart(dailyData) {
+  createIncomeChart(dailyData) {
     const canvas = document.getElementById("incomeChart")
     if (!canvas) return
 
-    this.drawLineChart(canvas, dailyData.values, "#10B981")
+    this.charts.income = new Chart(canvas, {
+      type: "line",
+      data: {
+        labels: dailyData.labels,
+        datasets: [
+          {
+            label: "Ingresos",
+            data: dailyData.values,
+            borderColor: "#10B981",
+            backgroundColor: "rgba(16, 185, 129, 0.08)",
+            borderWidth: 2.5,
+            fill: true,
+            tension: 0.4,
+            pointRadius: 5,
+            pointBackgroundColor: "#10B981",
+            pointBorderColor: "#fff",
+            pointBorderWidth: 2,
+            pointHoverRadius: 7,
+            pointHoverBackgroundColor: "#059669",
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: false,
+          },
+          tooltip: {
+            backgroundColor: "rgba(0, 0, 0, 0.8)",
+            padding: 12,
+            titleFont: { size: 12 },
+            bodyFont: { size: 12 },
+            displayColors: false,
+            callbacks: {
+              label: (context) => "$" + context.parsed.y.toLocaleString("es-ES"),
+            },
+          },
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              callback: (value) => "$" + (value / 1000).toFixed(1) + "k",
+              font: { size: 10 },
+            },
+            grid: { color: "rgba(200, 200, 200, 0.1)" },
+          },
+          x: {
+            grid: { display: false },
+            ticks: {
+              font: { size: 10 },
+            },
+          },
+        },
+      },
+    })
   }
 
-  updateExpensesChart(dailyData) {
+  createExpensesChart(dailyData) {
     const canvas = document.getElementById("expensesChart")
     if (!canvas) return
 
-    // Simular datos de egresos (aproximadamente 60% de los ingresos)
     const expensesData = dailyData.values.map((value) => value * 0.6)
-    this.drawLineChart(canvas, expensesData, "#EF4444")
-  }
 
-  drawLineChart(canvas, data, color) {
-    const ctx = canvas.getContext("2d")
-    ctx.clearRect(0, 0, canvas.width, canvas.height)
-
-    const padding = 20
-    const chartWidth = canvas.width - padding * 2
-    const chartHeight = canvas.height - padding * 2
-
-    const maxValue = Math.max(...data)
-    const minValue = Math.min(...data)
-    const valueRange = maxValue - minValue || 1
-
-    ctx.strokeStyle = color
-    ctx.lineWidth = 2
-    ctx.beginPath()
-
-    data.forEach((value, index) => {
-      const x = padding + index * (chartWidth / (data.length - 1))
-      const y = padding + chartHeight - ((value - minValue) / valueRange) * chartHeight
-
-      if (index === 0) {
-        ctx.moveTo(x, y)
-      } else {
-        ctx.lineTo(x, y)
-      }
+    this.charts.expenses = new Chart(canvas, {
+      type: "line",
+      data: {
+        labels: dailyData.labels,
+        datasets: [
+          {
+            label: "Egresos",
+            data: expensesData,
+            borderColor: "#EF4444",
+            backgroundColor: "rgba(239, 68, 68, 0.08)",
+            borderWidth: 2.5,
+            fill: true,
+            tension: 0.4,
+            pointRadius: 5,
+            pointBackgroundColor: "#EF4444",
+            pointBorderColor: "#fff",
+            pointBorderWidth: 2,
+            pointHoverRadius: 7,
+            pointHoverBackgroundColor: "#DC2626",
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: false,
+          },
+          tooltip: {
+            backgroundColor: "rgba(0, 0, 0, 0.8)",
+            padding: 12,
+            titleFont: { size: 12 },
+            bodyFont: { size: 12 },
+            displayColors: false,
+            callbacks: {
+              label: (context) => "$" + context.parsed.y.toLocaleString("es-ES"),
+            },
+          },
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              callback: (value) => "$" + (value / 1000).toFixed(1) + "k",
+              font: { size: 10 },
+            },
+            grid: { color: "rgba(200, 200, 200, 0.1)" },
+          },
+          x: {
+            grid: { display: false },
+            ticks: {
+              font: { size: 10 },
+            },
+          },
+        },
+      },
     })
-
-    ctx.stroke()
   }
 
   async refreshData() {
     console.log("Refrescando datos de análisis...")
     await this.loadAnalyticsData()
-  }
-
-  async handlePeriodChange(event) {
-    const period = event.target.value
-    console.log("Cambiando período a:", period)
-
-    // Implementar lógica para cambiar período
-    // Por ahora solo refrescar datos
-    await this.refreshData()
   }
 
   showLoadingState() {
