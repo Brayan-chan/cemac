@@ -178,6 +178,42 @@ class AuthService {
     }
 
     /**
+     * Solicita un restablecimiento de contraseña
+     * @param {string} email - Email del usuario
+     * @param {boolean} isAdmin - Indica si es una solicitud de admin
+     * @returns {Promise} Resultado de la solicitud
+     */
+    async requestPasswordReset(email, isAdmin = false) {
+        try {
+            const requestOptions = {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                },
+                mode: 'cors',
+                body: JSON.stringify({ email, isAdmin })
+            };
+
+            if (this.environment === 'development') {
+                requestOptions.credentials = 'include';
+            }
+
+            const response = await fetch(`${this.baseURL}/auth/recover`, requestOptions);
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Error al solicitar el restablecimiento de contraseña');
+            }
+
+            return data;
+        } catch (error) {
+            console.error('Error en requestPasswordReset:', error);
+            throw error;
+        }
+    }
+
+    /**
      * Limpia toda la sesión
      */
     clearSession() {
@@ -228,4 +264,5 @@ class AuthService {
 // Crear instancia global
 window.authService = new AuthService();
 
+export { AuthService };
 export default AuthService;
