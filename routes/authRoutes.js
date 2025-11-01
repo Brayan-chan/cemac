@@ -4,7 +4,7 @@
  */
 
 import express from 'express';
-import { login, logout, verifyAuth, register } from '../controllers/authController.js';
+import { login, logout, verifyAuth, register, recoverPassword } from '../controllers/authController.js';
 import { logAuthRequests, authenticateToken } from '../middlewares/authMiddleware.js';
 
 const router = express.Router();
@@ -32,6 +32,14 @@ router.post('/logout', authenticateToken, logout);
  * Requiere autenticación
  */
 router.get('/verify', authenticateToken, verifyAuth);
+
+
+/**
+ * POST /auth/recover
+ * Ruta para solicitar recuperación de contraseña
+ * Body: { email }
+ */
+router.post('/recover', recoverPassword);
 
 /**
  * POST /auth/register
