@@ -122,19 +122,29 @@ export class InventoryService {
       })
 
       if (!response.ok) {
-        throw new Error("Error al actualizar producto")
+        const errorData = await response.json().catch(() => ({}))
+
+        if (response.status === 403) {
+          throw new Error("No tienes permisos para actualizar productos. Solo administradores pueden hacerlo.")
+        }
+
+        throw new Error(errorData.message || "Error al actualizar producto")
       }
 
       return await response.json()
     } catch (error) {
-      console.error("Error:", error)
+      console.error("[v0] Error updating product:", error)
       throw error
     }
   }
 
   async deleteProduct(productId) {
     try {
-      const response = await fetch(`${this.baseUrl}/products/${productId}`, {
+      if (!this.token) {
+        throw new Error("No hay token de autenticación")
+      }
+
+      const response = await fetch(`${this.baseUrl}/${productId}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${this.token}`,
@@ -143,12 +153,18 @@ export class InventoryService {
       })
 
       if (!response.ok) {
-        throw new Error("Error al eliminar producto")
+        const errorData = await response.json().catch(() => ({}))
+
+        if (response.status === 403) {
+          throw new Error("No tienes permisos para eliminar productos. Solo administradores pueden hacerlo.")
+        }
+
+        throw new Error(errorData.message || "Error al eliminar producto")
       }
 
       return await response.json()
     } catch (error) {
-      console.error("Error:", error)
+      console.error("[v0] Error deleting product:", error)
       throw error
     }
   }
