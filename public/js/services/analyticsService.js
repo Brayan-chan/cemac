@@ -46,22 +46,19 @@ export class AnalyticsService {
 
   /**
    * Obtiene estadísticas completas de análisis
-   * Intenta usar endpoint dedicado, si falla usa datos de ventas
    */
   async getAnalyticsData() {
     try {
-      // Usar el endpoint dedicado de análisis
       const response = await this.makeRequest("/analysis/sales")
-      
+
       if (!response.success) {
-        throw new Error(response.message || 'Error al obtener datos de análisis');
+        throw new Error(response.message || "Error al obtener datos de análisis")
       }
-      
-      return response.data;
+
+      return response.data
     } catch (error) {
-      console.error("Error al obtener datos de análisis:", error.message);
-      // Si falla, usar datos por defecto
-      return this.getDefaultAnalyticsData();
+      console.error("Error al obtener datos de análisis:", error.message)
+      return this.getDefaultAnalyticsData()
     }
   }
 
@@ -86,59 +83,56 @@ export class AnalyticsService {
       const response = await this.makeRequest(
         `/analysis/sales/custom?startDate=${startDate}&endDate=${endDate}&groupBy=${groupBy}`,
       )
-      
+
       if (!response.success) {
-        throw new Error(response.message || 'Error al obtener datos personalizados');
+        throw new Error(response.message || "Error al obtener datos personalizados")
       }
-      
-      return response.data;
+
+      return response.data
     } catch (error) {
-      console.error("Error al obtener datos personalizados:", error);
-      // Si falla, retornar datos por defecto con el período especificado
+      console.error("Error al obtener datos personalizados:", error)
       return {
         labels: this.generateDateLabels(startDate, endDate, groupBy),
-        values: this.generateDefaultValues(startDate, endDate, groupBy)
-      };
+        values: this.generateDefaultValues(startDate, endDate, groupBy),
+      }
     }
   }
 
-  // Método auxiliar para generar etiquetas de fechas
   generateDateLabels(startDate, endDate, groupBy) {
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    const labels = [];
-    
-    if (groupBy === 'day') {
+    const start = new Date(startDate)
+    const end = new Date(endDate)
+    const labels = []
+
+    if (groupBy === "day") {
       for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-        labels.push(d.toLocaleDateString('es-ES', { weekday: 'short' }));
+        labels.push(d.toLocaleDateString("es-ES", { weekday: "short" }))
       }
-    } else if (groupBy === 'month') {
+    } else if (groupBy === "month") {
       for (let d = new Date(start); d <= end; d.setMonth(d.getMonth() + 1)) {
-        labels.push(d.toLocaleDateString('es-ES', { month: 'short' }));
+        labels.push(d.toLocaleDateString("es-ES", { month: "short" }))
       }
     }
-    
-    return labels;
+
+    return labels
   }
 
-  // Método auxiliar para generar valores por defecto
   generateDefaultValues(startDate, endDate, groupBy) {
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    const values = [];
-    const baseValue = 1000; // Valor base para datos simulados
-    
-    if (groupBy === 'day') {
+    const start = new Date(startDate)
+    const end = new Date(endDate)
+    const values = []
+    const baseValue = 1000
+
+    if (groupBy === "day") {
       for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-        values.push(baseValue + Math.floor(Math.random() * 1000));
+        values.push(baseValue + Math.floor(Math.random() * 1000))
       }
-    } else if (groupBy === 'month') {
+    } else if (groupBy === "month") {
       for (let d = new Date(start); d <= end; d.setMonth(d.getMonth() + 1)) {
-        values.push(baseValue * 30 + Math.floor(Math.random() * 15000));
+        values.push(baseValue * 30 + Math.floor(Math.random() * 15000))
       }
     }
-    
-    return values;
+
+    return values
   }
 
   /**
@@ -146,7 +140,6 @@ export class AnalyticsService {
    */
   async calculateAnalyticsFromSales() {
     try {
-      // Obtener ventas de los últimos 30 días
       const thirtyDaysAgo = new Date()
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
 
@@ -156,13 +149,8 @@ export class AnalyticsService {
 
       const sales = salesResponse.sales || []
 
-      // Calcular datos diarios (últimos 7 días)
       const daily = this.calculateDailyData(sales)
-
-      // Calcular datos mensuales (últimos 6 meses)
       const monthly = this.calculateMonthlyData(sales)
-
-      // Calcular productos más vendidos
       const topProducts = this.calculateTopProducts(sales)
 
       return {
@@ -186,12 +174,10 @@ export class AnalyticsService {
       const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1)
       const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0)
 
-      // Ventas del mes actual
       const currentMonthSales = await this.makeRequest(
         `/sales?startDate=${currentMonth.toISOString().split("T")[0]}&limit=1000`,
       )
 
-      // Ventas del mes anterior
       const lastMonthSales = await this.makeRequest(
         `/sales?startDate=${lastMonth.toISOString().split("T")[0]}&endDate=${lastMonthEnd.toISOString().split("T")[0]}&limit=1000`,
       )
@@ -228,14 +214,12 @@ export class AnalyticsService {
         return sum + (sale.products || []).reduce((pSum, product) => pSum + (product.quantity || 0), 0)
       }, 0)
 
-      // Calcular clientes únicos
       const uniqueClients = new Set(sales.map((sale) => sale.cliente || "Cliente General")).size
 
-      // Calcular cambios respecto a ayer (simulado por ahora)
-      const revenueChange = Math.floor(Math.random() * 20) - 10 // -10% a +10%
-      const ordersChange = Math.floor(Math.random() * 30) - 15 // -15% a +15%
-      const productsChange = Math.floor(Math.random() * 25) - 12 // -12% a +13%
-      const clientsChange = Math.floor(Math.random() * 20) - 10 // -10% a +10%
+      const revenueChange = Math.floor(Math.random() * 20) - 10
+      const ordersChange = Math.floor(Math.random() * 30) - 15
+      const productsChange = Math.floor(Math.random() * 25) - 12
+      const clientsChange = Math.floor(Math.random() * 20) - 10
 
       return {
         revenue: {
@@ -315,20 +299,17 @@ export class AnalyticsService {
     }
   }
 
-  // Métodos auxiliares para cálculos
   calculateDailyData(sales) {
     const days = ["Dom", "Lun", "Mar", "Mie", "Jue", "Vie", "Sab"]
     const last7Days = []
     const dailyRevenue = new Array(7).fill(0)
 
-    // Generar últimos 7 días
     for (let i = 6; i >= 0; i--) {
       const date = new Date()
       date.setDate(date.getDate() - i)
       last7Days.push(date.toISOString().split("T")[0])
     }
 
-    // Calcular ingresos por día
     sales.forEach((sale) => {
       const saleDate = sale.date || sale.createdAt?.split("T")[0]
       const dayIndex = last7Days.indexOf(saleDate)
@@ -348,7 +329,6 @@ export class AnalyticsService {
     const monthlyRevenue = new Array(6).fill(0)
     const last6Months = []
 
-    // Generar últimos 6 meses
     for (let i = 5; i >= 0; i--) {
       const date = new Date()
       date.setMonth(date.getMonth() - i)
@@ -359,7 +339,6 @@ export class AnalyticsService {
       })
     }
 
-    // Calcular ingresos por mes
     sales.forEach((sale) => {
       const saleDate = new Date(sale.date || sale.createdAt)
       const monthIndex = last6Months.findIndex(
@@ -412,7 +391,6 @@ export class AnalyticsService {
     }
   }
 
-  // Datos por defecto en caso de error
   getDefaultAnalyticsData() {
     return {
       daily: {
