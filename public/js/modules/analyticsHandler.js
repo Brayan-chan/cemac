@@ -6,64 +6,66 @@ import { AnalyticsService } from "../services/analyticsService.js"
 
 export class AnalyticsHandler {
   constructor() {
-    this.analyticsService = new AnalyticsService()
-    this.charts = {}
-    this.isLoading = false
+    this.analyticsService = new AnalyticsService();
+    this.charts = {};
+    this.isLoading = false;
 
-    console.log("Inicializando AnalyticsHandler...")
-    this.init()
+    console.log("Inicializando AnalyticsHandler...");
+    this.init();
   }
 
   async init() {
     try {
-      this.bindEvents()
-      await this.loadAnalyticsData()
-      console.log("AnalyticsHandler inicializado correctamente")
+      this.bindEvents();
+      await this.loadAnalyticsData();
+      console.log("AnalyticsHandler inicializado correctamente");
     } catch (error) {
-      console.error("Error inicializando AnalyticsHandler:", error)
-      this.showError("Error inicializando el sistema de análisis")
+      console.error("Error inicializando AnalyticsHandler:", error);
+      this.showError("Error inicializando el sistema de análisis");
     }
   }
 
   bindEvents() {
     // Evento para refrescar datos
-    const refreshBtn = document.querySelector("#refreshAnalytics")
+    const refreshBtn = document.querySelector("#refreshAnalytics");
     if (refreshBtn) {
-      refreshBtn.addEventListener("click", () => this.refreshData())
+      refreshBtn.addEventListener("click", () => this.refreshData());
     }
 
     // Eventos para filtros de período
-    const periodSelectors = document.querySelectorAll(".period-selector")
+    const periodSelectors = document.querySelectorAll(".period-selector");
     periodSelectors.forEach((selector) => {
-      selector.addEventListener("change", (e) => this.handlePeriodChange(e))
-    })
+      selector.addEventListener("change", (e) => this.handlePeriodChange(e));
+    });
   }
 
-  async loadAnalyticsData() {
-    if (this.isLoading) return
+    async loadAnalyticsData() {
+    if (this.isLoading) return;
 
-    this.isLoading = true
-    this.showLoadingState()
+    this.isLoading = true;
+    this.showLoadingState();
 
     try {
-      // Cargar datos en paralelo
-      const [todayStats, analyticsData, inventoryAnalysis] = await Promise.all([
-        this.analyticsService.getTodayStats(),
-        this.analyticsService.getAnalyticsData(),
-        this.analyticsService.getInventoryAnalysis(),
-      ])
+      // Obtener datos analíticos generales
+      const analyticsData = await this.analyticsService.getAnalyticsData();
+      
+      // Obtener análisis de inventario
+      const inventoryAnalysis = await this.analyticsService.getInventoryAnalysis();
+      
+      // Obtener estadísticas de hoy
+      const todayStats = await this.analyticsService.getTodayStats();
 
-      // Actualizar UI
-      this.updateTodayStats(todayStats)
-      this.updateCharts(analyticsData, inventoryAnalysis)
+      // Actualizar la interfaz
+      this.updateTodayStats(todayStats);
+      this.updateCharts(analyticsData, inventoryAnalysis);
 
-      console.log("Datos de análisis cargados correctamente")
+      console.log("Datos de análisis cargados exitosamente");
     } catch (error) {
-      console.error("Error cargando datos de análisis:", error)
-      this.showError("Error cargando los datos de análisis")
+      console.error("Error cargando datos de análisis:", error);
+      this.showError("Error al cargar los datos de análisis. Intente de nuevo más tarde.");
     } finally {
-      this.isLoading = false
-      this.hideLoadingState()
+      this.isLoading = false;
+      this.hideLoadingState();
     }
   }
 
@@ -76,18 +78,18 @@ export class AnalyticsHandler {
   }
 
   updateStatCard(type, data) {
-    const card = document.querySelector(`[data-stat="${type}"]`)
-    if (!card) return
+    const card = document.querySelector(`[data-stat="${type}"]`);
+    if (!card) return;
 
-    const valueElement = card.querySelector(".stat-value")
-    const changeElement = card.querySelector(".stat-change")
-    const labelElement = card.querySelector(".stat-label")
+    const valueElement = card.querySelector(".stat-value");
+    const changeElement = card.querySelector(".stat-change");
+    const labelElement = card.querySelector(".stat-label");
 
     if (valueElement) {
       if (type === "revenue") {
-        valueElement.textContent = `$${this.formatNumber(data.value)}`
+        valueElement.textContent = `$${this.formatNumber(data.value)}`;
       } else {
-        valueElement.textContent = this.formatNumber(data.value)
+        valueElement.textContent = this.formatNumber(data.value);
       }
     }
 
