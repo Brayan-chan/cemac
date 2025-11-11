@@ -1,4 +1,4 @@
-import { InventoryService } from "/js/services/inventoryService.js"
+import { InventoryService } from "../services/inventoryService.js"
 
 class AlertsHandler {
   constructor() {

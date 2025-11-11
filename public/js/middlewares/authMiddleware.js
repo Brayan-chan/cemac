@@ -20,7 +20,7 @@ const authenticateToken = (req, res, next) => {
         });
     }
 
-    // Aquí verificarías el token con tu API externa
+    // Aquí verificaríamos el token con tu API externa
     // Por ahora, simplemente verificamos que exista
     req.user = { token }; // Guardar información del usuario en req
     next();
@@ -39,7 +39,7 @@ const authorizeRoles = (allowedRoles) => {
             });
         }
 
-        // Aquí verificarías el rol del usuario
+        // Aquí verificaríamos el rol del usuario
         // Por ahora asumimos que tiene permisos
         next();
     };

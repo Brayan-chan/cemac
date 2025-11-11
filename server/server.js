@@ -6,7 +6,7 @@ import { dirname } from 'path';
 import dotenv from 'dotenv';
 
 // Importar rutas
-import authRoutes from '../routes/authRoutes.js';
+import authRoutes from '../public/js/routes/authRoutes.js';
 
 dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
