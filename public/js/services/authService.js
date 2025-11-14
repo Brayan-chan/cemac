@@ -69,8 +69,17 @@ class AuthService {
             console.log('📥 Response ok:', response.ok);
 
             if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(`HTTP ${response.status}: ${errorText}`);
+                // Intentar parsear respuesta JSON para obtener un mensaje amigable
+                try {
+                    const errorData = await response.json();
+                    const friendly = errorData.error || errorData.message || (`Error ${response.status}`);
+                    return { success: false, error: friendly, status: response.status };
+                } catch (parseErr) {
+                    // Si no es JSON, leer texto plano
+                    const errorText = await response.text();
+                    const friendly = errorText || (`Error ${response.status}`);
+                    return { success: false, error: friendly, status: response.status };
+                }
             }
 
             const data = await response.json();
