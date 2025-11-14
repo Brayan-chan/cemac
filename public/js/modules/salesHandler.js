@@ -21,6 +21,11 @@ export class SalesHandler {
     this.currentPage = 1
     this.itemsPerPage = 10
 
+    // Nueva UI: estado para búsqueda, filtros y selección
+    this.searchTerm = ""
+    this.filterBy = "todos"
+    this.selectedSale = null
+
     this.init()
   }
 
@@ -89,6 +94,54 @@ export class SalesHandler {
     )
     if (exportBtn) {
       exportBtn.addEventListener("click", this.handleExportSales.bind(this))
+    }
+
+    // Búsqueda en el panel de historial
+    const salesSearchInput = document.getElementById("salesSearchInput")
+    if (salesSearchInput) {
+      salesSearchInput.addEventListener(
+        "input",
+        this.debounce((e) => {
+          this.searchTerm = e.target.value.trim().toLowerCase()
+          this.applyFiltersAndRender()
+        }, 300),
+      )
+    }
+
+    // Filtros por período
+    const filtersContainer = document.getElementById("salesFilters")
+    if (filtersContainer) {
+      const filterButtons = Array.from(filtersContainer.querySelectorAll("button[data-filter]"))
+
+      // Assign click handlers
+      filterButtons.forEach((btn) => {
+        btn.addEventListener("click", (e) => {
+          const f = btn.dataset.filter
+          this.filterBy = f
+
+          // actualizar clases visuales: quitar activo de todos y poner en el seleccionado
+          filterButtons.forEach((b) => {
+            b.classList.remove("bg-[#8B7EC7]", "text-white")
+            b.classList.add("bg-gray-100", "text-gray-700")
+          })
+
+          btn.classList.add("bg-[#8B7EC7]", "text-white")
+          btn.classList.remove("bg-gray-100", "text-gray-700")
+
+          this.applyFiltersAndRender()
+        })
+      })
+
+      // Establecer botón activo inicial según this.filterBy
+      const active = filterButtons.find((b) => b.dataset.filter === this.filterBy)
+      if (active) {
+        filterButtons.forEach((b) => {
+          b.classList.remove("bg-[#8B7EC7]", "text-white")
+          b.classList.add("bg-gray-100", "text-gray-700")
+        })
+        active.classList.add("bg-[#8B7EC7]", "text-white")
+        active.classList.remove("bg-gray-100", "text-gray-700")
+      }
     }
   }
 
@@ -448,7 +501,8 @@ export class SalesHandler {
       })
 
       this.salesHistory = response.sales || []
-      this.updateSalesHistory()
+      // Renderizar usando filtros y la nueva UI
+      this.applyFiltersAndRender()
     } catch (error) {
       console.error("Error cargando historial:", error)
       // No mostrar error al usuario para el historial
@@ -456,36 +510,81 @@ export class SalesHandler {
   }
 
   /**
-   * Actualizar historial de ventas en el DOM
+   * Aplicar filtros (búsqueda y período) y renderizar cards en el DOM
    */
-  updateSalesHistory() {
-    const historyContainer = document.querySelector(".space-y-3")
-    if (!historyContainer) return
+  applyFiltersAndRender() {
+    const list = document.getElementById("salesList")
+    if (!list) return
 
-    // Limpiar historial existente
-    historyContainer.innerHTML = ""
+    const now = new Date()
 
-    // Agregar ventas recientes
-    this.salesHistory.slice(0, 5).forEach((sale) => {
-      const historyItem = document.createElement("div")
-      historyItem.className = "bg-white p-3 rounded-lg cursor-pointer hover:bg-gray-50"
-      historyItem.innerHTML = `
-                <div class="text-sm font-medium">${sale.cliente}</div>
-                <div class="text-xs text-gray-500">${sale.date}</div>
-                <div class="text-xs text-gray-500">Total: $${sale.total}</div>
-                <div class="text-xs text-gray-500">${sale.products.length} producto(s)</div>
+    const filtered = this.salesHistory.filter((sale) => {
+      // Búsqueda por cliente
+      if (this.searchTerm) {
+        const cliente = (sale.cliente || "").toString().toLowerCase()
+        if (!cliente.includes(this.searchTerm)) return false
+      }
+
+      // Filtro por período
+      if (this.filterBy && this.filterBy !== "todos") {
+        const saleDate = new Date(sale.date)
+        const diffMs = now - saleDate
+
+        if (this.filterBy === "hoy") {
+          if (saleDate.toDateString() !== now.toDateString()) return false
+        } else if (this.filterBy === "semana") {
+          if (diffMs > 7 * 24 * 60 * 60 * 1000) return false
+        } else if (this.filterBy === "mes") {
+          if (diffMs > 30 * 24 * 60 * 60 * 1000) return false
+        }
+      }
+
+      return true
+    })
+
+    // Actualizar estadísticas
+    const totalSales = filtered.reduce((sum, s) => sum + (Number(s.total) || 0), 0)
+    const totalElem = document.getElementById("totalSalesValue")
+    const transElem = document.getElementById("transactionsValue")
+    if (totalElem) totalElem.textContent = `$${totalSales.toFixed(2)}`
+    if (transElem) transElem.textContent = `${filtered.length}`
+
+    // Renderizar lista
+    list.innerHTML = ""
+    if (filtered.length === 0) {
+      list.innerHTML = '<div class="text-center text-gray-500 py-4">No hay ventas recientes</div>'
+      return
+    }
+
+    filtered.forEach((sale) => {
+      const card = document.createElement("div")
+      card.className = `p-3 rounded-lg border-2 cursor-pointer transition group ${
+        this.selectedSale && this.selectedSale.id === sale.id
+          ? "border-[#8B7EC7] bg-[#F3EFFA]"
+          : "border-gray-200 bg-white hover:border-[#B59DD6] hover:bg-[#F3EFFA]"
+      }`
+
+      card.innerHTML = `
+                <div class="flex justify-between items-start">
+                    <div>
+                        <div class="text-sm font-medium">${sale.cliente || "Cliente"}</div>
+                        <div class="text-xs text-gray-500">${new Date(sale.date).toLocaleString()}</div>
+                        <div class="text-xs text-gray-500">${sale.products ? sale.products.length : 0} producto(s)</div>
+                    </div>
+                    <div class="text-right">
+                        <div class="font-semibold text-[#8B7EC7]">$${(Number(sale.total) || 0).toFixed(2)}</div>
+                    </div>
+                </div>
             `
 
-      historyItem.addEventListener("click", () => {
+      card.addEventListener("click", () => {
+        this.selectedSale = sale
+        this.applyFiltersAndRender()
         this.showSaleDetails(sale)
       })
 
-      historyContainer.appendChild(historyItem)
+      list.appendChild(card)
     })
-
-    if (this.salesHistory.length === 0) {
-      historyContainer.innerHTML = '<div class="text-center text-gray-500 py-4">No hay ventas recientes</div>'
-    }
   }
 
   /**
