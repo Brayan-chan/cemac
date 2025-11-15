@@ -143,7 +143,6 @@ class InventoryHandler {
         description: formData.get("descripcion"),
         category: formData.get("categoria"),
         price: Number.parseFloat(formData.get("precio")),
-        promotionalPrice: formData.get("precioPromocional") ? Number.parseFloat(formData.get("precioPromocional")) : null,
         stock: Number.parseInt(formData.get("stock")) || 0,
         availability: formData.get("disponible") ? "unlimited" : "limited",
       }
@@ -174,43 +173,34 @@ class InventoryHandler {
     try {
       this.showLoadingState()
 
-      // Asegurar que los parámetros sean números
-      const queryParams = {
-        page: parseInt(this.currentFilters.page) || 1,
-        limit: parseInt(this.currentFilters.limit) || 5,
-        search: this.currentFilters.search || "",
-        category: this.currentFilters.category || "",
-        price: this.currentFilters.price || "",
-        status: this.currentFilters.status || "",
-        sort: this.currentFilters.sort || "name"
-      }
+      // Build query parameters - Include search parameter
+      const queryParams = {}
+      if (this.currentFilters.search) queryParams.search = this.currentFilters.search
+      if (this.currentFilters.category) queryParams.category = this.currentFilters.category
+      if (this.currentFilters.price) queryParams.price = this.currentFilters.price
+      if (this.currentFilters.status) queryParams.status = this.currentFilters.status
+      if (this.currentFilters.sort) queryParams.sort = this.currentFilters.sort
+      queryParams.page = this.currentFilters.page
+      queryParams.limit = this.currentFilters.limit
 
       console.log("Loading products with filters:", queryParams)
 
       const response = await this.inventoryService.getProducts(queryParams)
 
-      // Procesar la respuesta
-      if (response && response.products) {
+      // Handle different response structures
+      if (Array.isArray(response)) {
+        this.products = response
+        this.totalProducts = response.length
+        this.totalPages = Math.ceil(this.totalProducts / this.currentFilters.limit)
+      } else if (response.products) {
         this.products = response.products
-        this.totalProducts = parseInt(response.total) || response.products.length
-        this.totalPages = Math.max(1, Math.ceil(this.totalProducts / queryParams.limit))
-        
-        // Actualizar los filtros con los valores de la respuesta
-        this.currentFilters.page = parseInt(response.page) || queryParams.page
-        this.currentFilters.limit = parseInt(response.limit) || queryParams.limit
+        this.totalProducts = response.total || response.products.length
+        this.totalPages = response.totalPages || Math.ceil(this.totalProducts / this.currentFilters.limit)
       } else {
         this.products = []
         this.totalProducts = 0
         this.totalPages = 1
-        this.currentFilters.page = 1
       }
-
-      console.log("Pagination info:", {
-        currentPage: this.currentFilters.page,
-        totalPages: this.totalPages,
-        totalProducts: this.totalProducts,
-        productsPerPage: this.currentFilters.limit
-      })
 
       console.log("Products loaded:", {
         count: this.products.length,
@@ -337,63 +327,35 @@ class InventoryHandler {
     const currentPageSpan = document.getElementById("currentPage")
     const totalPagesSpan = document.getElementById("totalPages")
 
+    if (currentPageSpan) currentPageSpan.textContent = this.currentFilters.page
+    if (totalPagesSpan) totalPagesSpan.textContent = this.totalPages
+
     if (!paginationNumbers || !prevBtn || !nextBtn) {
       console.log("Pagination elements not found")
       return
     }
 
-    console.log("Updating pagination:", {
-      currentPage: this.currentFilters.page,
-      totalPages: this.totalPages,
-      totalProducts: this.totalProducts,
-      productsPerPage: this.currentFilters.limit
-    })
+    console.log("Updating pagination - Current page:", this.currentFilters.page, "Total pages:", this.totalPages)
 
-    // Actualizar los contadores de página
-    if (currentPageSpan) currentPageSpan.textContent = this.currentFilters.page
-    if (totalPagesSpan) totalPagesSpan.textContent = this.totalPages
+    // Update button states
+    prevBtn.disabled = this.currentFilters.page <= 1
+    nextBtn.disabled = this.currentFilters.page >= this.totalPages
 
-    // Si no hay productos o solo hay una página, ocultar la paginación
-    const paginationContainer = document.querySelector('.pagination-container')
-    if (this.totalPages <= 1) {
-      if (paginationContainer) paginationContainer.style.display = 'none'
-      return
-    } else {
-      if (paginationContainer) paginationContainer.style.display = 'flex'
-    }
-
-    // Actualizar estado de los botones de navegación
-    const isFirstPage = this.currentFilters.page <= 1
-    const isLastPage = this.currentFilters.page >= this.totalPages
-
-    prevBtn.disabled = isFirstPage
-    prevBtn.classList.toggle("opacity-50", isFirstPage)
-    
-    nextBtn.disabled = isLastPage
-    nextBtn.classList.toggle("opacity-50", isLastPage)
-
-    // Generar números de página
+    // Generate page numbers
     const pageNumbers = this.generatePageNumbers()
     console.log("Generated page numbers:", pageNumbers)
 
     paginationNumbers.innerHTML = pageNumbers
       .map((page) => {
         if (page === "...") {
-          return `<span class="inline-flex items-center justify-center w-10 h-10 text-gray-500">...</span>`
+          return `<span class="pagination-ellipsis">...</span>`
         }
 
-        const isCurrentPage = parseInt(page) === parseInt(this.currentFilters.page)
+        const isActive = page === this.currentFilters.page
         return `
           <button 
-            onclick="window.inventoryHandler.goToPage(${page})"
-            class="inline-flex items-center justify-center w-10 h-10 rounded-full ${
-              isCurrentPage
-                ? "bg-purple-100 text-purple-600 font-medium"
-                : "text-gray-600 hover:bg-gray-100"
-            }"
-            ${isCurrentPage ? "disabled" : ""}
-            aria-current="${isCurrentPage ? "page" : "false"}"
-            aria-label="Ir a la página ${page}"
+            onclick="inventoryHandler.goToPage(${page})"
+            class="pagination-btn ${isActive ? "active" : ""}"
           >
             ${page}
           </button>
@@ -403,48 +365,40 @@ class InventoryHandler {
   }
 
   generatePageNumbers() {
-    const current = parseInt(this.currentFilters.page) || 1
-    const total = Math.max(1, parseInt(this.totalPages))
+    const current = this.currentFilters.page
+    const total = this.totalPages
     const pages = []
 
-    console.log("Generating page numbers:", { 
-      currentPage: current, 
-      totalPages: total,
-      totalProducts: this.totalProducts,
-      itemsPerPage: this.currentFilters.limit
-    })
-
-    // Si no hay páginas o solo hay una, retornar solo esa página
     if (total <= 1) {
-      return [1]
+      return []
     }
 
-    // Si hay 7 páginas o menos, mostrar todas sin ellipsis
     if (total <= 7) {
+      // Show all pages if 7 or fewer
       for (let i = 1; i <= total; i++) {
         pages.push(i)
       }
     } else {
-      // Siempre mostrar la primera página
+      // Always show first page
       pages.push(1)
 
       if (current <= 4) {
-        // Cerca del inicio: 1, 2, 3, 4, 5, ..., total
+        // Show 1, 2, 3, 4, 5, ..., last
         for (let i = 2; i <= 5; i++) {
           pages.push(i)
         }
         pages.push("...")
         pages.push(total)
       } else if (current >= total - 3) {
-        // Cerca del final: 1, ..., total-4, total-3, total-2, total-1, total
+        // Show 1, ..., last-4, last-3, last-2, last-1, last
         pages.push("...")
         for (let i = total - 4; i <= total; i++) {
           pages.push(i)
         }
       } else {
-        // En el medio: 1, ..., current-2, current-1, current, current+1, current+2, ..., total
+        // Show 1, ..., current-1, current, current+1, ..., last
         pages.push("...")
-        for (let i = current - 2; i <= current + 2; i++) {
+        for (let i = current - 1; i <= current + 1; i++) {
           pages.push(i)
         }
         pages.push("...")
@@ -524,7 +478,7 @@ class InventoryHandler {
       return response
     } catch (error) {
       console.error("Error creating product:", error)
-      this.showError(error.message || "No tienes permisos para agregar productos. Solo administradores pueden hacerlo.")
+      this.showError(error.message || "Error al crear el producto")
       throw error
     }
   }
@@ -555,6 +509,12 @@ class InventoryHandler {
   }
 
   showAddProductModal() {
+    const user = JSON.parse(localStorage.getItem("user") || "{}")
+    if (user.role !== "admin") {
+      this.showError("No tienes permisos para agregar productos. Solo administradores pueden hacerlo.")
+      return
+    }
+
     const modal = document.getElementById("productModal")
     const form = document.getElementById("productForm")
     const modalTitle = document.getElementById("modalTitle")
@@ -579,6 +539,12 @@ class InventoryHandler {
   }
 
   async showEditProductModal(productId) {
+    const user = JSON.parse(localStorage.getItem("user") || "{}")
+    if (user.role !== "admin") {
+      this.showError("No tienes permisos para editar productos. Solo administradores pueden hacerlo.")
+      return
+    }
+
     const product = this.products.find((p) => p.id === productId)
     if (!product) return
 
@@ -593,7 +559,6 @@ class InventoryHandler {
     form.elements.descripcion.value = product.description || ""
     form.elements.categoria.value = product.category || ""
     form.elements.precio.value = product.price || ""
-    form.elements.precioPromocional.value = product.promotionalPrice || ""
     form.elements.stock.value = product.stock || ""
 
     // Handle unlimited availability
