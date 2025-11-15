@@ -26,6 +26,27 @@ class DashboardHandler {
       }, 1000)
       return false
     }
+
+    // Verificar que el usuario tenga un rol válido
+    const user = window.authService.getUser()
+    if (!user || !user.role || (user.role !== 'admin' && user.role !== 'user')) {
+      console.log("[DASHBOARD] Usuario sin rol válido, redirigiendo al login...")
+      window.authService.clearSession()
+      setTimeout(() => {
+        window.location.href = "/index.html"
+      }, 1000)
+      return false
+    }
+
+    // Verificar que la cuenta esté activa
+    if (user.isActive === false) {
+      console.log("[DASHBOARD] Usuario con cuenta desactivada, cerrando sesión...")
+      alert("Tu cuenta está desactivada. Contacta al administrador.")
+      window.authService.logout()
+      return false
+    }
+
+    console.log("[DASHBOARD] Usuario autenticado correctamente:", user.email, "- Rol:", user.role)
     return true
   }
 
