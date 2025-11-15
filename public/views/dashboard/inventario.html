@@ -84,7 +84,7 @@
 
             <div class="sidebar-bottom">
                 <div class="px-4">
-                    <a href="/views/dashboard/../../index.html"
+                    <a href="#" id="logoutBtn"
                         class="flex items-center px-3 py-2 text-white/80 hover:bg-white/10 rounded-lg cursor-pointer transition-colors">
                         <i class="fas fa-sign-out-alt text-white w-5"></i>
                         <span class="sidebar-text ml-3">Salir</span>
@@ -531,6 +531,18 @@
                 }
             });
 
+            // Logout Button functionality
+            const logoutBtn = document.getElementById('logoutBtn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    // Limpiar sesión y redirigir
+                    localStorage.removeItem('authToken');
+                    localStorage.removeItem('user');
+                    window.location.href = '/index.html';
+                });
+            }
+
             // User Dropdown functionality
             if (userMenuBtn && userDropdown) {
                 // Toggle dropdown on button click
@@ -565,6 +577,9 @@
                                 console.log('Gestionar usuarios clicked');
                                 break;
                             case 'Cerrar sesión':
+                                // Limpiar sesión y redirigir
+                                localStorage.removeItem('authToken');
+                                localStorage.removeItem('user');
                                 window.location.href = '/index.html';
                                 break;
                         }
