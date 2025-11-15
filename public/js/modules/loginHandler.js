@@ -62,17 +62,39 @@ class LoginHandler {
             const result = await window.authService.login(email, password);
 
             if (result.success) {
-                // Guardar el token
-                localStorage.setItem('authToken', result.token);
-                console.log('Token guardado:', result.token); // Para depuración
+                console.log('✅ Respuesta de login recibida:', result);
                 
-                this.showSuccess('¡Login exitoso! Redirigiendo...');
+                // VALIDAR ROL ANTES DE CUALQUIER ACCIÓN
+                if (!result.user || result.user.role !== 'admin') {
+                    console.log('❌ Usuario no es administrador, rol:', result.user?.role);
+                    // No guardar nada, directamente mostrar error
+                    this.showError('Esta cuenta no tiene permisos de administrador. Usa el login de empleados.');
+                    // Limpiar cualquier dato que se haya podido guardar en authService
+                    window.authService.clearSession();
+                    return;
+                }
+                
+                // Verificar que la cuenta esté activa
+                if (result.user.isActive === false) {
+                    console.log('❌ Cuenta de administrador desactivada');
+                    this.showError('Tu cuenta está desactivada. Contacta al administrador.');
+                    window.authService.clearSession();
+                    return;
+                }
+                
+                // Solo aquí guardamos el token y mostramos éxito
+                localStorage.setItem('authToken', result.token);
+                console.log('✅ Token de administrador guardado:', result.token);
+                
+                const userName = result.user.firstName || result.user.email || 'Administrador';
+                this.showSuccess(`¡Bienvenido ${userName}! Redirigiendo...`);
                 
                 setTimeout(() => {
                     window.location.href = '/views/dashboard/inicio.html';
                 }, 1500);
             } else {
-                this.showError(result.error || 'Error de autenticación');
+                console.log('❌ Login fallido:', result.error);
+                this.showError(result.error || 'Credenciales inválidas');
             }
         } catch (error) {
             console.error('❌ Error en handleLogin:', error);
@@ -83,8 +105,18 @@ class LoginHandler {
     }
 
     checkAuthStatus() {
+        // Verificar si ya hay una sesión activa
         if (window.authService && window.authService.isAuthenticated()) {
-            window.location.href = '/views/dashboard/inicio.html';
+            const user = window.authService.getUser();
+            
+            if (user && user.role === 'admin') {
+                console.log('👑 Usuario administrador ya autenticado, redirigiendo...');
+                window.location.href = '/views/dashboard/inicio.html';
+            } else {
+                // Si es empleado, cerrar sesión y permitir login de admin
+                console.log('👤 Usuario empleado detectado, cerrando sesión...');
+                window.authService.clearSession();
+            }
         }
     }
 
