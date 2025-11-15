@@ -82,29 +82,41 @@ class EmployeeLoginHandler {
       const result = await window.authService.login(email, password)
 
       if (result.success) {
-        console.log("[EMPLOYEE LOGIN] Login exitoso:", result)
+        console.log("[EMPLOYEE LOGIN] Respuesta de login recibida:", result)
 
-        // Verificar que el usuario tenga rol de empleado (user)
-        if (result.user && result.user.role === "user") {
-          // Verificar que la cuenta esté activa
-          if (result.user.isActive === false) {
-            this.showError("Tu cuenta está desactivada. Contacta al administrador.")
-            await window.authService.logout()
-            return
+        // VALIDAR ROL ANTES DE CUALQUIER ACCIÓN
+        if (!result.user || result.user.role !== "user") {
+          console.log("❌ Usuario no es empleado, rol:", result.user?.role)
+          
+          // Mensaje específico según el rol
+          if (result.user && result.user.role === "admin") {
+            this.showError("Esta cuenta tiene permisos de administrador. Usa el login de administradores.")
+          } else {
+            this.showError("Esta cuenta no tiene permisos de empleado. Contacta al administrador.")
           }
-
-          const userName = result.user.firstName || result.user.email || 'Usuario'
-          this.showSuccess(`¡Bienvenido ${userName}! Redirigiendo...`)
-
-          // Redirigir al dashboard después de 1.5 segundos
-          setTimeout(() => {
-            window.location.href = "/views/dashboard/inicio.html"
-          }, 1500)
-        } else {
-          // Si no es empleado, cerrar sesión y mostrar error
-          this.showError("Esta cuenta no tiene permisos de empleado. Usa el login de administradores.")
-          await window.authService.logout()
+          
+          // Limpiar cualquier dato que se haya podido guardar
+          window.authService.clearSession()
+          return
         }
+
+        // Verificar que la cuenta esté activa
+        if (result.user.isActive === false) {
+          console.log("❌ Cuenta de empleado desactivada")
+          this.showError("Tu cuenta está desactivada. Contacta al administrador.")
+          window.authService.clearSession()
+          return
+        }
+
+        // Solo aquí mostramos éxito y redirigimos
+        console.log("✅ Empleado autenticado correctamente")
+        const userName = result.user.firstName || result.user.email || 'Empleado'
+        this.showSuccess(`¡Bienvenido ${userName}! Redirigiendo...`)
+
+        // Redirigir al dashboard después de 1.5 segundos
+        setTimeout(() => {
+          window.location.href = "/views/dashboard/inicio.html"
+        }, 1500)
       } else {
         console.error("[EMPLOYEE LOGIN] Login fallido:", result.error)
         this.showError(result.error || "Credenciales inválidas")
@@ -125,9 +137,14 @@ class EmployeeLoginHandler {
       if (user && user.role === "user") {
         console.log("[EMPLOYEE LOGIN] Usuario empleado ya autenticado, redirigiendo...")
         window.location.href = "/views/dashboard/inicio.html"
-      } else {
+      } else if (user && user.role === "admin") {
         // Si es admin, cerrar sesión y permitir login de empleado
-        console.log("[EMPLOYEE LOGIN] Usuario admin detectado, cerrando sesión...")
+        console.log("[EMPLOYEE LOGIN] Usuario admin detectado, cerrando sesión para permitir login de empleado...")
+        window.authService.clearSession()
+        this.showError("Sesión de administrador detectada. Inicia sesión como empleado.")
+      } else {
+        // Si no tiene rol válido, limpiar sesión
+        console.log("[EMPLOYEE LOGIN] Usuario sin rol válido, limpiando sesión...")
         window.authService.clearSession()
       }
     }
