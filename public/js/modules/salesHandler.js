@@ -30,6 +30,97 @@ export class SalesHandler {
   }
 
   /**
+   * Función helper para parsear fechas de Firebase
+   * Prioriza createdAt (formato ISO) sobre date (formato dd/mm/yyyy)
+   */
+  parseFirebaseDate(sale) {
+    // Si recibe un sale object, extraer la mejor fecha disponible
+    if (sale && typeof sale === 'object') {
+      // Priorizar createdAt que tiene hora completa
+      if (sale.createdAt) {
+        const createdAtDate = new Date(sale.createdAt)
+        if (!isNaN(createdAtDate.getTime())) {
+          console.log('[SALES] Using createdAt:', sale.createdAt, '→', createdAtDate)
+          return createdAtDate
+        }
+      }
+      
+      // Fallback a date si no hay createdAt
+      if (sale.date) {
+        return this.parseDateString(sale.date)
+      }
+      
+      console.warn('[SALES] No valid date found in sale object:', sale)
+      return new Date()
+    }
+    
+    // Si recibe solo un string, parsearlo directamente
+    return this.parseDateString(sale)
+  }
+
+  /**
+   * Parsea strings de fecha en varios formatos
+   */
+  parseDateString(dateString) {
+    if (!dateString) return new Date()
+
+    // Si ya es un objeto Date válido
+    if (dateString instanceof Date) return dateString
+
+    // Convertir a string si no lo es
+    const dateStr = dateString.toString()
+
+    console.log('[SALES] Parsing date string:', dateStr)
+
+    // Formato dd/mm/yyyy o d/m/yyyy (como se ve en Firebase)
+    if (dateStr.includes('/')) {
+      const parts = dateStr.split('/')
+      if (parts.length === 3) {
+        const day = parseInt(parts[0])
+        const month = parseInt(parts[1]) - 1 // JavaScript months are 0-based
+        const year = parseInt(parts[2])
+        
+        // Validar que las partes sean números válidos
+        if (!isNaN(day) && !isNaN(month) && !isNaN(year)) {
+          const parsedDate = new Date(year, month, day)
+          console.log('[SALES] Parsed date from', dateStr, 'to', parsedDate)
+          return parsedDate
+        }
+      }
+    }
+
+    // Intentar parseo directo para otros formatos (ISO, etc.)
+    const directParse = new Date(dateStr)
+    if (!isNaN(directParse.getTime())) {
+      console.log('[SALES] Direct parsed date from', dateStr, 'to', directParse)
+      return directParse
+    }
+
+    // Si todo falla, retornar fecha actual
+    console.warn('[SALES] No se pudo parsear la fecha:', dateString)
+    return new Date()
+  }
+
+  /**
+   * Formatear fecha para mostrar en la UI
+   */
+  formatDate(sale) {
+    try {
+      const date = this.parseFirebaseDate(sale)
+      return date.toLocaleString('es-ES', {
+        day: '2-digit',
+        month: '2-digit', 
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      })
+    } catch (error) {
+      console.error('Error formateando fecha:', error, sale)
+      return 'Fecha inválida'
+    }
+  }
+
+  /**
    * Inicializar el manejador
    */
   async init() {
@@ -527,7 +618,7 @@ export class SalesHandler {
 
       // Filtro por período
       if (this.filterBy && this.filterBy !== "todos") {
-        const saleDate = new Date(sale.date)
+        const saleDate = this.parseFirebaseDate(sale)
         const diffMs = now - saleDate
 
         if (this.filterBy === "hoy") {
@@ -568,7 +659,7 @@ export class SalesHandler {
                 <div class="flex justify-between items-start">
                     <div>
                         <div class="text-sm font-medium">${sale.cliente || "Cliente"}</div>
-                        <div class="text-xs text-gray-500">${new Date(sale.date).toLocaleString()}</div>
+                        <div class="text-xs text-gray-500">${this.formatDate(sale)}</div>
                         <div class="text-xs text-gray-500">${sale.products ? sale.products.length : 0} producto(s)</div>
                     </div>
                     <div class="text-right">
@@ -591,57 +682,255 @@ export class SalesHandler {
    * Mostrar detalles de una venta
    */
   showSaleDetails(sale) {
-    // Crear modal con detalles de la venta
+    // Crear modal con detalles de la venta como ticket
     const modal = document.createElement("div")
-    modal.className = "fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+    modal.className = "fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+    
+    // Calcular totales
+    const subtotal = sale.products?.reduce((sum, product) => sum + (Number(product.totalPrice) || 0), 0) || Number(sale.subtotal) || 0
+    const discountAmount = Number(sale.discountAmount) || 0
+    const ivaAmount = Number(sale.ivaAmount) || 0
+    const total = Number(sale.total) || 0
+    
     modal.innerHTML = `
-            <div class="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-96 overflow-y-auto">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-lg font-semibold">Detalles de Venta</h3>
-                    <button class="close-modal text-gray-500 hover:text-gray-700">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-                <div class="space-y-3">
-                    <div><strong>ID:</strong> ${sale.id}</div>
-                    <div><strong>Cliente:</strong> ${sale.cliente}</div>
-                    <div><strong>Vendedor:</strong> ${sale.vendedor}</div>
-                    <div><strong>Fecha:</strong> ${sale.date}</div>
-                    <div><strong>Estado:</strong> <span class="px-2 py-1 rounded text-xs ${this.getStatusClass(sale.status)}">${sale.status}</span></div>
-                    <div><strong>Productos:</strong></div>
-                    <div class="bg-gray-50 p-3 rounded">
-                        ${sale.products
-                          .map(
-                            (product) => `
-                            <div class="flex justify-between py-1">
-                                <span>${product.productName} x${product.quantity}</span>
-                                <span>$${product.totalPrice}</span>
-                            </div>
-                        `,
-                          )
-                          .join("")}
-                    </div>
-                    <div class="border-t pt-3">
-                        <div class="flex justify-between"><span>Subtotal:</span><span>$${sale.subtotal}</span></div>
-                        ${sale.discountAmount ? `<div class="flex justify-between"><span>Descuento:</span><span>-$${sale.discountAmount}</span></div>` : ""}
-                        ${sale.ivaAmount ? `<div class="flex justify-between"><span>IVA:</span><span>$${sale.ivaAmount}</span></div>` : ""}
-                        <div class="flex justify-between font-semibold"><span>Total:</span><span>$${sale.total}</span></div>
-                    </div>
-                </div>
-            </div>
-        `
+      <div class="bg-white rounded-lg shadow-2xl max-w-md w-full max-h-[90vh] overflow-hidden flex flex-col">
+        <!-- Header del ticket -->
+        <div class="bg-[#8B7EC7] text-white p-4 text-center relative">
+          <button class="close-modal absolute top-3 right-3 text-white hover:text-gray-200 transition-colors">
+            <i class="fas fa-times text-lg"></i>
+          </button>
+          <h2 class="text-xl font-bold">TICKET DE VENTA</h2>
+          <p class="text-sm opacity-90">Sistema CEMAC</p>
+        </div>
 
-    modal.querySelector(".close-modal").addEventListener("click", () => {
-      modal.remove()
+        <!-- Contenido del ticket -->
+        <div class="flex-1 overflow-y-auto p-6 space-y-4">
+          <!-- Información de la venta -->
+          <div class="text-center border-b pb-4">
+            <div class="text-sm text-gray-600 mb-1">Ticket #</div>
+            <div class="font-mono text-lg font-semibold">${sale.id}</div>
+            <div class="text-xs text-gray-500 mt-2">${this.formatDate(sale)}</div>
+          </div>
+
+          <!-- Información del cliente y vendedor -->
+          <div class="grid grid-cols-1 gap-3 border-b pb-4">
+            <div class="bg-gray-50 p-3 rounded-lg">
+              <div class="text-xs text-gray-600 uppercase tracking-wide mb-1">Cliente</div>
+              <div class="font-semibold text-gray-900">${sale.cliente || 'Cliente General'}</div>
+            </div>
+            <div class="bg-gray-50 p-3 rounded-lg">
+              <div class="text-xs text-gray-600 uppercase tracking-wide mb-1">Vendedor</div>
+              <div class="font-semibold text-gray-900">${sale.vendedor || 'No asignado'}</div>
+            </div>
+            ${sale.status ? `
+              <div class="flex items-center justify-between">
+                <span class="text-xs text-gray-600 uppercase tracking-wide">Estado</span>
+                <span class="px-2 py-1 rounded-full text-xs font-medium ${this.getStatusClass(sale.status)}">${sale.status}</span>
+              </div>
+            ` : ''}
+          </div>
+
+          <!-- Lista de productos -->
+          <div class="border-b pb-4">
+            <div class="text-sm font-semibold text-gray-700 mb-3 uppercase tracking-wide">Productos</div>
+            <div class="space-y-2">
+              ${sale.products?.map(product => `
+                <div class="flex justify-between items-start py-2 border-b border-gray-100 last:border-b-0">
+                  <div class="flex-1 pr-2">
+                    <div class="font-medium text-sm text-gray-900">${product.productName}</div>
+                    <div class="text-xs text-gray-500">
+                      ${product.quantity} × $${(Number(product.totalPrice) / Number(product.quantity)).toFixed(2)}
+                    </div>
+                  </div>
+                  <div class="text-right">
+                    <div class="font-semibold text-[#8B7EC7]">$${Number(product.totalPrice).toFixed(2)}</div>
+                  </div>
+                </div>
+              `).join('') || '<div class="text-center text-gray-500 py-2">No hay productos registrados</div>'}
+            </div>
+          </div>
+
+          <!-- Totales -->
+          <div class="space-y-2">
+            <div class="flex justify-between text-sm">
+              <span class="text-gray-600">Subtotal:</span>
+              <span class="font-medium">$${subtotal.toFixed(2)}</span>
+            </div>
+            
+            ${discountAmount > 0 ? `
+              <div class="flex justify-between text-sm">
+                <span class="text-gray-600">Descuento:</span>
+                <span class="font-medium text-red-600">-$${discountAmount.toFixed(2)}</span>
+              </div>
+            ` : ''}
+            
+            ${ivaAmount > 0 ? `
+              <div class="flex justify-between text-sm">
+                <span class="text-gray-600">IVA:</span>
+                <span class="font-medium">$${ivaAmount.toFixed(2)}</span>
+              </div>
+            ` : ''}
+            
+            <div class="border-t pt-2 mt-3">
+              <div class="flex justify-between text-lg font-bold">
+                <span>TOTAL:</span>
+                <span class="text-[#8B7EC7]">$${total.toFixed(2)}</span>
+              </div>
+            </div>
+          </div>
+
+          ${sale.paymentMethod ? `
+            <div class="bg-gray-50 p-3 rounded-lg">
+              <div class="text-xs text-gray-600 uppercase tracking-wide mb-1">Método de Pago</div>
+              <div class="font-medium capitalize">${sale.paymentMethod}</div>
+            </div>
+          ` : ''}
+
+          ${sale.notes ? `
+            <div class="bg-yellow-50 p-3 rounded-lg border-l-4 border-yellow-400">
+              <div class="text-xs text-gray-600 uppercase tracking-wide mb-1">Notas</div>
+              <div class="text-sm text-gray-800">${sale.notes}</div>
+            </div>
+          ` : ''}
+        </div>
+
+        <!-- Footer del ticket -->
+        <div class="bg-gray-50 p-4 text-center border-t">
+          <div class="text-xs text-gray-500">
+            ¡Gracias por su compra!<br>
+            Conserve este ticket como comprobante
+          </div>
+          <div class="mt-3 flex gap-2 justify-center">
+            <button class="print-ticket bg-[#8B7EC7] hover:bg-[#7A6DB8] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+              <i class="fas fa-print mr-2"></i>Imprimir
+            </button>
+            <button class="close-modal bg-gray-300 hover:bg-gray-400 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+              Cerrar
+            </button>
+          </div>
+        </div>
+      </div>
+    `
+
+    // Eventos del modal
+    const closeButtons = modal.querySelectorAll('.close-modal')
+    closeButtons.forEach(btn => {
+      btn.addEventListener("click", () => modal.remove())
     })
 
+    // Cerrar al hacer clic fuera del modal
     modal.addEventListener("click", (e) => {
       if (e.target === modal) {
         modal.remove()
       }
     })
 
+    // Funcionalidad de imprimir
+    const printButton = modal.querySelector('.print-ticket')
+    if (printButton) {
+      printButton.addEventListener('click', () => {
+        this.printTicket(sale)
+      })
+    }
+
+    // Cerrar con tecla Escape
+    const handleEscape = (e) => {
+      if (e.key === 'Escape') {
+        modal.remove()
+        document.removeEventListener('keydown', handleEscape)
+      }
+    }
+    document.addEventListener('keydown', handleEscape)
+
     document.body.appendChild(modal)
+  }
+
+  /**
+   * Imprimir ticket de venta
+   */
+  printTicket(sale) {
+    const printWindow = window.open('', '_blank')
+    const subtotal = sale.products?.reduce((sum, product) => sum + (Number(product.totalPrice) || 0), 0) || Number(sale.subtotal) || 0
+    const discountAmount = Number(sale.discountAmount) || 0
+    const ivaAmount = Number(sale.ivaAmount) || 0
+    const total = Number(sale.total) || 0
+
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>Ticket #${sale.id}</title>
+          <style>
+            body { font-family: 'Courier New', monospace; margin: 0; padding: 20px; }
+            .ticket { max-width: 300px; margin: 0 auto; }
+            .header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 10px; }
+            .info { margin-bottom: 10px; }
+            .products { border-top: 1px dashed #000; border-bottom: 1px dashed #000; padding: 10px 0; }
+            .product { display: flex; justify-content: space-between; margin-bottom: 5px; }
+            .totals { margin-top: 10px; }
+            .total-line { display: flex; justify-content: space-between; margin-bottom: 3px; }
+            .total-final { border-top: 1px solid #000; padding-top: 5px; font-weight: bold; }
+            .footer { text-align: center; margin-top: 20px; font-size: 12px; }
+          </style>
+        </head>
+        <body>
+          <div class="ticket">
+            <div class="header">
+              <h2>SISTEMA CEMAC</h2>
+              <p>TICKET DE VENTA</p>
+              <p>#${sale.id}</p>
+              <p>${this.formatDate(sale)}</p>
+            </div>
+            
+            <div class="info">
+              <p><strong>Cliente:</strong> ${sale.cliente || 'Cliente General'}</p>
+              <p><strong>Vendedor:</strong> ${sale.vendedor || 'No asignado'}</p>
+            </div>
+            
+            <div class="products">
+              <h3>PRODUCTOS:</h3>
+              ${sale.products?.map(product => `
+                <div class="product">
+                  <span>${product.productName} x${product.quantity}</span>
+                  <span>$${Number(product.totalPrice).toFixed(2)}</span>
+                </div>
+              `).join('') || '<p>No hay productos</p>'}
+            </div>
+            
+            <div class="totals">
+              <div class="total-line">
+                <span>Subtotal:</span>
+                <span>$${subtotal.toFixed(2)}</span>
+              </div>
+              ${discountAmount > 0 ? `
+                <div class="total-line">
+                  <span>Descuento:</span>
+                  <span>-$${discountAmount.toFixed(2)}</span>
+                </div>
+              ` : ''}
+              ${ivaAmount > 0 ? `
+                <div class="total-line">
+                  <span>IVA:</span>
+                  <span>$${ivaAmount.toFixed(2)}</span>
+                </div>
+              ` : ''}
+              <div class="total-line total-final">
+                <span>TOTAL:</span>
+                <span>$${total.toFixed(2)}</span>
+              </div>
+            </div>
+            
+            <div class="footer">
+              <p>¡Gracias por su compra!</p>
+              <p>Conserve este ticket como comprobante</p>
+            </div>
+          </div>
+        </body>
+      </html>
+    `)
+    
+    printWindow.document.close()
+    printWindow.print()
+    printWindow.close()
   }
 
   /**
