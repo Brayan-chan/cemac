@@ -188,7 +188,7 @@
                             <p class="text-gray-600">resumen de ventas</p>
                         </div>
                         <button id="refreshAnalytics"
-                            class="px-4 py-2 bg-[#8B7EC7] text-white rounded-lg hover:bg-[#7A6DB8] transition-colors">
+                        <a href="/index.html" data-action="logout" aria-label="Cerrar sesión" class="flex items-center px-3 py-2 text-white/80 hover:bg-white/10 rounded-lg cursor-pointer transition-colors">
                             <i class="fas fa-sync-alt mr-2"></i>
                             Actualizar
                         </button>
@@ -365,7 +365,12 @@
                             console.log('Gestionar usuarios clicked');
                             break;
                         case 'Cerrar sesión':
-                            window.location.href = '/index.html';
+                            if (window.authService && typeof window.authService.logout === 'function') {
+                                window.authService.logout();
+                            } else {
+                                console.log('⚠️ AuthService no disponible — redirigiendo a /index.html (fallback)');
+                                window.location.href = '/index.html';
+                            }
                             break;
                     }
 
@@ -463,7 +468,12 @@
                                 console.log('Gestionar usuarios clicked');
                                 break;
                             case 'Cerrar sesión':
-                                window.location.href = '/index.html';
+                                if (window.authService && typeof window.authService.logout === 'function') {
+                                    window.authService.logout();
+                                } else {
+                                    console.log('⚠️ AuthService no disponible — redirigiendo a /index.html (fallback)');
+                                    window.location.href = '/index.html';
+                                }
                                 break;
                         }
 

@@ -119,6 +119,7 @@ class AuthService {
     async logout() {
         try {
             const token = this.getToken();
+            console.log('🔓 AuthService.logout() invoked', { tokenPresent: !!token, environment: this.environment, baseURL: this.baseURL });
             if (token) {
                 const requestOptions = {
                     method: 'POST',
@@ -135,6 +136,7 @@ class AuthService {
                 }
 
                 await fetch(`${this.baseURL}/auth/logout`, requestOptions);
+                console.log('✅ AuthService: logout request sent to', `${this.baseURL}/auth/logout`);
             }
         } catch (error) {
             console.error('Error en logout:', error);

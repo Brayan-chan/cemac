@@ -84,7 +84,7 @@
             <div class="sidebar-bottom">
                 <div class="px-4">
                     <!-- Salir -->
-                    <a href="/index.html" class="flex items-center px-3 py-2 text-white/80 hover:bg-white/10 rounded-lg cursor-pointer transition-colors">
+                    <a href="/index.html" data-action="logout" aria-label="Cerrar sesión" class="flex items-center px-3 py-2 text-white/80 hover:bg-white/10 rounded-lg cursor-pointer transition-colors">
                         <i class="fas fa-sign-out-alt text-white w-5"></i>
                         <span class="sidebar-text ml-3">Salir</span>
                     </a>
@@ -147,7 +147,7 @@
                                     <span>Gestionar usuarios</span>
                                 </a>
                                 <hr class="my-1 border-gray-100">
-                                <a href="/index.html" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                                <a href="/index.html" data-action="logout" aria-label="Cerrar sesión" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
                                     <i class="fas fa-sign-out-alt w-5"></i>
                                     <span>Cerrar sesión</span>
                                 </a>
@@ -405,6 +405,7 @@
                                 if (window.authService) {
                                     window.authService.logout();
                                 } else {
+                                    console.log('⚠️ AuthService no disponible — redirigiendo a /index.html (fallback)');
                                     window.location.href = '/index.html';
                                 }
                                 break;

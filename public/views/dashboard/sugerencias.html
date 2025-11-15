@@ -374,7 +374,12 @@
                             console.log('Gestionar usuarios clicked');
                             break;
                         case 'Cerrar sesión':
-                            window.location.href = '/index.html';
+                            if (window.authService && typeof window.authService.logout === 'function') {
+                                window.authService.logout();
+                            } else {
+                                console.log('⚠️ AuthService no disponible — redirigiendo a /index.html (fallback)');
+                                window.location.href = '/index.html';
+                            }
                             break;
                     }
 
@@ -477,7 +482,12 @@
                                 console.log('Gestionar usuarios clicked');
                                 break;
                             case 'Cerrar sesión':
-                                window.location.href = '/index.html';
+                                if (window.authService && typeof window.authService.logout === 'function') {
+                                    window.authService.logout();
+                                } else {
+                                    console.log('⚠️ AuthService no disponible — redirigiendo a /index.html (fallback)');
+                                    window.location.href = '/index.html';
+                                }
                                 break;
                         }
                         
