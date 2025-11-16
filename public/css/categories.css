@@ -1,0 +1,248 @@
+/* Estilos para el sistema de categorías */
+.categories-container {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.category-item {
+    transition: all 0.2s ease;
+}
+
+.category-item:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.category-search-input {
+    border-radius: 0.5rem;
+    transition: all 0.2s ease;
+}
+
+.category-search-input:focus {
+    box-shadow: 0 0 0 3px rgba(139, 126, 199, 0.1);
+    border-color: #8B7EC7;
+}
+
+/* Estilos para el modal de categorías */
+.category-modal {
+    backdrop-filter: blur(4px);
+}
+
+.category-modal-content {
+    animation: modalSlideIn 0.2s ease-out;
+}
+
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Estilos para los botones de acción de categoría */
+.edit-category-btn,
+.delete-category-btn {
+    transition: all 0.15s ease;
+    border-radius: 0.5rem;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.edit-category-btn:hover {
+    background-color: #dbeafe;
+    transform: scale(1.1);
+}
+
+.delete-category-btn:hover {
+    background-color: #fee2e2;
+    transform: scale(1.1);
+}
+
+/* Estilos para el selector de categorías en formularios */
+.category-selector {
+    position: relative;
+}
+
+.category-selector .dropdown-button {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+    background-color: white;
+    text-align: left;
+    display: flex;
+    justify-content: between;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.category-selector .dropdown-button:hover {
+    border-color: #8B7EC7;
+    background-color: #f9fafb;
+}
+
+.category-selector .dropdown-button:focus {
+    outline: none;
+    border-color: #8B7EC7;
+    box-shadow: 0 0 0 3px rgba(139, 126, 199, 0.1);
+}
+
+.category-selector .dropdown-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background-color: white;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+    margin-top: 0.25rem;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    z-index: 50;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.category-selector .dropdown-item {
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.category-selector .dropdown-item:last-child {
+    border-bottom: none;
+}
+
+.category-selector .dropdown-item:hover {
+    background-color: #f3f4f6;
+}
+
+.category-selector .dropdown-item.selected {
+    background-color: #8B7EC7;
+    color: white;
+}
+
+.category-selector .add-category-option {
+    color: #8B7EC7;
+    font-weight: 500;
+    border-top: 1px solid #e5e7eb;
+}
+
+.category-selector .add-category-option:hover {
+    background-color: #f3f4f6;
+    color: #7A6DB4;
+}
+
+/* Estilos para badges de categoría */
+.category-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.75rem;
+    background-color: #8B7EC7;
+    color: white;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.category-badge.empty {
+    background-color: #6b7280;
+}
+
+/* Estilos para estadísticas de categoría */
+.category-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.category-stat-item {
+    text-align: center;
+    padding: 0.75rem;
+    background-color: #f9fafb;
+    border-radius: 0.5rem;
+    border: 1px solid #e5e7eb;
+}
+
+.category-stat-number {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #1f2937;
+}
+
+.category-stat-label {
+    font-size: 0.75rem;
+    color: #6b7280;
+    margin-top: 0.25rem;
+}
+
+/* Estilos responsivos */
+@media (max-width: 768px) {
+    .category-modal-content {
+        margin: 1rem;
+        max-width: calc(100vw - 2rem);
+    }
+    
+    .category-stats {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.5rem;
+    }
+    
+    .category-item {
+        padding: 1rem;
+    }
+}
+
+/* Animaciones para loading */
+.category-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    color: #6b7280;
+}
+
+.category-loading i {
+    animation: spin 1s linear infinite;
+    margin-right: 0.5rem;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Estilos para mensajes de estado */
+.category-empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: #6b7280;
+}
+
+.category-empty-state i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    color: #d1d5db;
+}
+
+.category-error-state {
+    text-align: center;
+    padding: 2rem 1rem;
+    color: #dc2626;
+    background-color: #fee2e2;
+    border-radius: 0.5rem;
+    border: 1px solid #fecaca;
+}
