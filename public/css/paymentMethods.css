@@ -1,0 +1,74 @@
+/* Estilos adicionales para métodos de pago */
+.payment-method-btn {
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.payment-method-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.payment-method-btn.active {
+  font-weight: 600;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+.payment-method-btn:active {
+  transform: translateY(0px);
+}
+
+.payment-method-btn i {
+  transition: transform 0.2s ease;
+}
+
+.payment-method-btn:hover i {
+  transform: scale(1.1);
+}
+
+/* Estilos específicos por método de pago */
+.payment-method-btn[data-method="efectivo"].active {
+  background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+  border-color: #16a34a;
+}
+
+.payment-method-btn[data-method="tarjeta"].active {
+  background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+  border-color: #2563eb;
+}
+
+.payment-method-btn[data-method="transferencia"].active {
+  background: linear-gradient(135deg, #f3e8ff, #e9d5ff);
+  border-color: #9333ea;
+}
+
+.payment-method-btn[data-method="cheque"].active {
+  background: linear-gradient(135deg, #fed7aa, #fdba74);
+  border-color: #ea580c;
+}
+
+.payment-method-btn[data-method="digital"].active {
+  background: linear-gradient(135deg, #e0e7ff, #c7d2fe);
+  border-color: #4f46e5;
+}
+
+/* Animación para feedback visual */
+.payment-method-btn.scale-95 {
+  transform: scale(0.95);
+}
+
+/* Estilos para el textarea de notas */
+#saleNotes:focus {
+  box-shadow: 0 0 0 3px rgba(139, 126, 199, 0.1);
+  border-color: #8B7EC7;
+}
+
+/* Indicador de método seleccionado */
+#selectedPaymentMethod {
+  background: linear-gradient(135deg, #8B7EC7, #7A6DB4);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: 600;
+}

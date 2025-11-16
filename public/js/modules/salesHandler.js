@@ -216,6 +216,9 @@ export class SalesHandler {
     // Controles de descuento e IVA
     this.bindDiscountAndTaxEvents()
 
+    // Controles de método de pago
+    this.bindPaymentMethodEvents()
+
     // Búsqueda en el panel de historial
     const salesSearchInput = document.getElementById("salesSearchInput")
     if (salesSearchInput) {
@@ -333,6 +336,121 @@ export class SalesHandler {
     
     if (taxInput) {
       taxInput.value = this.currentSale.iva || 0
+    }
+  }
+
+  /**
+   * Sincronizar el método de pago con el estado actual
+   */
+  syncPaymentMethod() {
+    const paymentMethodButtons = document.querySelectorAll(".payment-method-btn")
+    const selectedMethodDisplay = document.getElementById("selectedPaymentMethod")
+    const notesTextarea = document.getElementById("saleNotes")
+    
+    // Actualizar botones de método de pago
+    paymentMethodButtons.forEach(btn => {
+      const isSelected = btn.dataset.method === this.currentSale.paymentMethod
+      
+      // Remover todas las clases de border de color
+      btn.classList.remove("active", "border-green-300", "border-blue-300", "border-purple-300", "border-orange-300", "border-indigo-300")
+      btn.classList.add("border-transparent")
+      
+      if (isSelected) {
+        btn.classList.add("active")
+        btn.classList.remove("border-transparent")
+        
+        const colorMap = {
+          efectivo: "border-green-300",
+          tarjeta: "border-blue-300", 
+          transferencia: "border-purple-300",
+          cheque: "border-orange-300",
+          digital: "border-indigo-300"
+        }
+        
+        btn.classList.add(colorMap[this.currentSale.paymentMethod])
+      }
+    })
+    
+    // Actualizar display del método
+    if (selectedMethodDisplay) {
+      const methodNames = {
+        efectivo: "Efectivo",
+        tarjeta: "Tarjeta",
+        transferencia: "Transferencia",
+        cheque: "Cheque",
+        digital: "Digital"
+      }
+      selectedMethodDisplay.textContent = methodNames[this.currentSale.paymentMethod] || this.currentSale.paymentMethod
+    }
+    
+    // Actualizar notas
+    if (notesTextarea) {
+      notesTextarea.value = this.currentSale.notes || ""
+    }
+  }
+
+  /**
+   * Vincular eventos de método de pago
+   */
+  bindPaymentMethodEvents() {
+    // Botones de método de pago
+    const paymentMethodButtons = document.querySelectorAll(".payment-method-btn")
+    const selectedMethodDisplay = document.getElementById("selectedPaymentMethod")
+    
+    paymentMethodButtons.forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        e.preventDefault()
+        const method = btn.dataset.method
+        
+        // Actualizar estado interno
+        this.currentSale.paymentMethod = method
+        
+        // Actualizar UI visual - remover activo de todos
+        paymentMethodButtons.forEach(b => {
+          b.classList.remove("active", "border-green-300", "border-blue-300", "border-purple-300", "border-orange-300", "border-indigo-300")
+          b.classList.add("border-transparent")
+        })
+        
+        // Agregar activo al seleccionado con color correspondiente
+        btn.classList.add("active", "border-transparent")
+        btn.classList.remove("border-transparent")
+        
+        const colorMap = {
+          efectivo: "border-green-300",
+          tarjeta: "border-blue-300", 
+          transferencia: "border-purple-300",
+          cheque: "border-orange-300",
+          digital: "border-indigo-300"
+        }
+        
+        btn.classList.add(colorMap[method])
+        
+        // Actualizar display del método seleccionado
+        const methodNames = {
+          efectivo: "Efectivo",
+          tarjeta: "Tarjeta",
+          transferencia: "Transferencia",
+          cheque: "Cheque",
+          digital: "Digital"
+        }
+        
+        if (selectedMethodDisplay) {
+          selectedMethodDisplay.textContent = methodNames[method] || method
+        }
+        
+        // Visual feedback
+        this.animateButton(btn)
+        
+        console.log("💳 Método de pago seleccionado:", method)
+      })
+    })
+
+    // Campo de notas
+    const notesTextarea = document.getElementById("saleNotes")
+    if (notesTextarea) {
+      notesTextarea.addEventListener("input", (e) => {
+        this.currentSale.notes = e.target.value.trim()
+      })
     }
   }
 
@@ -756,6 +874,9 @@ export class SalesHandler {
 
     // Sincronizar inputs de descuento e IVA
     this.syncDiscountAndTaxInputs()
+    
+    // Sincronizar método de pago
+    this.syncPaymentMethod()
 
     this.updateProductTable()
     this.updateTotals()
