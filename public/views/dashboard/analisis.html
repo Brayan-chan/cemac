@@ -144,34 +144,7 @@
                     <div class="w-px h-6 bg-gray-300 mx-2"></div>
 
                     <!-- User Menu -->
-                    <div class="relative">
-                        <button id="userMenuBtn"
-                            class="flex items-center space-x-2 px-2 py-1 hover:bg-gray-100 rounded-lg transition-colors">
-                            <span class="text-sm font-medium text-gray-700">jh6466011</span>
-                            <i class="fas fa-chevron-down text-xs text-gray-500"></i>
-                        </button>
-
-                        <!-- Dropdown Menu -->
-                        <div id="userDropdown"
-                            class="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg z-50 border border-gray-100">
-                            <div class="py-1">
-                                <a href="#" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
-                                    <i class="far fa-user-circle w-5"></i>
-                                    <span>Ver perfil</span>
-                                </a>
-                                <a href="#" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
-                                    <i class="fas fa-users-cog w-5"></i>
-                                    <span>Gestionar usuarios</span>
-                                </a>
-                                <hr class="my-1 border-gray-100">
-                                <a href="/views/dashboard/../../index.html"
-                                    class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
-                                    <i class="fas fa-sign-out-alt w-5"></i>
-                                    <span>Cerrar sesión</span>
-                                </a>
-                            </div>
-                        </div>
-                    </div>
+                    <div id="userMenuContainer"></div>
                 </div>
             </div>
         </header>
@@ -328,64 +301,17 @@
     <script type="module" src="/js/services/authService.js"></script>
     <script type="module" src="/js/utils/uiUtils.js"></script>
     <script type="module" src="/js/modules/dashboardHandler.js"></script>
-    <!-- Added analytics module -->
     <script type="module" src="/js/modules/analyticsHandler.js"></script>
+    <script type="module" src="/js/components/userMenuComponent.js"></script>
+    <script type="module" src="/js/modules/userMenuHandler.js"></script>
     <script>
-        // Función principal para inicializar el dropdown
-        function initializeUserDropdown() {
-            const userMenuBtn = document.querySelector('#userMenuBtn');
-            const userDropdown = document.querySelector('#userDropdown');
-
-            if (!userMenuBtn || !userDropdown) return;
-
-            // Alternar dropdown al hacer clic en el botón
-            userMenuBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                userDropdown.classList.toggle('hidden');
-            });
-
-            // Cerrar dropdown al hacer clic fuera
-            document.addEventListener('click', (e) => {
-                if (!userDropdown.contains(e.target) && !userMenuBtn.contains(e.target)) {
-                    userDropdown.classList.add('hidden');
-                }
-            });
-
-            // Manejar clics en los elementos del menú
-            userDropdown.querySelectorAll('a').forEach(item => {
-                item.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    const action = e.currentTarget.querySelector('span').textContent;
-
-                    switch (action) {
-                        case 'Ver perfil':
-                            console.log('Ver perfil clicked');
-                            break;
-                        case 'Gestionar usuarios':
-                            console.log('Gestionar usuarios clicked');
-                            break;
-                        case 'Cerrar sesión':
-                            window.location.href = '/index.html';
-                            break;
-                    }
-
-                    userDropdown.classList.add('hidden');
-                });
-            });
-        }
-
-
         document.addEventListener('DOMContentLoaded', () => {
-            initializeUserDropdown();
 
             // DOM Elements
             const toggleBtn = document.getElementById('toggleSidebar');
             const sidebar = document.getElementById('sidebar');
             const mainContent = document.getElementById('mainContent');
             const sidebarTexts = document.querySelectorAll('.sidebar-text');
-            const userMenuBtn = document.getElementById('userMenuBtn');
-            const userDropdown = document.getElementById('userDropdown');
-            const closeAlertBtn = document.querySelector('.fa-times');
 
             // Initialize states
             let isCollapsed = false;
@@ -438,52 +364,6 @@
                     localStorage.removeItem('authToken');
                     localStorage.removeItem('user');
                     window.location.href = '/index.html';
-                });
-            }
-
-            // User Dropdown functionality
-            if (userMenuBtn && userDropdown) {
-                // Toggle dropdown on button click
-                userMenuBtn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    userDropdown.classList.toggle('hidden');
-                });
-
-                // Close dropdown when clicking outside
-                document.addEventListener('click', (e) => {
-                    if (!userMenuBtn.contains(e.target)) {
-                        userDropdown.classList.add('hidden');
-                    }
-                });
-
-                // Prevent dropdown from closing when clicking inside
-                userDropdown.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                });
-
-                // Handle dropdown menu items
-                userDropdown.querySelectorAll('a').forEach(item => {
-                    item.addEventListener('click', (e) => {
-                        e.preventDefault();
-                        const action = e.currentTarget.querySelector('span').textContent;
-
-                        switch (action) {
-                            case 'Ver perfil':
-                                console.log('Ver perfil clicked');
-                                break;
-                            case 'Gestionar usuarios':
-                                console.log('Gestionar usuarios clicked');
-                                break;
-                            case 'Cerrar sesión':
-                                // Limpiar sesión y redirigir
-                                localStorage.removeItem('authToken');
-                                localStorage.removeItem('user');
-                                window.location.href = '/index.html';
-                                break;
-                        }
-
-                        userDropdown.classList.add('hidden');
-                    });
                 });
             }
         });
