@@ -15,18 +15,23 @@ export class InventoryService {
 
       console.log("Fetching products from:", this.baseUrl)
 
-      // Obtener todos los productos sin usar paginación
-      const queryParams = new URLSearchParams({
-        search: filters.search || "",
-        category: filters.category || "",
-        price: filters.price || "",
-        status: filters.status || "",
-        sort: filters.sort || "name",
-        limit: 1000 // Un número grande para obtener todos los productos
-      }).toString()
+      // Construir query parameters según la documentación de la API
+      const queryParams = new URLSearchParams()
+      
+      if (filters.search) queryParams.append("search", filters.search)
+      if (filters.category) queryParams.append("category", filters.category)
+      if (filters.availability) queryParams.append("availability", filters.availability)
+      if (filters.minPrice !== null && filters.minPrice !== undefined) queryParams.append("minPrice", filters.minPrice)
+      if (filters.maxPrice !== null && filters.maxPrice !== undefined) queryParams.append("maxPrice", filters.maxPrice)
+      if (filters.page) queryParams.append("page", filters.page)
+      if (filters.limit) queryParams.append("limit", filters.limit)
+      if (filters.sortBy) queryParams.append("sortBy", filters.sortBy)
+      if (filters.sortOrder) queryParams.append("sortOrder", filters.sortOrder)
 
-      console.log("Fetching all products...")
-      const response = await fetch(`${this.baseUrl}?${queryParams}`, {
+      const queryString = queryParams.toString()
+      console.log("Query parameters:", queryString)
+
+      const response = await fetch(`${this.baseUrl}${queryString ? `?${queryString}` : ""}`, {
         method: "GET",
         headers: {
           Authorization: `Bearer ${this.token}`,
@@ -71,111 +76,10 @@ export class InventoryService {
       }
 
       let data = await response.json()
-      console.log("Initial products response:", data)
+      console.log("API response:", data)
 
-      // Extraer los productos de la respuesta
-      let allProducts = []
-      if (data && typeof data === 'object') {
-        if (Array.isArray(data)) {
-          allProducts = data
-        } else if (data.products && Array.isArray(data.products)) {
-          allProducts = data.products
-        } else if (data.data && Array.isArray(data.data)) {
-          allProducts = data.data
-        } else {
-          // Si es un objeto de Firebase, intentar convertirlo
-          try {
-            allProducts = Object.entries(data).map(([key, value]) => ({
-              id: key,
-              ...(typeof value === 'object' ? value : { value })
-            }))
-          } catch (error) {
-            console.error("Error processing products:", error)
-            allProducts = []
-          }
-        }
-      }
-
-      console.log("Processed products count:", allProducts.length)
-
-      // Filtrar productos según los criterios
-      let filteredProducts = allProducts.filter(product => {
-        // Filtrar por búsqueda
-        if (filters.search) {
-          const searchTerm = filters.search.toLowerCase()
-          if (!product.name?.toLowerCase().includes(searchTerm) &&
-              !product.description?.toLowerCase().includes(searchTerm)) {
-            return false
-          }
-        }
-
-        // Filtrar por categoría
-        if (filters.category && filters.category !== 'all') {
-          if (product.category !== filters.category) {
-            return false
-          }
-        }
-
-        return true
-      })
-
-      // Ordenar productos
-      if (filters.sort) {
-        filteredProducts.sort((a, b) => {
-          if (filters.sort === 'name') {
-            return (a.name || '').localeCompare(b.name || '')
-          }
-          if (filters.sort === 'price') {
-            return (a.price || 0) - (b.price || 0)
-          }
-          return 0
-        })
-      }
-
-      // Implementar paginación
-      const limit = parseInt(filters.limit) || 5
-      const page = parseInt(filters.page) || 1
-      const total = filteredProducts.length
-      const totalPages = Math.max(1, Math.ceil(total / limit))
-      
-      // Calcular slice para la página actual
-      const start = (page - 1) * limit
-      const end = Math.min(start + limit, total)
-      
-      const paginatedProducts = filteredProducts.slice(start, end)
-      
-      console.log("Pagination details:", {
-        totalProducts: total,
-        totalPages,
-        currentPage: page,
-        limit,
-        displayingProducts: paginatedProducts.length,
-        startIndex: start,
-        endIndex: end
-      })
-
-      const result = {
-        products: paginatedProducts,
-        total: total,
-        totalPages: totalPages,
-        page: page,
-        limit: limit,
-        hasMore: end < total,
-        filteredTotal: filteredProducts.length,
-        allProductsTotal: allProducts.length
-      }
-
-      console.log("Final response:", {
-        productsInCurrentPage: paginatedProducts.length,
-        totalProducts: total,
-        totalPages,
-        currentPage: page,
-        itemsPerPage: limit,
-        totalFiltered: filteredProducts.length,
-        totalInDatabase: allProducts.length
-      })
-
-      return result
+      // La API maneja la paginación, solo retornamos la respuesta completa
+      return data
     } catch (error) {
       console.error("Error fetching products:", error)
       throw error
@@ -267,13 +171,26 @@ export class InventoryService {
         throw new Error("No hay token de autenticación")
       }
 
-      const formData = new FormData()
-      for (const [key, value] of Object.entries(updateData)) {
-        if (key === "image" && value instanceof File) {
-          formData.append("image", value)
-        } else {
-          formData.append(key, value)
+      let formData
+      
+      // Si ya es FormData, usarlo directamente
+      if (updateData instanceof FormData) {
+        formData = updateData
+      } else {
+        // Si es un objeto, convertir a FormData
+        formData = new FormData()
+        for (const [key, value] of Object.entries(updateData)) {
+          if (key === "image" && value instanceof File) {
+            formData.append("image", value)
+          } else if (value !== null && value !== undefined) {
+            formData.append(key, value)
+          }
         }
+      }
+
+      console.log("Actualizando producto con FormData:")
+      for (let pair of formData.entries()) {
+        console.log(pair[0], pair[1])
       }
 
       const response = await fetch(`${this.baseUrl}/${productId}`, {
