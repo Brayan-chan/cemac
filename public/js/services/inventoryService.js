@@ -188,13 +188,30 @@ export class InventoryService {
         throw new Error("No hay token de autenticación")
       }
 
-      const formData = new FormData()
-      for (const [key, value] of Object.entries(productData)) {
-        if (key === "image" && value instanceof File) {
-          formData.append("image", value)
-        } else {
-          formData.append(key, value)
+      // Debug logs para verificar token
+      console.log("Debug - Token presente en servicio:", !!this.token)
+      console.log("Debug - Primeros 20 caracteres del token:", this.token?.substring(0, 20))
+
+      let formData
+      
+      // Si ya es FormData, usarlo directamente
+      if (productData instanceof FormData) {
+        formData = productData
+      } else {
+        // Si es un objeto, convertir a FormData
+        formData = new FormData()
+        for (const [key, value] of Object.entries(productData)) {
+          if (key === "image" && value instanceof File) {
+            formData.append("image", value)
+          } else if (value !== null && value !== undefined) {
+            formData.append(key, value)
+          }
         }
+      }
+
+      console.log("Enviando producto con FormData:")
+      for (let pair of formData.entries()) {
+        console.log(pair[0], pair[1])
       }
 
       const response = await fetch(`${this.baseUrl}`, {
@@ -207,7 +224,34 @@ export class InventoryService {
       })
 
       if (!response.ok) {
-        throw new Error("No tienes permisos para agregar productos. Solo administradores pueden hacerlo.")
+        let errorMessage = `Error al crear producto: ${response.status}`
+        try {
+          const errorText = await response.text()
+          console.error("Error response:", {
+            status: response.status,
+            statusText: response.statusText,
+            body: errorText
+          })
+
+          // Intentar parsear el error si es JSON
+          try {
+            const errorJson = JSON.parse(errorText)
+            if (errorJson.message) {
+              errorMessage = errorJson.message
+            } else if (errorJson.error) {
+              errorMessage = errorJson.error
+            }
+          } catch (parseError) {
+            // Si no es JSON, usar el texto directamente
+            if (errorText) {
+              errorMessage = errorText
+            }
+          }
+        } catch (textError) {
+          console.error("Error reading error response:", textError)
+        }
+        
+        throw new Error(errorMessage)
       }
 
       return await response.json()
