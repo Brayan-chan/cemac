@@ -36,6 +36,14 @@ class JAVIHomeRecommendations {
         this.loadRecommendations()
       }
     })
+    
+    // Escuchar evento personalizado de actualización desde sugerencias
+    window.addEventListener('recommendationsUpdated', () => {
+      console.log('🔄 Recibida notificación de actualización de recomendaciones')
+      setTimeout(() => {
+        this.loadRecommendations()
+      }, 1000) // Pequeño delay para que se procesen las nuevas recomendaciones
+    })
   }
 
   loadRecommendations() {
@@ -43,23 +51,39 @@ class JAVIHomeRecommendations {
       const storedRecommendations = localStorage.getItem('javi_home_recommendations')
       
       if (!storedRecommendations) {
-        this.showNoRecommendations()
+        // Mostrar loading por un momento antes del mensaje dinámico
+        setTimeout(() => {
+          this.showNoRecommendations()
+        }, 800)
         return
       }
 
       const recommendations = JSON.parse(storedRecommendations)
       
       if (!Array.isArray(recommendations) || recommendations.length === 0) {
-        this.showNoRecommendations()
+        setTimeout(() => {
+          this.showNoRecommendations()
+        }, 800)
         return
       }
 
       console.log(`📊 Cargando ${recommendations.length} recomendaciones de JAVI`)
-      this.displayRecommendations(recommendations)
+      
+      // Simular un pequeño delay para mejor UX
+      setTimeout(() => {
+        this.displayRecommendations(recommendations)
+        
+        // Mostrar notificación sutil de actualización si viene de evento
+        if (window.event && window.event.type === 'recommendationsUpdated') {
+          this.showUpdateNotification()
+        }
+      }, 500)
       
     } catch (error) {
       console.error('❌ Error cargando recomendaciones de JAVI:', error)
-      this.showNoRecommendations()
+      setTimeout(() => {
+        this.showNoRecommendations()
+      }, 800)
     }
   }
 
@@ -68,6 +92,12 @@ class JAVIHomeRecommendations {
 
     // Limpiar loading state
     this.container.innerHTML = ''
+    
+    // Ocultar loading state
+    const loadingElement = document.getElementById('loadingRecommendations')
+    if (loadingElement) {
+      loadingElement.style.display = 'none'
+    }
     
     // Ocultar mensaje de "no recomendaciones"
     if (this.noRecommendationsMessage) {
@@ -332,31 +362,112 @@ class JAVIHomeRecommendations {
   showNoRecommendations() {
     if (!this.container) return
 
+    // Limpiar el contenedor
     this.container.innerHTML = ''
     
-    if (this.noRecommendationsMessage) {
-      this.noRecommendationsMessage.classList.remove('hidden')
+    // Verificar si hay API key configurada
+    const hasApiKey = localStorage.getItem('javi_api_key')
+    const hasRecommendations = localStorage.getItem('javi_recommendations')
+    
+    let message, icon, title, description, actionText, actionHref, actionColor
+    
+    if (!hasApiKey) {
+      // No hay API key configurada
+      icon = 'fas fa-key'
+      title = '¡Configura tu API Key para comenzar!'
+      description = 'Para que JAVI pueda analizar tu negocio y generar recomendaciones personalizadas, necesitas configurar tu API Key de Google Gemini.'
+      actionText = 'Configurar API Key'
+      actionHref = '/views/dashboard/sugerencias.html'
+      actionColor = 'bg-blue-500 hover:bg-blue-600'
+    } else if (!hasRecommendations) {
+      // Tiene API key pero no ha generado análisis
+      icon = 'fas fa-chart-line'
+      title = '¡Genera tu primer análisis con JAVI!'
+      description = 'JAVI está listo para analizar tu inventario, ventas y generar recomendaciones inteligentes. Inicia tu primer análisis para obtener insights valiosos.'
+      actionText = 'Generar Análisis'
+      actionHref = '/views/dashboard/sugerencias.html'
+      actionColor = 'bg-[#8B7EC7] hover:bg-[#7A6DB8]'
     } else {
-      // Si no existe el elemento, crearlo
-      this.container.innerHTML = `
-        <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-200 text-center">
-          <div class="w-16 h-16 bg-[#8B7EC7] bg-opacity-10 rounded-full mx-auto mb-4 flex items-center justify-center">
-            <i class="fas fa-lightbulb text-[#8B7EC7] text-2xl"></i>
+      // Caso por defecto
+      icon = 'fas fa-lightbulb'
+      title = '¡Genera nuevas recomendaciones!'
+      description = 'JAVI puede analizar datos actualizados de tu inventario y ventas para ofrecerte insights frescos y recomendaciones estratégicas.'
+      actionText = 'Actualizar Análisis'
+      actionHref = '/views/dashboard/sugerencias.html'
+      actionColor = 'bg-green-500 hover:bg-green-600'
+    }
+    
+    // Crear el mensaje dinámico
+    this.container.innerHTML = `
+      <div class="bg-gradient-to-br from-white to-gray-50 rounded-2xl p-8 shadow-sm border border-gray-200 text-center relative overflow-hidden">
+        <!-- Decoración de fondo -->
+        <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-[#8B7EC7] to-transparent opacity-5 rounded-bl-full"></div>
+        <div class="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-blue-400 to-transparent opacity-5 rounded-tr-full"></div>
+        
+        <!-- Contenido principal -->
+        <div class="relative z-10">
+          <div class="w-20 h-20 bg-gradient-to-br from-[#8B7EC7] to-[#7A6DB8] rounded-2xl mx-auto mb-6 flex items-center justify-center transform rotate-3 hover:rotate-0 transition-transform duration-300">
+            <i class="${icon} text-white text-2xl"></i>
           </div>
-          <h4 class="font-medium text-gray-900 mb-2">¡Genera recomendaciones inteligentes!</h4>
-          <p class="text-sm text-gray-600 mb-4">JAVI puede analizar tu inventario y ventas para ofrecerte insights valiosos.</p>
-          <a href="/public/views/dashboard/sugerencias.html" class="inline-flex items-center px-4 py-2 bg-[#8B7EC7] text-white text-sm rounded-lg hover:bg-[#7A6DB8] transition-colors">
-            <i class="fas fa-magic mr-2"></i>
-            Ir a Sugerencias
-          </a>
+          
+          <h3 class="text-xl font-bold text-gray-900 mb-3">${title}</h3>
+          
+          <p class="text-gray-600 mb-6 leading-relaxed max-w-md mx-auto">${description}</p>
+          
+          <div class="space-y-4">
+            <a href="${actionHref}" class="inline-flex items-center px-6 py-3 ${actionColor} text-white text-sm font-medium rounded-xl hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl">
+              <i class="${icon} mr-2"></i>
+              ${actionText}
+            </a>
+            
+            <!-- Indicadores de progreso -->
+            <div class="flex items-center justify-center space-x-4 text-xs text-gray-500">
+              <div class="flex items-center space-x-1">
+                <div class="w-2 h-2 ${hasApiKey ? 'bg-green-400' : 'bg-gray-300'} rounded-full"></div>
+                <span>API Key</span>
+              </div>
+              <div class="flex items-center space-x-1">
+                <div class="w-2 h-2 ${hasRecommendations ? 'bg-green-400' : 'bg-gray-300'} rounded-full"></div>
+                <span>Análisis</span>
+              </div>
+              <div class="flex items-center space-x-1">
+                <div class="w-2 h-2 bg-gray-300 rounded-full"></div>
+                <span>Recomendaciones</span>
+              </div>
+            </div>
+          </div>
         </div>
-      `
+      </div>
+    `
+    
+    // Ocultar loading state
+    const loadingElement = document.getElementById('loadingRecommendations')
+    if (loadingElement) {
+      loadingElement.style.display = 'none'
     }
   }
 
   // Método público para refrescar recomendaciones
   refresh() {
     this.loadRecommendations()
+  }
+  
+  // Mostrar notificación sutil de actualización
+  showUpdateNotification() {
+    // Crear notificación temporal
+    const notification = document.createElement('div')
+    notification.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50 flex items-center space-x-2 animate-pulse'
+    notification.innerHTML = `
+      <i class="fas fa-check-circle"></i>
+      <span class="text-sm font-medium">¡Recomendaciones actualizadas!</span>
+    `
+    
+    document.body.appendChild(notification)
+    
+    // Remover después de 3 segundos
+    setTimeout(() => {
+      notification.remove()
+    }, 3000)
   }
 }
 
