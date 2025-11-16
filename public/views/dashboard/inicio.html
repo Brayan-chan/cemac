@@ -1,13 +1,16 @@
 <!DOCTYPE html>
 <html lang="es" class="h-full">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CEMAC - Dashboard</title>
     <link rel="stylesheet" href="/css/customsidebar.css">
     <link rel="stylesheet" href="/css/inicio.css">
+    <link rel="stylesheet" href="/css/javi-recommendations.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link rel="icon" type="image/png" sizes="32x32" href="https://res.cloudinary.com/dmyejrbs7/image/upload/v1757894655/CEMAC-LOGO_nrow82.png" />
+    <link rel="icon" type="image/png" sizes="32x32"
+        href="https://res.cloudinary.com/dmyejrbs7/image/upload/v1757894655/CEMAC-LOGO_nrow82.png" />
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Chart.js para gráficos interactivos -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -15,46 +18,49 @@
     <!-- Cargar sidebarPreloader INMEDIATAMENTE para evitar parpadeo -->
     <script src="/js/utils/sidebarPreloader.js"></script>
 </head>
+
 <body class="h-full bg-gray-50">
     <!-- Sidebar Container - Será poblado por SidebarComponent -->
-    <div id="sidebar" class="fixed left-0 top-0 bg-[#8B7EC7] sidebar-expanded sidebar-transition z-40 sidebar-flex"></div>
+    <div id="sidebar" class="fixed left-0 top-0 bg-[#8B7EC7] sidebar-expanded sidebar-transition z-40 sidebar-flex">
+    </div>
 
     <div id="mainContent" class="main-expanded sidebar-transition">
         <header class="bg-white h-16">
             <div class="flex items-center justify-between h-full px-6">
                 <div class="w-64"></div>
-                
+
                 <!-- Search Bar (Centered) -->
                 <div class="flex-1 flex justify-center">
                     <div class="relative w-full max-w-md mx-4">
-                        <input type="text" 
-                               placeholder="Search" 
-                               class="w-full bg-gray-100 border-0 rounded-full px-4 py-2 pl-10 text-sm focus:outline-none focus:ring-2 focus:ring-[#8B7EC7]">
+                        <input type="text" placeholder="Search"
+                            class="w-full bg-gray-100 border-0 rounded-full px-4 py-2 pl-10 text-sm focus:outline-none focus:ring-2 focus:ring-[#8B7EC7]">
                         <button class="absolute left-3 top-1/2 transform -translate-y-1/2">
                             <i class="fas fa-search text-gray-400"></i>
                         </button>
-                        <button class="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 bg-gray-200 rounded-full flex items-center justify-center">
+                        <button
+                            class="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 bg-gray-200 rounded-full flex items-center justify-center">
                             <i class="fas fa-times text-xs text-gray-500"></i>
                         </button>
                     </div>
                 </div>
-                
+
                 <!-- Header Actions -->
                 <div class="w-64 flex items-center justify-end space-x-2">
                     <!-- Messages -->
                     <button class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
                         <i class="far fa-envelope text-gray-600 text-xl"></i>
                     </button>
-                    
+
                     <!-- Notifications -->
                     <button class="p-2 hover:bg-gray-100 rounded-lg transition-colors relative">
                         <i class="far fa-bell text-gray-600 text-xl"></i>
-                        <span class="absolute top-1 right-1 w-4 h-4 bg-red-500 rounded-full text-xs text-white flex items-center justify-center">3</span>
+                        <span
+                            class="absolute top-1 right-1 w-4 h-4 bg-red-500 rounded-full text-xs text-white flex items-center justify-center">3</span>
                     </button>
 
                     <!-- Separator -->
                     <div class="w-px h-6 bg-gray-300 mx-2"></div>
-                    
+
                     <!-- User Menu -->
                     <div id="userMenuContainer"></div>
                 </div>
@@ -70,17 +76,19 @@
                         <p class="text-sm text-gray-500">resumen de ventas</p>
                     </div>
                     <div class="flex space-x-2">
-                        <button id="refreshHome" class="flex items-center px-3 py-2 text-sm text-white bg-[#8B7EC7] border border-[#8B7EC7] rounded-lg hover:bg-[#7A6DB8]">
+                        <button id="refreshHome"
+                            class="flex items-center px-3 py-2 text-sm text-white bg-[#8B7EC7] border border-[#8B7EC7] rounded-lg hover:bg-[#7A6DB8]">
                             <i class="fas fa-sync-alt mr-2"></i>
                             Actualizar
                         </button>
-                        <button class="flex items-center px-3 py-2 text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50">
+                        <button
+                            class="flex items-center px-3 py-2 text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50">
                             <i class="fas fa-download mr-2"></i>
                             Exportar
                         </button>
                     </div>
                 </div>
-                
+
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                     <div class="stats-card-red rounded-2xl p-6 text-white">
                         <div class="flex items-center justify-between mb-4">
@@ -94,7 +102,7 @@
                             <p class="text-white/70 text-xs">Cargando...</p>
                         </div>
                     </div>
-                    
+
                     <div class="stats-card-yellow rounded-2xl p-6 text-white">
                         <div class="flex items-center justify-between mb-4">
                             <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
@@ -107,7 +115,7 @@
                             <p class="text-white/70 text-xs">Cargando...</p>
                         </div>
                     </div>
-                    
+
                     <div class="stats-card-green rounded-2xl p-6 text-white">
                         <div class="flex items-center justify-between mb-4">
                             <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
@@ -120,7 +128,7 @@
                             <p class="text-white/70 text-xs">Cargando...</p>
                         </div>
                     </div>
-                    
+
                     <div class="stats-card-blue rounded-2xl p-6 text-white">
                         <div class="flex items-center justify-between mb-4">
                             <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
@@ -145,13 +153,13 @@
                         <div class="flex items-center justify-center">
                             <div class="chart-container">
                                 <svg class="donut-chart" width="200" height="200" viewBox="0 0 200 200">
-                                    <circle cx="100" cy="100" r="85" fill="none" stroke="#f1f5f9" stroke-width="30"/>
-                                    <circle cx="100" cy="100" r="85" class="donut-segment donut-segment-1" 
-                                            stroke-dasharray="160 374" stroke-dashoffset="0"/>
-                                    <circle cx="100" cy="100" r="85" class="donut-segment donut-segment-2" 
-                                            stroke-dasharray="107 374" stroke-dashoffset="-160"/>
-                                    <circle cx="100" cy="100" r="85" class="donut-segment donut-segment-3" 
-                                            stroke-dasharray="107 374" stroke-dashoffset="-267"/>
+                                    <circle cx="100" cy="100" r="85" fill="none" stroke="#f1f5f9" stroke-width="30" />
+                                    <circle cx="100" cy="100" r="85" class="donut-segment donut-segment-1"
+                                        stroke-dasharray="160 374" stroke-dashoffset="0" />
+                                    <circle cx="100" cy="100" r="85" class="donut-segment donut-segment-2"
+                                        stroke-dasharray="107 374" stroke-dashoffset="-160" />
+                                    <circle cx="100" cy="100" r="85" class="donut-segment donut-segment-3"
+                                        stroke-dasharray="107 374" stroke-dashoffset="-267" />
                                 </svg>
                                 <div class="absolute inset-0 flex items-center justify-center">
                                     <div class="text-center">
@@ -185,7 +193,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
                         <div class="flex items-center justify-between mb-6">
                             <h3 class="font-semibold text-gray-900">Estado del Mes</h3>
@@ -193,13 +201,13 @@
                         <div class="flex items-center justify-center">
                             <div class="chart-container">
                                 <svg class="donut-chart" width="200" height="200" viewBox="0 0 200 200">
-                                    <circle cx="100" cy="100" r="85" fill="none" stroke="#f1f5f9" stroke-width="30"/>
-                                    <circle cx="100" cy="100" r="85" class="donut-segment donut-segment-1" 
-                                            stroke-dasharray="160 374" stroke-dashoffset="0"/>
-                                    <circle cx="100" cy="100" r="85" class="donut-segment donut-segment-2" 
-                                            stroke-dasharray="107 374" stroke-dashoffset="-160"/>
-                                    <circle cx="100" cy="100" r="85" class="donut-segment donut-segment-3" 
-                                            stroke-dasharray="107 374" stroke-dashoffset="-267"/>
+                                    <circle cx="100" cy="100" r="85" fill="none" stroke="#f1f5f9" stroke-width="30" />
+                                    <circle cx="100" cy="100" r="85" class="donut-segment donut-segment-1"
+                                        stroke-dasharray="160 374" stroke-dashoffset="0" />
+                                    <circle cx="100" cy="100" r="85" class="donut-segment donut-segment-2"
+                                        stroke-dasharray="107 374" stroke-dashoffset="-160" />
+                                    <circle cx="100" cy="100" r="85" class="donut-segment donut-segment-3"
+                                        stroke-dasharray="107 374" stroke-dashoffset="-267" />
                                 </svg>
                                 <div class="absolute inset-0 flex items-center justify-center">
                                     <div class="text-center">
@@ -227,7 +235,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="space-y-6">
                     <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-200">
                         <div class="flex items-center mb-3">
@@ -239,18 +247,20 @@
                             <div>-Juego de Geometría.</div>
                             <div>-Cuaderno de rayas scrip</div>
                         </div>
-                        <button class="mt-3 text-sm text-purple-600 hover:text-purple-700 font-medium flex items-center">
+                        <button
+                            class="mt-3 text-sm text-purple-600 hover:text-purple-700 font-medium flex items-center">
                             Ver más <i class="fas fa-external-link-alt ml-1 text-xs"></i>
                         </button>
                     </div>
-                    
+
                     <div class="bg-red-50 border border-red-200 rounded-2xl p-4">
                         <div class="flex items-start">
                             <i class="fas fa-exclamation-triangle text-red-500 mt-0.5 mr-3"></i>
                             <div class="flex-1">
                                 <h4 class="font-medium text-red-800">Alerta de Stock Bajo</h4>
                                 <p class="text-sm text-red-700 mt-1">¡Cuidado!</p>
-                                <button class="mt-2 px-3 py-1 bg-red-500 text-white text-sm rounded-lg hover:bg-red-600 transition-colors">
+                                <button
+                                    class="mt-2 px-3 py-1 bg-red-500 text-white text-sm rounded-lg hover:bg-red-600 transition-colors">
                                     Revisar
                                 </button>
                             </div>
@@ -263,84 +273,67 @@
             </div>
 
             <div class="mt-8 space-y-4">
-                <h3 class="text-lg font-semibold text-gray-900 mb-4">Recomendaciones</h3>
-                
-                <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-200">
-                    <div class="flex items-center">
-                        <div class="w-12 h-12 bg-gray-200 rounded-xl mr-4 flex items-center justify-center">
-                            <i class="fas fa-store text-gray-400"></i>
-                        </div>
-                        <div class="flex-1">
-                            <h3 class="font-medium text-gray-900">Recomendación de Javi</h3>
-                            <p class="text-sm text-gray-500">Category • $$ • 1.2 miles away</p>
-                            <p class="text-sm text-gray-600 mt-1">Supporting line text lorem ipsum dolor sit amet, consectetur.</p>
-                        </div>
-                        <div class="flex items-center space-x-2 ml-4">
-                            <div class="flex text-yellow-400">
-                                <i class="fas fa-star text-xs"></i>
-                                <i class="fas fa-star text-xs"></i>
-                                <i class="fas fa-star text-xs"></i>
-                                <i class="fas fa-star text-xs"></i>
-                                <i class="fas fa-star text-xs"></i>
-                            </div>
-                            <button class="text-gray-400 hover:text-red-500">
-                                <i class="fas fa-heart"></i>
-                            </button>
-                        </div>
-                    </div>
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold text-gray-900">Recomendaciones de JAVI</h3>
+                    <a href="sugerencias.html"
+                        class="text-[#8B7EC7] hover:text-[#7A6DB8] text-sm font-medium flex items-center space-x-1">
+                        <span>Ver todas</span>
+                        <i class="fas fa-arrow-right text-xs"></i>
+                    </a>
                 </div>
 
-                <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-200">
-                    <div class="flex items-center">
-                        <div class="w-12 h-12 bg-gray-200 rounded-xl mr-4 flex items-center justify-center">
-                            <i class="fas fa-store text-gray-400"></i>
-                        </div>
-                        <div class="flex-1">
-                            <h3 class="font-medium text-gray-900">Recomendación de Javi</h3>
-                            <p class="text-sm text-gray-500">Category • $$ • 1.2 miles away</p>
-                            <p class="text-sm text-gray-600 mt-1">Supporting line text lorem ipsum dolor sit amet, consectetur.</p>
-                        </div>
-                        <div class="flex items-center space-x-2 ml-4">
-                            <div class="flex text-yellow-400">
-                                <i class="fas fa-star text-xs"></i>
-                                <i class="fas fa-star text-xs"></i>
-                                <i class="fas fa-star text-xs"></i>
-                                <i class="fas fa-star text-xs"></i>
-                                <i class="fas fa-star text-xs"></i>
+                <!-- Contenedor dinámico para recomendaciones de JAVI -->
+                <div id="javiRecommendationsContainer" class="space-y-4">
+                    <!-- Loading state -->
+                    <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-200">
+                        <div class="flex items-center">
+                            <div
+                                class="w-12 h-12 bg-gray-200 rounded-xl mr-4 flex items-center justify-center animate-pulse">
+                                <i class="fas fa-robot text-gray-400"></i>
                             </div>
-                            <button class="text-gray-400 hover:text-red-500">
-                                <i class="fas fa-heart"></i>
-                            </button>
+                            <div class="flex-1">
+                                <div class="h-4 bg-gray-200 rounded animate-pulse mb-2"></div>
+                                <div class="h-3 bg-gray-100 rounded animate-pulse mb-1"></div>
+                                <div class="h-3 bg-gray-100 rounded animate-pulse w-3/4"></div>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-200">
-                    <div class="flex items-center">
-                        <div class="w-12 h-12 bg-gray-200 rounded-xl mr-4 flex items-center justify-center">
-                            <i class="fas fa-store text-gray-400"></i>
+                    <!-- Default message cuando no hay recomendaciones -->
+                    <div id="noRecommendationsMessage"
+                        class="bg-white rounded-2xl p-6 shadow-sm border border-gray-200 text-center hidden">
+                        <div
+                            class="w-16 h-16 bg-[#8B7EC7] bg-opacity-10 rounded-full mx-auto mb-4 flex items-center justify-center">
+                            <i class="fas fa-lightbulb text-[#8B7EC7] text-2xl"></i>
                         </div>
-                        <div class="flex-1">
-                            <h3 class="font-medium text-gray-900">Recomendación de Javi</h3>
-                            <p class="text-sm text-gray-500">Category • $$ • 1.2 miles away</p>
-                            <p class="text-sm text-gray-600 mt-1">Supporting line text lorem ipsum dolor sit amet, consectetur.</p>
+                        <h4 class="font-medium text-gray-900 mb-2">¡Genera recomendaciones inteligentes!</h4>
+                        <p class="text-sm text-gray-600 mb-4">JAVI puede analizar tu inventario y ventas para ofrecerte
+                            insights valiosos.</p>
+                        <a href="sugerencias.html"
+                            class="inline-flex items-center px-4 py-2 bg-[#8B7EC7] text-white text-sm rounded-lg hover:bg-[#7A6DB8] transition-colors">
+                            <i class="fas fa-magic mr-2"></i>
+                            Ir a Sugerencias
+                        </a>
+                    </div>
+                    <div class="flex items-center space-x-2 ml-4">
+                        <div class="flex text-yellow-400">
+                            <i class="fas fa-star text-xs"></i>
+                            <i class="fas fa-star text-xs"></i>
+                            <i class="fas fa-star text-xs"></i>
+                            <i class="fas fa-star text-xs"></i>
+                            <i class="fas fa-star text-xs"></i>
                         </div>
-                        <div class="flex items-center space-x-2 ml-4">
-                            <div class="flex text-yellow-400">
-                                <i class="fas fa-star text-xs"></i>
-                                <i class="fas fa-star text-xs"></i>
-                                <i class="fas fa-star text-xs"></i>
-                                <i class="fas fa-star text-xs"></i>
-                                <i class="fas fa-star text-xs"></i>
-                            </div>
-                            <button class="text-gray-400 hover:text-red-500">
-                                <i class="fas fa-heart"></i>
-                            </button>
-                        </div>
+                        <button class="text-gray-400 hover:text-red-500">
+                            <i class="fas fa-heart"></i>
+                        </button>
                     </div>
                 </div>
             </div>
-        </main>
+    </div>
+
+    <!-- Modal para detalles de recomendaciones será creado dinámicamente -->
+
+    </main>
     </div>
 
     <script type="module" src="/js/services/authService.js"></script>
@@ -352,10 +345,11 @@
     <script type="module" src="/js/modules/userMenuHandler.js"></script>
     <script type="module" src="/js/components/sidebarComponent.js"></script>
     <script type="module" src="/js/modules/sidebarHandler.js"></script>
+    <script type="module" src="/js/modules/javiHomeRecommendations.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             console.log('🚀 Inicializando dashboard de inicio...');
-            
+
             // Close alert functionality
             const closeAlertBtn = document.getElementById('closeAlertBtn');
             if (closeAlertBtn) {
@@ -387,10 +381,11 @@
                     console.warn('⚠️ Error cargando HomeHandler:', error);
                 }
             };
-            
+
             initHomeHandler();
             console.log('✅ Dashboard de inicio inicializado');
         });
-    </script>
+    </script>    
 </body>
+
 </html>
