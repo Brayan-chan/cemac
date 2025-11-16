@@ -5,8 +5,9 @@
 import { SalesService } from "../services/salesService.js"
 
 export class SalesHandler {
-  constructor() {
+  constructor(customerHandler = null) {
     this.salesService = new SalesService()
+    this.customerHandler = customerHandler
     this.currentSale = {
       cliente: "",
       vendedor: "",
@@ -20,6 +21,8 @@ export class SalesHandler {
     this.salesHistory = []
     this.currentPage = 1
     this.itemsPerPage = 10
+    this.totalTransactions = null // Total real de transacciones desde la API
+    this.dailyCounterManager = null // Se inicializará después de cargar el módulo
 
     // Nueva UI: estado para búsqueda, filtros y selección
     this.searchTerm = ""
@@ -27,6 +30,13 @@ export class SalesHandler {
     this.selectedSale = null
 
     this.init()
+  }
+
+  /**
+   * Establecer referencia al customerHandler
+   */
+  setCustomerHandler(customerHandler) {
+    this.customerHandler = customerHandler
   }
 
   /**
@@ -125,14 +135,40 @@ export class SalesHandler {
    */
   async init() {
     try {
-      console.log("Inicializando SalesHandler...")
+      console.log("🚀 Inicializando SalesHandler...")
+      
+      // Inicializar daily counter manager
+      await this.initializeDailyCounterManager()
+      
       this.bindEvents()
+      console.log("✅ Eventos vinculados")
+      
       await this.loadSalesHistory()
+      console.log("✅ Historial de ventas cargado")
+      
       await this.loadInitialData()
-      console.log("SalesHandler inicializado correctamente")
+      console.log("✅ Datos iniciales cargados")
+      
+      console.log("🎉 SalesHandler inicializado correctamente")
     } catch (error) {
-      console.error("Error inicializando SalesHandler:", error)
+      console.error("❌ Error inicializando SalesHandler:", error)
       this.showError("Error inicializando el sistema de ventas")
+    }
+  }
+
+  /**
+   * Inicializar el administrador de contadores diarios
+   */
+  async initializeDailyCounterManager() {
+    try {
+      if (window.dailyCounterManager) {
+        this.dailyCounterManager = window.dailyCounterManager
+        console.log("📊 DailyCounterManager conectado")
+      } else {
+        console.warn("⚠️ DailyCounterManager no disponible - funcionalidad de contadores diarios limitada")
+      }
+    } catch (error) {
+      console.warn("Error inicializando DailyCounterManager:", error)
     }
   }
 
@@ -147,17 +183,7 @@ export class SalesHandler {
       productSearchInput.addEventListener("keydown", this.handleProductSearchKeydown.bind(this))
     }
 
-    // Campos del formulario
-    const clienteInput = document.querySelector('input[placeholder="Nombre del cliente..."]')
-    if (clienteInput) {
-      clienteInput.addEventListener("input", (e) => {
-        // Permitir espacios entre palabras, solo eliminar espacios extras al inicio y final
-        this.currentSale.cliente = e.target.value.replace(/\s+/g, ' ').trim()
-        // No actualizar el valor del input para permitir edición normal
-        console.log('Cliente actualizado:', this.currentSale.cliente)
-      })
-    }
-
+    // Campos del formulario - solo vendedor (cliente se maneja en CustomerHandler)
     const vendedorSelect = document.querySelector("select")
     if (vendedorSelect) {
       vendedorSelect.addEventListener("change", (e) => {
@@ -186,6 +212,9 @@ export class SalesHandler {
     if (exportBtn) {
       exportBtn.addEventListener("click", this.handleExportSales.bind(this))
     }
+
+    // Controles de descuento e IVA
+    this.bindDiscountAndTaxEvents()
 
     // Búsqueda en el panel de historial
     const salesSearchInput = document.getElementById("salesSearchInput")
@@ -234,6 +263,87 @@ export class SalesHandler {
         active.classList.remove("bg-gray-100", "text-gray-700")
       }
     }
+  }
+
+  /**
+   * Vincular eventos de descuento e IVA
+   */
+  bindDiscountAndTaxEvents() {
+    // Input de descuento
+    const discountInput = document.getElementById("discountInput")
+    if (discountInput) {
+      discountInput.addEventListener("input", (e) => {
+        const value = parseFloat(e.target.value) || 0
+        this.currentSale.descuento = Math.max(0, Math.min(100, value))
+        this.updateTotals()
+      })
+    }
+
+    // Input de IVA
+    const taxInput = document.getElementById("taxInput")
+    if (taxInput) {
+      taxInput.addEventListener("input", (e) => {
+        const value = parseFloat(e.target.value) || 0
+        this.currentSale.iva = Math.max(0, Math.min(100, value))
+        this.updateTotals()
+      })
+    }
+
+    // Botones preset de descuento
+    const discountPresets = document.querySelectorAll(".discount-preset")
+    discountPresets.forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        e.preventDefault()
+        const discount = parseFloat(btn.dataset.discount) || 0
+        this.currentSale.descuento = discount
+        if (discountInput) discountInput.value = discount
+        this.updateTotals()
+        
+        // Visual feedback
+        this.animateButton(btn)
+      })
+    })
+
+    // Botones preset de IVA
+    const taxPresets = document.querySelectorAll(".tax-preset")
+    taxPresets.forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        e.preventDefault()
+        const tax = parseFloat(btn.dataset.tax) || 0
+        this.currentSale.iva = tax
+        if (taxInput) taxInput.value = tax
+        this.updateTotals()
+        
+        // Visual feedback
+        this.animateButton(btn)
+      })
+    })
+  }
+
+  /**
+   * Sincronizar los inputs de descuento e IVA con el estado actual
+   */
+  syncDiscountAndTaxInputs() {
+    const discountInput = document.getElementById("discountInput")
+    const taxInput = document.getElementById("taxInput")
+    
+    if (discountInput) {
+      discountInput.value = this.currentSale.descuento || 0
+    }
+    
+    if (taxInput) {
+      taxInput.value = this.currentSale.iva || 0
+    }
+  }
+
+  /**
+   * Animar botón para feedback visual
+   */
+  animateButton(button) {
+    button.classList.add("transform", "scale-95")
+    setTimeout(() => {
+      button.classList.remove("transform", "scale-95")
+    }, 150)
   }
 
   /**
@@ -352,7 +462,8 @@ export class SalesHandler {
    * Seleccionar producto de la búsqueda
    */
   selectProduct(product) {
-    console.log("Producto seleccionado:", product)
+    console.log("[SalesHandler] Producto seleccionado:", product)
+    console.log("[SalesHandler] Estado actual de productos:", this.currentSale.products.length)
 
     // Verificar si el producto ya está en la venta
     const existingProduct = this.currentSale.products.find((p) => p.productId === product.id)
@@ -360,6 +471,7 @@ export class SalesHandler {
     if (existingProduct) {
       // Incrementar cantidad si ya existe
       existingProduct.quantity += 1
+      console.log("[SalesHandler] Cantidad incrementada para:", product.name)
     } else {
       // Agregar nuevo producto
       this.currentSale.products.push({
@@ -370,7 +482,10 @@ export class SalesHandler {
         maxQuantity: product.maxQuantity,
         availability: product.availability,
       })
+      console.log("[SalesHandler] Producto agregado:", product.name)
     }
+    
+    console.log("[SalesHandler] Total productos después de agregar:", this.currentSale.products.length)
 
     // Limpiar búsqueda
     const searchInput = document.querySelector('input[placeholder="Buscar producto..."]')
@@ -481,14 +596,46 @@ export class SalesHandler {
     const ivaAmount = subtotalAfterDiscount * (this.currentSale.iva / 100)
     const total = subtotalAfterDiscount + ivaAmount
 
-    // Actualizar elementos del DOM
-    const subtotalElement = document.querySelector(".space-y-2 .flex:nth-child(1) span:last-child")
-    const ivaElement = document.querySelector(".space-y-2 .flex:nth-child(2) span:last-child")
-    const totalElement = document.querySelector(".space-y-2 .flex:nth-child(3) span:last-child")
+    // Actualizar elementos del DOM con los nuevos IDs
+    const subtotalElement = document.getElementById("subtotalDisplay")
+    const discountRow = document.getElementById("discountRow")
+    const discountPercentDisplay = document.getElementById("discountPercentDisplay")
+    const discountAmountDisplay = document.getElementById("discountAmountDisplay")
+    const taxRow = document.getElementById("taxRow")
+    const taxPercentDisplay = document.getElementById("taxPercentDisplay")
+    const taxAmountDisplay = document.getElementById("taxAmountDisplay")
+    const totalElement = document.getElementById("totalDisplay")
 
+    // Actualizar subtotal
     if (subtotalElement) subtotalElement.textContent = `$${subtotal.toFixed(2)}`
-    if (ivaElement) ivaElement.textContent = `$${ivaAmount.toFixed(2)}`
+
+    // Mostrar/ocultar fila de descuento
+    if (this.currentSale.descuento > 0) {
+      if (discountRow) discountRow.style.display = 'flex'
+      if (discountPercentDisplay) discountPercentDisplay.textContent = this.currentSale.descuento
+      if (discountAmountDisplay) discountAmountDisplay.textContent = `-$${discountAmount.toFixed(2)}`
+    } else {
+      if (discountRow) discountRow.style.display = 'none'
+    }
+
+    // Mostrar/ocultar fila de IVA
+    if (this.currentSale.iva > 0) {
+      if (taxRow) taxRow.style.display = 'flex'
+      if (taxPercentDisplay) taxPercentDisplay.textContent = this.currentSale.iva
+      if (taxAmountDisplay) taxAmountDisplay.textContent = `+$${ivaAmount.toFixed(2)}`
+    } else {
+      if (taxRow) taxRow.style.display = 'none'
+    }
+
+    // Actualizar total
     if (totalElement) totalElement.textContent = `$${total.toFixed(2)}`
+
+    console.log("💰 Totales actualizados:", {
+      subtotal: subtotal.toFixed(2),
+      descuento: `${this.currentSale.descuento}% (-$${discountAmount.toFixed(2)})`,
+      iva: `${this.currentSale.iva}% (+$${ivaAmount.toFixed(2)})`,
+      total: total.toFixed(2)
+    })
   }
 
   /**
@@ -533,6 +680,15 @@ export class SalesHandler {
         notes: this.currentSale.notes,
       }
 
+      // Agregar customerId si hay un cliente seleccionado
+      if (this.customerHandler && this.customerHandler.selectedCustomer) {
+        saleData.customerId = this.customerHandler.selectedCustomer.id
+        console.log("[SalesHandler] Venta asociada al cliente:", {
+          customerId: saleData.customerId,
+          nombre: this.customerHandler.selectedCustomer.firstName
+        })
+      }
+
       console.log("Procesando venta:", saleData)
 
       // Crear venta
@@ -540,8 +696,26 @@ export class SalesHandler {
 
       if (response.success) {
         this.showSuccess("Venta procesada exitosamente")
-        this.resetSale()
-        await this.loadSalesHistory()
+        
+        // Actualizar contador diario local
+        if (this.dailyCounterManager && response.sale) {
+          this.dailyCounterManager.incrementSaleCounter(response.sale)
+          console.log("📊 Contador diario actualizado")
+        }
+        
+        // Recargar datos del cliente desde el backend para obtener estadísticas actualizadas
+        if (this.customerHandler && this.customerHandler.selectedCustomer) {
+          await this.refreshCustomerData(this.customerHandler.selectedCustomer.id)
+        }
+        
+        // Mantener cliente seleccionado para siguientes ventas
+        this.resetSale(true)
+        
+        // Delay pequeño antes de recargar historial para asegurar sincronización
+        setTimeout(async () => {
+          await this.loadSalesHistory()
+        }, 500) // 500ms de delay
+        
       } else {
         throw new Error(response.message || "Error procesando la venta")
       }
@@ -554,10 +728,12 @@ export class SalesHandler {
   /**
    * Resetear venta actual
    */
-  resetSale() {
+  resetSale(keepCustomer = false) {
+    const currentCustomer = keepCustomer ? this.currentSale.cliente : ""
+    
     this.currentSale = {
-      cliente: "",
-      vendedor: "",
+      cliente: currentCustomer,
+      vendedor: this.currentSale.vendedor, // Mantener vendedor seleccionado
       products: [],
       descuento: 0,
       iva: 0,
@@ -565,14 +741,21 @@ export class SalesHandler {
       notes: "",
     }
 
-    // Limpiar formulario
+    // Limpiar formulario solo si no mantenemos cliente
     const clienteInput = document.querySelector('input[placeholder="Nombre del cliente..."]')
+    
+    if (!keepCustomer && clienteInput) {
+      clienteInput.value = ""
+    }
+    
     const vendedorSelect = document.querySelector("select")
     const productSearchInput = document.querySelector('input[placeholder="Buscar producto..."]')
 
-    if (clienteInput) clienteInput.value = ""
-    if (vendedorSelect) vendedorSelect.selectedIndex = 0
+    // Limpiar campos de producto siempre
     if (productSearchInput) productSearchInput.value = ""
+
+    // Sincronizar inputs de descuento e IVA
+    this.syncDiscountAndTaxInputs()
 
     this.updateProductTable()
     this.updateTotals()
@@ -586,12 +769,33 @@ export class SalesHandler {
       console.log("Cargando historial de ventas...")
       const response = await this.salesService.getSales({
         page: 1,
-        limit: 10,
+        limit: 10, // Revertir a 10 temporalmente para debugging
         sortBy: "createdAt",
         sortOrder: "desc",
       })
 
+      console.log("[SalesHandler] Respuesta completa de la API:", response)
+      console.log("[SalesHandler] Ventas cargadas desde API:", response.sales?.length || 0)
+      
+      // Obtener total de transacciones desde pagination.totalSales (según documentación)
+      if (response.pagination?.totalSales !== undefined) {
+        console.log("[SalesHandler] Total de transacciones desde API:", response.pagination.totalSales)
+        this.totalTransactions = response.pagination.totalSales
+      } else if (response.statistics?.totalSales !== undefined) {
+        console.log("[SalesHandler] Total de transacciones desde statistics:", response.statistics.totalSales)
+        this.totalTransactions = response.statistics.totalSales
+      } else {
+        console.log("[SalesHandler] API no proporciona total de transacciones en pagination.totalSales")
+        this.totalTransactions = null
+      }
+      
       this.salesHistory = response.sales || []
+      
+      // Sincronizar contadores diarios con la API
+      if (this.dailyCounterManager && this.salesHistory.length > 0) {
+        await this.dailyCounterManager.syncWithAPI(this.salesHistory)
+      }
+      
       // Renderizar usando filtros y la nueva UI
       this.applyFiltersAndRender()
     } catch (error) {
@@ -607,9 +811,12 @@ export class SalesHandler {
     const list = document.getElementById("salesList")
     if (!list) return
 
+    console.log("[SalesHandler] Aplicando filtros - Total ventas en memoria:", this.salesHistory.length)
+    console.log("[SalesHandler] Filtro actual:", this.filterBy, "Búsqueda:", this.searchTerm)
+
     const now = new Date()
 
-    const filtered = this.salesHistory.filter((sale) => {
+    const filtered = this.salesHistory.filter((sale) => {      
       // Búsqueda por cliente
       if (this.searchTerm) {
         const cliente = (sale.cliente || "").toString().toLowerCase()
@@ -633,12 +840,54 @@ export class SalesHandler {
       return true
     })
 
+    console.log("[SalesHandler] Ventas después del filtrado:", filtered.length)
+
+    // Debugging detallado del cálculo de totales
+    console.log("[SalesHandler] Primeras 5 ventas para debugging:")
+    filtered.slice(0, 5).forEach((sale, index) => {
+      console.log(`  Venta ${index + 1}:`, {
+        id: sale.id,
+        total: sale.total,
+        totalNumber: Number(sale.total),
+        cliente: sale.cliente,
+        fecha: sale.createdAt
+      })
+    })
+
     // Actualizar estadísticas
-    const totalSales = filtered.reduce((sum, s) => sum + (Number(s.total) || 0), 0)
+    const totalSales = filtered.reduce((sum, s) => {
+      const saleTotal = Number(s.total) || 0
+      return sum + saleTotal
+    }, 0)
+    
     const totalElem = document.getElementById("totalSalesValue")
     const transElem = document.getElementById("transactionsValue")
+    
+    // Determinar qué contador de transacciones mostrar
+    let transactionCount
+    const hasActiveFilters = (this.filterBy && this.filterBy !== "todos") || this.searchTerm
+    
+    if (hasActiveFilters) {
+      // Con filtros activos, mostrar solo las transacciones filtradas
+      transactionCount = filtered.length
+      console.log("[SalesHandler] Mostrando conteo filtrado:", transactionCount)
+    } else {
+      // Sin filtros, mostrar total real desde la API
+      transactionCount = this.totalTransactions !== null ? this.totalTransactions : this.salesHistory.length
+      console.log("[SalesHandler] Mostrando total real:", transactionCount, 
+        "(fuente:", this.totalTransactions !== null ? "API pagination" : "historial local", ")")
+    }
+    
+    console.log("[SalesHandler] Estadísticas calculadas:", {
+      totalVentas: totalSales.toFixed(2),
+      transacciones: transactionCount,
+      tieneContadorLocal: this.dailyCounterManager ? true : false
+    })
+    
+    console.log("[SalesHandler] Cálculo final - Total: $" + totalSales.toFixed(2) + ", Transacciones mostradas:", transactionCount)
+    
     if (totalElem) totalElem.textContent = `$${totalSales.toFixed(2)}`
-    if (transElem) transElem.textContent = `${filtered.length}`
+    if (transElem) transElem.textContent = `${transactionCount}`
 
     // Renderizar lista
     list.innerHTML = ""
@@ -1054,10 +1303,92 @@ export class SalesHandler {
     }
     return icons[type] || icons.info
   }
-}
 
-// Inicializar cuando el DOM esté listo
-document.addEventListener("DOMContentLoaded", () => {
-  console.log("Inicializando sistema de ventas...")
-  window.salesHandler = new SalesHandler()
-})
+  /**
+   * Recargar datos del cliente desde el backend después de una venta
+   */
+  async refreshCustomerData(customerId) {
+    try {
+      console.log("[SalesHandler] Recargando datos del cliente desde backend:", customerId)
+      
+      if (!this.customerHandler) {
+        console.warn("[SalesHandler] No hay customerHandler disponible")
+        return
+      }
+
+      // Obtener datos actualizados del cliente desde la API
+      const response = await this.customerHandler.customerService.getCustomerById(customerId)
+      console.log("[SalesHandler] Respuesta del backend:", response)
+      
+      // Manejar diferentes estructuras de respuesta
+      let updatedCustomer = null
+      
+      if (response.success && response.customer) {
+        updatedCustomer = response.customer
+      } else if (response.success && response.data) {
+        updatedCustomer = response.data
+      } else if (response.customer) {
+        updatedCustomer = response.customer
+      } else if (response.data) {
+        updatedCustomer = response.data
+      } else if (response.firstName) {
+        // La respuesta es directamente el objeto cliente
+        updatedCustomer = response
+      }
+      
+      if (updatedCustomer && updatedCustomer.firstName) {
+        console.log("[SalesHandler] Datos actualizados recibidos:", {
+          nombre: updatedCustomer.firstName,
+          compras: updatedCustomer.totalPurchases || 0,
+          gastado: updatedCustomer.totalSpent || 0
+        })
+        
+        // Actualizar en el customerHandler
+        const customerIndex = this.customerHandler.allCustomers.findIndex(c => c.id === customerId)
+        if (customerIndex !== -1) {
+          this.customerHandler.allCustomers[customerIndex] = updatedCustomer
+        }
+        
+        // Actualizar cliente seleccionado y refrescar panel
+        if (this.customerHandler.selectedCustomer && this.customerHandler.selectedCustomer.id === customerId) {
+          this.customerHandler.selectedCustomer = updatedCustomer
+          this.customerHandler.showCustomerPanel(updatedCustomer)
+          console.log("[SalesHandler] Panel del cliente actualizado con estadísticas del backend")
+        }
+        
+      } else {
+        console.warn("[SalesHandler] No se pudieron obtener datos válidos del cliente:", response)
+      }
+      
+    } catch (error) {
+      console.error("[SalesHandler] Error recargando datos del cliente:", error)
+    }
+  }
+
+  /**
+   * Método de debugging para diagnósticar problemas con contadores
+   */
+  debugCounters() {
+    console.log("🔍 === DEBUGGING DE CONTADORES ===")
+    console.log("Total ventas en memoria:", this.salesHistory.length)
+    console.log("Filtro actual:", this.filterBy)
+    console.log("Búsqueda actual:", this.searchTerm)
+    
+    // Mostrar todas las ventas con sus totales
+    console.log("📊 Ventas individuales:")
+    this.salesHistory.forEach((sale, index) => {
+      console.log(`  ${index + 1}. ID: ${sale.id} | Cliente: ${sale.cliente} | Total: $${sale.total} | Fecha: ${sale.createdAt}`)
+    })
+    
+    // Calcular total manual
+    const manualTotal = this.salesHistory.reduce((sum, sale) => sum + (Number(sale.total) || 0), 0)
+    console.log("💰 Total calculado manualmente:", manualTotal.toFixed(2))
+    
+    // Mostrar elementos DOM
+    const totalElem = document.getElementById("totalSalesValue")
+    const transElem = document.getElementById("transactionsValue")
+    console.log("🖥️ Valores en DOM:")
+    console.log("  Total en UI:", totalElem?.textContent)
+    console.log("  Transacciones en UI:", transElem?.textContent)
+  }
+}
