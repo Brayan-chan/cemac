@@ -6,6 +6,7 @@
     <title>CEMAC - Sugerencias</title>
     <link rel="stylesheet" href="/css/customsidebar.css">
     <link rel="stylesheet" href="/css/inicio.css">
+    <link rel="stylesheet" href="/css/javi-recommendations.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link rel="icon" type="image/png" sizes="32x32" href="https://res.cloudinary.com/dmyejrbs7/image/upload/v1757894655/CEMAC-LOGO_nrow82.png" />
     <script src="https://cdn.tailwindcss.com"></script>
@@ -172,18 +173,38 @@
                                     <i class="fas fa-search-dollar w-4 mr-2"></i>
                                     Análisis competencia
                                 </button>
+                                <button id="systemStatusBtn" class="w-full text-left px-3 py-2 text-sm text-blue-700 hover:bg-blue-50 rounded-lg transition-colors border border-blue-200">
+                                    <i class="fas fa-heartbeat w-4 mr-2"></i>
+                                    Verificar sistema
+                                </button>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Recommendations Grid -->
-                <div class="mt-6">
-                    <h2 class="text-xl font-bold text-gray-900 mb-4">Recomendaciones Recientes</h2>
-                    <div id="recommendationsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        <!-- Recommendations will be loaded here -->
+            <!-- Recommendations Section -->
+            <div class="mt-8">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-xl font-bold text-gray-900">Recomendaciones de JAVI</h2>
+                    <button id="refreshRecommendationsBtn" class="px-4 py-2 bg-[#8B7EC7] text-white rounded-lg hover:bg-[#7A6DB8] transition-colors text-sm flex items-center space-x-2">
+                        <i class="fas fa-sync-alt"></i>
+                        <span>Actualizar</span>
+                    </button>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Recommendation Cards -->
+                    <div id="recommendationsGrid" class="contents">
+                        <!-- Loading state -->
+                        <div class="col-span-full text-center py-8">
+                            <div class="flex flex-col items-center">
+                                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-[#8B7EC7] mb-4"></div>
+                                <p class="text-gray-500">Cargando recomendaciones de JAVI...</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
+            </div>
             </div>
         </main>
     </div>
