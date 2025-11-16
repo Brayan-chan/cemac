@@ -11,16 +11,26 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="/js/tailwind.config.js"></script>
     <script src="/js/utils/sidebarPreloader.js"></script>
+    <style>
+      #customerPanel {
+        transition: all 0.3s ease-in-out;
+        opacity: 0;
+        transform: translateY(-10px);
+        pointer-events: none;
+      }
+      #customerPanel.visible {
+        opacity: 1;
+        transform: translateY(0);
+        pointer-events: auto;
+      }
+    </style>
 </head>
 <body class="h-full bg-gray-50">
-    <!-- Sidebar Container - Será poblado por SidebarComponent -->
     <div id="sidebar" class="fixed left-0 top-0 bg-[#8B7EC7] sidebar-expanded sidebar-transition z-40 sidebar-flex"></div>
 
     <div id="mainContent" class="main-expanded sidebar-transition">
         <header class="bg-white h-16">
             <div class="flex items-center justify-between h-full px-6">
-                
-                <!-- Search Bar (Centered) -->
                 <div class="flex-1 flex justify-center">
                     <div class="relative w-full max-w-md mx-4">
                         <input type="text" 
@@ -34,24 +44,15 @@
                         </button>
                     </div>
                 </div>
-                
-                <!-- Header Actions -->
                 <div class="w-64 flex items-center justify-end space-x-2">
-                    <!-- Messages -->
                     <button class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
                         <i class="far fa-envelope text-gray-600 text-xl"></i>
                     </button>
-                    
-                    <!-- Notifications -->
                     <button class="p-2 hover:bg-gray-100 rounded-lg transition-colors relative">
                         <i class="far fa-bell text-gray-600 text-xl"></i>
                         <span class="absolute top-1 right-1 w-4 h-4 bg-red-500 rounded-full text-xs text-white flex items-center justify-center">3</span>
                     </button>
-
-                    <!-- Separator -->
                     <div class="w-px h-6 bg-gray-300 mx-2"></div>
-                    
-                    <!-- User Menu - Reemplazado con contenedor dinámico -->
                     <div id="userMenuContainer"></div>
                 </div>
             </div>
@@ -59,10 +60,9 @@
 
         <!-- Main Content -->
         <div class="p-6 flex gap-6">
-            <!-- Historial de Ventas Panel (mejorado) -->
+            <!-- Historial de Ventas Panel -->
             <div class="w-72">
                 <div class="bg-gray-200 rounded-lg p-4 h-full">
-                    <!-- Header mejorado -->
                     <div class="flex items-center justify-between mb-4">
                         <div class="flex items-center gap-3">
                             <div class="w-10 h-10 bg-gradient-to-br from-[#8B7EC7] to-[#7A6DB4] rounded-lg flex items-center justify-center">
@@ -72,7 +72,6 @@
                         </div>
                     </div>
 
-                    <!-- Búsqueda con icono -->
                     <div class="mb-3">
                         <div class="relative">
                             <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
@@ -80,7 +79,6 @@
                         </div>
                     </div>
 
-                    <!-- Filtros por período -->
                     <div class="mb-3" id="salesFilters">
                         <div class="flex gap-2">
                             <button data-filter="todos" class="px-3 py-1 rounded-lg text-sm font-medium bg-[#8B7EC7] text-white">Todos</button>
@@ -90,7 +88,6 @@
                         </div>
                     </div>
 
-                    <!-- Estadísticas -->
                     <div id="salesStats" class="mb-3">
                         <div class="grid grid-cols-2 gap-3 bg-gradient-to-r from-[#F3EFFA] to-blue-50 p-3 rounded-xl">
                             <div>
@@ -104,7 +101,6 @@
                         </div>
                     </div>
 
-                    <!-- Lista de ventas (cards interactivas) -->
                     <div id="salesList" class="space-y-3 overflow-y-auto max-h-[60vh]"></div>
                 </div>
             </div>
@@ -118,7 +114,8 @@
                         <span>Exportar</span>
                     </button>
                 </div>
-                <!-- Cliente y Vendedor -->
+
+                <!-- Agregado: Cliente y Vendedor con panel de cliente frecuente -->
                 <div class="grid grid-cols-2 gap-6 mb-6">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Cliente</label>
@@ -132,7 +129,7 @@
                     </div>
                 </div>
 
-                <!-- Búsqueda de Producto -->
+                <!-- Búsqueda de Producto y Configuración de Descuentos/IVA -->
                 <div class="grid grid-cols-2 gap-6 mb-6">
                     <div>
                         <div class="flex items-center gap-2">
@@ -142,10 +139,49 @@
                         <input type="text" placeholder="Buscar producto..." class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-[#8B7EC7] focus:border-[#8B7EC7] focus:outline-none">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Descuento</label>
-                        <select class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-[#8B7EC7] focus:border-[#8B7EC7] focus:outline-none">
-                            <option value="">No asignado</option>
-                        </select>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Configuración de Venta</label>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs text-gray-600 mb-1">Descuento %</label>
+                                <div class="flex">
+                                    <input 
+                                        id="discountInput" 
+                                        type="number" 
+                                        min="0" 
+                                        max="100" 
+                                        step="0.1" 
+                                        placeholder="0"
+                                        class="w-full border border-gray-300 rounded-l-lg px-3 py-2 text-sm focus:ring-[#8B7EC7] focus:border-[#8B7EC7] focus:outline-none"
+                                    >
+                                    <span class="bg-gray-100 border border-l-0 border-gray-300 rounded-r-lg px-3 py-2 text-gray-600 text-sm">%</span>
+                                </div>
+                                <div class="flex gap-1 mt-1">
+                                    <button class="text-xs bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded discount-preset" data-discount="5">5%</button>
+                                    <button class="text-xs bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded discount-preset" data-discount="10">10%</button>
+                                    <button class="text-xs bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded discount-preset" data-discount="15">15%</button>
+                                    <button class="text-xs bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded discount-preset" data-discount="20">20%</button>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-xs text-gray-600 mb-1">IVA %</label>
+                                <div class="flex">
+                                    <input 
+                                        id="taxInput" 
+                                        type="number" 
+                                        min="0" 
+                                        max="100" 
+                                        step="0.1" 
+                                        placeholder="0"
+                                        class="w-full border border-gray-300 rounded-l-lg px-3 py-2 text-sm focus:ring-[#8B7EC7] focus:border-[#8B7EC7] focus:outline-none"
+                                    >
+                                    <span class="bg-gray-100 border border-l-0 border-gray-300 rounded-r-lg px-3 py-2 text-gray-600 text-sm">%</span>
+                                </div>
+                                <div class="flex gap-1 mt-1">
+                                    <button class="text-xs bg-blue-100 hover:bg-blue-200 px-2 py-1 rounded tax-preset" data-tax="0">0%</button>
+                                    <button class="text-xs bg-blue-100 hover:bg-blue-200 px-2 py-1 rounded tax-preset" data-tax="16">16%</button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -172,18 +208,23 @@
                             Agregar producto
                         </button>
                     </div>
-                    <div class="space-y-2">
+                    <div class="space-y-2 min-w-[200px]">
                         <div class="flex justify-between gap-8">
                             <span class="text-gray-600">Subtotal</span>
-                            <span class="font-medium">$0.00</span>
+                            <span id="subtotalDisplay" class="font-medium">$0.00</span>
                         </div>
-                        <div class="flex justify-between gap-8">
-                            <span class="text-gray-600">IVA</span>
-                            <span class="font-medium">$0.00</span>
+                        <div id="discountRow" class="flex justify-between gap-8 text-red-600" style="display: none;">
+                            <span>Descuento (<span id="discountPercentDisplay">0</span>%)</span>
+                            <span id="discountAmountDisplay" class="font-medium">-$0.00</span>
                         </div>
+                        <div id="taxRow" class="flex justify-between gap-8 text-blue-600" style="display: none;">
+                            <span>IVA (<span id="taxPercentDisplay">0</span>%)</span>
+                            <span id="taxAmountDisplay" class="font-medium">+$0.00</span>
+                        </div>
+                        <hr class="border-gray-200">
                         <div class="flex justify-between gap-8">
-                            <span class="text-gray-600">Total</span>
-                            <span class="font-medium">$0.00</span>
+                            <span class="text-gray-800 font-semibold">Total</span>
+                            <span id="totalDisplay" class="font-bold text-lg">$0.00</span>
                         </div>
                         <button class="w-full bg-[#8B7EC7] text-white px-6 py-2 rounded-lg hover:bg-[#7A6DB4] transition-colors">
                             Cobrar
@@ -198,7 +239,53 @@
     <script type="module" src="/js/utils/uiUtils.js"></script>
     <script type="module" src="/js/modules/dashboardHandler.js"></script>
     <script type="module" src="/js/services/salesService.js"></script>
-    <script type="module" src="/js/modules/salesHandler.js"></script>
+    <script type="module" src="/js/services/customerService.js"></script>
+    <script type="module" src="/js/utils/apiDiagnostic.js"></script>
+    <script type="module" src="/js/utils/customerTesting.js"></script>
+    <script type="module" src="/js/utils/salesTesting.js"></script>
+    <script type="module" src="/js/utils/dailyCounterManager.js"></script>
+    <script type="module">
+      import { SalesHandler } from "/js/modules/salesHandler.js"
+      import { CustomerHandler } from "/js/modules/customerHandler.js"
+      import { ApiDiagnostic } from "/js/utils/apiDiagnostic.js"
+
+      document.addEventListener("DOMContentLoaded", async () => {
+        console.log("Inicializando sistema de ventas con gestión de clientes...")
+        
+        // Inicializar salesHandler primero
+        window.salesHandler = new SalesHandler()
+        
+        // Inicializar customerHandler con referencia a salesHandler
+        window.customerHandler = new CustomerHandler(window.salesHandler)
+        
+        // Establecer referencia bidireccional
+        window.salesHandler.setCustomerHandler(window.customerHandler)
+        
+        // Diagnóstico de la API
+        console.log("🔬 Ejecutando diagnóstico de la API...")
+        window.apiDiagnostic = new ApiDiagnostic()
+        
+        // Ejecutar diagnóstico después de un pequeño delay
+        setTimeout(async () => {
+          await window.apiDiagnostic.runFullDiagnostic()
+        }, 1000)
+        
+                // Test del contador de transacciones después de cargar
+        setTimeout(() => {
+          console.log("📊 Scripts de testing disponibles:")
+          console.log("   === CONTADOR DE TRANSACCIONES ===")
+          console.log("   testTransactionCounter() - Test básico")
+          console.log("   testWithFilters() - Test con filtros")
+          console.log("   testDailyCounters() - Test de contadores diarios")
+          console.log("   === GESTIÓN DE CLIENTES ===")
+          console.log("   diagnoseCurrientCustomerIntegration() - Diagnóstico completo")
+          console.log("   testCustomerFunctionality() - Test de funcionalidades")
+          console.log("   === DESCUENTOS E IVA ===")
+          console.log("   testDiscountAndTaxControls() - Test de controles")
+          console.log("   testCalculations() - Test de cálculos")
+        }, 2000)
+      })
+    </script>
     <script type="module" src="/js/components/userMenuComponent.js"></script>
     <script type="module" src="/js/modules/userMenuHandler.js"></script>
     <script type="module" src="/js/components/sidebarComponent.js"></script>
