@@ -113,30 +113,8 @@
 
                     <div class="w-px h-6 bg-gray-300 mx-2"></div>
                     
-                    <div class="relative">
-                        <button id="userMenuBtn" class="flex items-center space-x-2 px-2 py-1 hover:bg-gray-100 rounded-lg transition-colors">
-                            <span class="text-sm font-medium text-gray-700">jh6466011</span>
-                            <i class="fas fa-chevron-down text-xs text-gray-500"></i>
-                        </button>
-                        
-                        <div id="userDropdown" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg z-50 border border-gray-100">
-                            <div class="py-1">
-                                <a href="#" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
-                                    <i class="far fa-user-circle w-5"></i>
-                                    <span>Ver perfil</span>
-                                </a>
-                                <a href="../admin/users.html" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
-                                    <i class="fas fa-users-cog w-5"></i>
-                                    <span>Gestionar usuarios</span>
-                                </a>
-                                <hr class="my-1 border-gray-100">
-                                <a href="/index.html" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
-                                    <i class="fas fa-sign-out-alt w-5"></i>
-                                    <span>Cerrar sesión</span>
-                                </a>
-                            </div>
-                        </div>
-                    </div>
+                    <!-- User Menu - Reemplazado con contenedor dinámico -->
+                    <div id="userMenuContainer"></div>
                 </div>
             </div>
         </header>
@@ -148,55 +126,53 @@
                 </div>
 
                 <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center space-x-2">
-                        <div class="flex items-center border border-gray-300 rounded-lg px-3 py-2">
-                            <i class="fas fa-calendar text-gray-400 mr-2"></i>
-                            <input type="date" id="startDate" class="border-0 text-sm focus:outline-none" value="2025-08-11">
-                            <span class="mx-2 text-gray-400">-</span>
-                            <input type="date" id="endDate" class="border-0 text-sm focus:outline-none" value="2025-08-11">
-                        </div>
-                    </div>
-
-                    <div class="flex items-center space-x-4">
+                    <div class="flex items-center justify-between">
                         <div class="flex items-center space-x-2">
-                            <span class="text-sm text-gray-600">Ordenar por:</span>
-                            <select id="sortFilter" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-[#8B7EC7] focus:border-[#8B7EC7]">
-                                <option value="date_desc">Defecto</option>
-                                <option value="date_asc">Fecha (más antigua)</option>
-                                <option value="priority_desc">Prioridad (alta a baja)</option>
-                                <option value="priority_asc">Prioridad (baja a alta)</option>
-                            </select>
+                            <div class="flex items-center border border-gray-300 rounded-lg px-3 py-2">
+                                <i class="fas fa-calendar text-gray-400 mr-2"></i>
+                                <input type="date" id="startDate" class="border-0 text-sm focus:outline-none" value="2025-08-11">
+                                <span class="mx-2 text-gray-400">-</span>
+                                <input type="date" id="endDate" class="border-0 text-sm focus:outline-none" value="2025-08-11">
+                            </div>
                         </div>
 
-                        <button id="applyFiltersBtn" class="flex items-center px-4 py-2 bg-[#8B7EC7] text-white rounded-lg hover:bg-[#7A6DB4] transition-colors">
-                            <i class="fas fa-filter mr-2"></i>
-                            Filtrar
-                        </button>
-                    </div>
-                </div>
-            </div>
+                        <div class="flex items-center space-x-4">
+                            <div class="flex items-center space-x-2">
+                                <span class="text-sm text-gray-600">Ordenar por:</span>
+                                <select id="sortFilter" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-[#8B7EC7] focus:border-[#8B7EC7]">
+                                    <option value="date_desc">Defecto</option>
+                                    <option value="date_asc">Fecha (más antigua)</option>
+                                    <option value="priority_desc">Prioridad (alta a baja)</option>
+                                    <option value="priority_asc">Prioridad (baja a alta)</option>
+                                </select>
+                            </div>
 
-            <div class="space-y-4" id="alertsContainer">
-                <div id="loadingState" class="hidden">
-                    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-8 text-center">
-                        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-[#8B7EC7] mx-auto mb-4"></div>
-                        <p class="text-gray-600">Cargando alertas...</p>
-                    </div>
-                </div>
-
-                <div id="emptyState" class="hidden">
-                    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
-                        <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <i class="fas fa-bell-slash text-2xl text-gray-400"></i>
+                            <button id="applyFiltersBtn" class="flex items-center px-4 py-2 bg-[#8B7EC7] text-white rounded-lg hover:bg-[#7A6DB4] transition-colors">
+                                <i class="fas fa-filter mr-2"></i>
+                                Filtrar
+                            </button>
                         </div>
-                        <h3 class="text-lg font-medium text-gray-900 mb-2">No hay alertas</h3>
-                        <p class="text-gray-600">No se encontraron alertas con los filtros aplicados.</p>
                     </div>
                 </div>
 
-            </div>
+                <div class="space-y-4" id="alertsContainer">
+                    <div id="loadingState" class="hidden">
+                        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-8 text-center">
+                            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-[#8B7EC7] mx-auto mb-4"></div>
+                            <p class="text-gray-600">Cargando alertas...</p>
+                        </div>
+                    </div>
 
+                    <div id="emptyState" class="hidden">
+                        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
+                            <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <i class="fas fa-bell-slash text-2xl text-gray-400"></i>
+                            </div>
+                            <h3 class="text-lg font-medium text-gray-900 mb-2">No hay alertas</h3>
+                            <p class="text-gray-600">No se encontraron alertas con los filtros aplicados.</p>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- Paginador fijo en la parte inferior -->
@@ -206,8 +182,7 @@
                     Previous
                 </button>
                 
-                <div id="paginationNumbers" class="flex items-center space-x-1">
-                </div>
+                <div id="paginationNumbers" class="flex items-center space-x-1"></div>
                 
                 <button id="nextPageBtn" class="flex items-center px-3 py-2 text-gray-500 hover:text-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
                     Next
@@ -269,7 +244,9 @@
     <script type="module" src="/js/modules/dashboardHandler.js"></script>
     <script type="module" src="/js/services/inventoryService.js"></script>
     <script type="module" src="/js/modules/alertsHandler.js"></script>
-    <script>
+    <script type="module" src="/js/components/userMenuComponent.js"></script>
+    <script type="module" src="/js/modules/userMenuHandler.js"></script>
+    <script type="module">
         document.addEventListener('DOMContentLoaded', () => {
             console.log('🚀 Inicializando dashboard...');
             
@@ -277,21 +254,15 @@
             const toggleBtn = document.getElementById('toggleSidebar');
             const sidebar = document.getElementById('sidebar');
             const mainContent = document.getElementById('mainContent');
-            const userMenuBtn = document.getElementById('userMenuBtn');
-            const userDropdown = document.getElementById('userDropdown');
 
             console.log('🔍 Elementos encontrados:', {
                 toggleBtn: !!toggleBtn,
                 sidebar: !!sidebar,
-                mainContent: !!mainContent,
-                userMenuBtn: !!userMenuBtn,
-                userDropdown: !!userDropdown
+                mainContent: !!mainContent
             });
 
-            // Initialize states
             let isCollapsed = false;
             
-            // Sidebar Toggle
             if (toggleBtn) {
                 toggleBtn.addEventListener('click', () => {
                     isCollapsed = !isCollapsed;
@@ -300,7 +271,6 @@
                         sidebar.classList.add('sidebar-collapsed');
                         mainContent.classList.remove('main-expanded');
                         mainContent.classList.add('main-collapsed');
-                        // Ocultar textos del sidebar
                         document.querySelectorAll('.sidebar-text').forEach(text => {
                             text.classList.add('hidden');
                         });
@@ -309,7 +279,6 @@
                         sidebar.classList.add('sidebar-expanded');
                         mainContent.classList.remove('main-collapsed');
                         mainContent.classList.add('main-expanded');
-                        // Mostrar textos del sidebar
                         document.querySelectorAll('.sidebar-text').forEach(text => {
                             text.classList.remove('hidden');
                         });
@@ -317,7 +286,6 @@
                 });
             }
 
-            // Navigation hover effects
             const navItems = document.querySelectorAll('nav > div > a');
             navItems.forEach(item => {
                 if (!item.classList.contains('bg-white/20')) {
@@ -329,59 +297,6 @@
                     });
                 }
             });
-
-            // User Dropdown functionality
-            if (userMenuBtn && userDropdown) {
-                console.log('✅ Inicializando dropdown del usuario');
-                
-                // Toggle dropdown on button click
-                userMenuBtn.addEventListener('click', (e) => {
-                    console.log('👤 Click en botón del usuario');
-                    e.stopPropagation();
-                    userDropdown.classList.toggle('hidden');
-                    console.log('👤 Dropdown estado:', userDropdown.classList.contains('hidden') ? 'cerrado' : 'abierto');
-                });
-                
-                // Close dropdown when clicking outside
-                document.addEventListener('click', (e) => {
-                    if (!userDropdown.contains(e.target) && !userMenuBtn.contains(e.target)) {
-                        userDropdown.classList.add('hidden');
-                        console.log('👤 Dropdown cerrado por click externo');
-                    }
-                });
-                
-                // Handle dropdown menu items
-                userDropdown.querySelectorAll('a').forEach(item => {
-                    item.addEventListener('click', (e) => {
-                        e.preventDefault();
-                        const action = e.currentTarget.querySelector('span').textContent;
-                        console.log('👤 Acción seleccionada:', action);
-                        
-                        switch(action) {
-                            case 'Ver perfil':
-                                console.log('Ver perfil clicked');
-                                // TODO: Implementar página de perfil
-                                break;
-                            case 'Gestionar usuarios':
-                                console.log('Redirigiendo a gestionar usuarios...');
-                                window.location.href = '../admin/users.html';
-                                break;
-                            case 'Cerrar sesión':
-                                console.log('Cerrando sesión...');
-                                if (window.authService) {
-                                    window.authService.logout();
-                                } else {
-                                    window.location.href = '/index.html';
-                                }
-                                break;
-                        }
-                        
-                        userDropdown.classList.add('hidden');
-                    });
-                });
-            } else {
-                console.error('❌ No se encontraron elementos del dropdown del usuario');
-            }
         });
     </script>
 </body>
