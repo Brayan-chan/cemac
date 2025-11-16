@@ -39,7 +39,7 @@ export class UserMenuComponent {
      * @param {HTMLElement|string} containerSelector - Elemento o selector CSS donde inyectar
      */
     mount(containerSelector) {
-        console.log('[v0] Montando UserMenuComponent...');
+        console.log('Montando UserMenuComponent...');
         
         let container;
         if (typeof containerSelector === 'string') {
@@ -49,13 +49,13 @@ export class UserMenuComponent {
         }
 
         if (!container) {
-            console.error('[v0] No se encontró el contenedor para UserMenuComponent');
+            console.error('No se encontró el contenedor para UserMenuComponent');
             return;
         }
 
         // Inyectar HTML
         container.innerHTML = this.userMenuHTML;
-        console.log('[v0] HTML del user menu inyectado');
+        console.log('HTML del user menu inyectado');
 
         // Actualizar nombre del usuario desde localStorage
         this.updateUserDisplayName();
@@ -112,13 +112,13 @@ export class UserMenuComponent {
                 }
                 
                 userDisplayName.textContent = displayName;
-                console.log('[v0] Nombre de usuario actualizado:', displayName);
+                console.log('Nombre de usuario actualizado:', displayName);
             } else {
                 userDisplayName.textContent = 'Invitado';
-                console.log('[v0] No hay usuario disponible');
+                console.log('No hay usuario disponible');
             }
         } catch (error) {
-            console.error('[v0] Error al actualizar nombre de usuario:', error);
+            console.error('Error al actualizar nombre de usuario:', error);
             userDisplayName.textContent = 'Usuario';
         }
     }
@@ -134,7 +134,7 @@ export class UserMenuComponent {
                 const userJson = localStorage.getItem('user');
                 return userJson ? JSON.parse(userJson) : null;
             } catch (error) {
-                console.error('[v0] Error al obtener usuario actual:', error);
+                console.error('Error al obtener usuario actual:', error);
                 return null;
             }
         }
