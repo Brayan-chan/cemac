@@ -1,0 +1,92 @@
+/* Estilos específicos para el buscador del inventario */
+
+/* Buscador del header */
+#headerSearch {
+  transition: all 0.2s ease;
+}
+
+#headerSearch:focus {
+  background-color: white;
+  box-shadow: 0 0 0 3px rgba(139, 126, 199, 0.1);
+}
+
+/* Iconos de búsqueda */
+#searchIcon, #searchLoading {
+  transition: opacity 0.2s ease;
+}
+
+#clearSearch {
+  transition: all 0.2s ease;
+  opacity: 0;
+}
+
+#clearSearch:not(.hidden) {
+  opacity: 1;
+}
+
+#clearSearch:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+  border-radius: 50%;
+}
+
+/* Mejoras para el estado vacío con búsqueda */
+#emptyState .search-results {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border: 1px dashed #dee2e6;
+  border-radius: 8px;
+  padding: 2rem;
+  margin: 1rem 0;
+}
+
+/* Animaciones para la carga de búsqueda */
+@keyframes searchPulse {
+  0% { opacity: 0.6; }
+  50% { opacity: 1; }
+  100% { opacity: 0.6; }
+}
+
+.search-loading {
+  animation: searchPulse 1.5s ease-in-out infinite;
+}
+
+/* Estilos para resaltar términos de búsqueda */
+.search-highlight {
+  background-color: rgba(139, 126, 199, 0.2);
+  padding: 0.1rem 0.2rem;
+  border-radius: 0.25rem;
+  font-weight: 500;
+}
+
+/* Responsive para el buscador */
+@media (max-width: 768px) {
+  #headerSearch {
+    font-size: 14px;
+    padding: 0.5rem 0.75rem 0.5rem 2.5rem;
+  }
+  
+  .search-container {
+    max-width: none !important;
+    width: 100% !important;
+  }
+}
+
+/* Estados del input de búsqueda */
+#headerSearch:placeholder-shown ~ #clearSearch {
+  display: none;
+}
+
+/* Mejora visual para resultados de búsqueda */
+.search-result-count {
+  font-size: 0.875rem;
+  color: #6b7280;
+  background-color: #f3f4f6;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.search-result-count .highlight {
+  color: #8B7EC7;
+  font-weight: 600;
+}
