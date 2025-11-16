@@ -7,6 +7,7 @@
     <title>CEMAC - Dashboard</title>
     <link rel="stylesheet" href="/css/customsidebar.css">
     <link rel="stylesheet" href="/css/inicio.css">
+    <link rel="stylesheet" href="/css/skeleton-charts.css">
     <link rel="stylesheet" href="/css/javi-recommendations.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link rel="icon" type="image/png" sizes="32x32"
@@ -152,19 +153,21 @@
                         </div>
                         <div class="flex items-center justify-center">
                             <div class="chart-container">
-                                <svg class="donut-chart" width="200" height="200" viewBox="0 0 200 200">
-                                    <circle cx="100" cy="100" r="85" fill="none" stroke="#f1f5f9" stroke-width="30" />
-                                    <circle cx="100" cy="100" r="85" class="donut-segment donut-segment-1"
-                                        stroke-dasharray="160 374" stroke-dashoffset="0" />
-                                    <circle cx="100" cy="100" r="85" class="donut-segment donut-segment-2"
-                                        stroke-dasharray="107 374" stroke-dashoffset="-160" />
-                                    <circle cx="100" cy="100" r="85" class="donut-segment donut-segment-3"
-                                        stroke-dasharray="107 374" stroke-dashoffset="-267" />
-                                </svg>
-                                <div class="absolute inset-0 flex items-center justify-center">
-                                    <div class="text-center">
-                                        <div class="text-xs text-gray-500 mb-1">Productos agotados</div>
-                                        <div class="text-xs text-gray-500">11.1%</div>
+                                <div class="chart-skeleton-container">
+                                    <div class="chart-skeleton"></div>
+                                    <div class="legend-skeleton">
+                                        <div class="legend-item">
+                                            <span class="legend-dot"></span>
+                                            <span class="legend-text"></span>
+                                        </div>
+                                        <div class="legend-item">
+                                            <span class="legend-dot"></span>
+                                            <span class="legend-text"></span>
+                                        </div>
+                                        <div class="legend-item">
+                                            <span class="legend-dot"></span>
+                                            <span class="legend-text"></span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -200,19 +203,21 @@
                         </div>
                         <div class="flex items-center justify-center">
                             <div class="chart-container">
-                                <svg class="donut-chart" width="200" height="200" viewBox="0 0 200 200">
-                                    <circle cx="100" cy="100" r="85" fill="none" stroke="#f1f5f9" stroke-width="30" />
-                                    <circle cx="100" cy="100" r="85" class="donut-segment donut-segment-1"
-                                        stroke-dasharray="160 374" stroke-dashoffset="0" />
-                                    <circle cx="100" cy="100" r="85" class="donut-segment donut-segment-2"
-                                        stroke-dasharray="107 374" stroke-dashoffset="-160" />
-                                    <circle cx="100" cy="100" r="85" class="donut-segment donut-segment-3"
-                                        stroke-dasharray="107 374" stroke-dashoffset="-267" />
-                                </svg>
-                                <div class="absolute inset-0 flex items-center justify-center">
-                                    <div class="text-center">
-                                        <div class="text-xs text-gray-500 mb-1">Ventas Realizadas</div>
-                                        <div class="text-xs text-gray-500">78.5%</div>
+                                <div class="chart-skeleton-container">
+                                    <div class="chart-skeleton"></div>
+                                    <div class="legend-skeleton">
+                                        <div class="legend-item">
+                                            <span class="legend-dot"></span>
+                                            <span class="legend-text"></span>
+                                        </div>
+                                        <div class="legend-item">
+                                            <span class="legend-dot"></span>
+                                            <span class="legend-text"></span>
+                                        </div>
+                                        <div class="legend-item">
+                                            <span class="legend-dot"></span>
+                                            <span class="legend-text"></span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -287,7 +292,8 @@
                     <!-- Loading state inicial -->
                     <div id="loadingRecommendations" class="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
                         <div class="flex items-center justify-center">
-                            <div class="w-16 h-16 bg-gradient-to-br from-[#8B7EC7] to-[#7A6DB8] rounded-full mr-4 flex items-center justify-center animate-pulse">
+                            <div
+                                class="w-16 h-16 bg-gradient-to-br from-[#8B7EC7] to-[#7A6DB8] rounded-full mr-4 flex items-center justify-center animate-pulse">
                                 <i class="fas fa-robot text-white text-xl"></i>
                             </div>
                             <div class="flex-1">
@@ -360,7 +366,7 @@
             initHomeHandler();
             console.log('✅ Dashboard de inicio inicializado');
         });
-    </script>    
+    </script>
 </body>
 
 </html>
