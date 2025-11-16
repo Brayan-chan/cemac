@@ -1,42 +1,55 @@
-import { InventoryService } from "../services/inventoryService.js"
+import { AlertsService } from "../services/alertsService.js"
 
 class AlertsHandler {
   constructor() {
-    // Verificar autenticación
-    const token = localStorage.getItem("authToken")
-    if (!token) {
-      window.location.href = "/index.html"
-      return
+    try {
+      console.log("🚀 Iniciando AlertsHandler...")
+      
+      // Verificar autenticación
+      const token = localStorage.getItem("authToken")
+      if (!token) {
+        console.error("❌ No hay token de autenticación")
+        window.location.href = "/index.html"
+        return
+      }
+      
+      console.log("✅ Token encontrado:", token.substring(0, 20) + "...")
+
+      this.alertsService = new AlertsService()
+      console.log("✅ AlertsService creado")
+      
+      this.alerts = []
+      this.currentFilters = {
+        startDate: "",
+        endDate: "",
+        priority: "",
+        status: "",
+        sort: "date",
+        sortOrder: "desc",
+        page: 1,
+        limit: 10,
+        showDiscarded: false,  // Nueva propiedad para mostrar/ocultar descartadas
+      }
+      this.totalPages = 1
+      this.totalAlerts = 0
+      this.currentAlert = null
+
+      console.log("✅ Propiedades inicializadas")
+
+      this.initializeEventListeners()
+      console.log("✅ Event listeners inicializados")
+      
+      this.loadAlerts()
+      console.log("✅ Carga de alertas iniciada")
+
+      // Set up periodic refresh for real-time alerts
+      this.setupPeriodicRefresh()
+      console.log("✅ Refresh periódico configurado")
+      
+    } catch (error) {
+      console.error("❌ Error en constructor de AlertsHandler:", error)
+      this.showError("Error inicializando el sistema de alertas: " + error.message)
     }
-
-    this.inventoryService = new InventoryService()
-    this.alerts = []
-    this.currentFilters = {
-      startDate: "",
-      endDate: "",
-      priority: "",
-      status: "",
-      sort: "date_desc",
-      page: 1,
-      limit: 10,
-    }
-    this.totalPages = 1
-    this.totalAlerts = 0
-    this.currentAlert = null
-
-    // Stock thresholds for alert generation
-    this.stockThresholds = {
-      urgente: 0, // Out of stock
-      alta: 5, // Very low stock
-      media: 10, // Low stock
-      baja: 20, // Warning level
-    }
-
-    this.initializeEventListeners()
-    this.loadAlerts()
-
-    // Set up periodic refresh for real-time alerts
-    this.setupPeriodicRefresh()
   }
 
   initializeEventListeners() {
@@ -55,6 +68,18 @@ class AlertsHandler {
 
     document.getElementById("markAllReadBtn")?.addEventListener("click", () => {
       this.markAllAsRead()
+    })
+
+    // Toggle para mostrar alertas descartadas
+    document.getElementById("showDiscardedToggle")?.addEventListener("change", (e) => {
+      this.currentFilters.showDiscarded = e.target.checked
+      this.renderAlerts() // Re-renderizar inmediatamente sin recargar de API
+      console.log(`🔄 Mostrar descartadas: ${e.target.checked}`)
+    })
+
+    // Generate alerts button (if user is admin)
+    document.getElementById("generateAlertsBtn")?.addEventListener("click", () => {
+      this.generateAlerts()
     })
 
     // Pagination
@@ -79,15 +104,15 @@ class AlertsHandler {
 
     // Alert actions
     document.getElementById("markAsReadBtn")?.addEventListener("click", () => {
-      this.updateAlertStatus(this.currentAlert.id, "atendido")
+      this.updateAlertStatus(this.currentAlert.id, "atendido", "Marcado como atendido desde el dashboard")
     })
 
     document.getElementById("markInProgressBtn")?.addEventListener("click", () => {
-      this.updateAlertStatus(this.currentAlert.id, "en_proceso")
+      this.updateAlertStatus(this.currentAlert.id, "en_proceso", "Marcado en proceso desde el dashboard")
     })
 
     document.getElementById("dismissAlertBtn")?.addEventListener("click", () => {
-      this.updateAlertStatus(this.currentAlert.id, "descartado")
+      this.updateAlertStatus(this.currentAlert.id, "descartado", "Descartado desde el dashboard")
     })
 
     document.getElementById("viewProductBtn")?.addEventListener("click", () => {
@@ -104,244 +129,243 @@ class AlertsHandler {
     })
   }
 
+  async generateAlerts() {
+    try {
+      console.log("🔄 Generando alertas automáticas...")
+      this.showLoadingState()
+      
+      const response = await this.alertsService.generateAlerts()
+      console.log("✅ Alertas generadas:", response.data)
+      
+      // Reload alerts to show new ones
+      await this.loadAlerts()
+      
+      this.showSuccess(`${response.data.totalGenerated} alertas generadas exitosamente`)
+      
+    } catch (error) {
+      console.error("❌ Error generando alertas:", error)
+      this.hideLoadingState()
+      this.showError("Error al generar alertas: " + error.message)
+    }
+  }
+
   async loadAlerts() {
     try {
+      console.log("🔄 Iniciando carga de alertas...")
       this.showLoadingState()
 
-      // Generate alerts from inventory data
-      await this.generateStockAlerts()
+      console.log("🔄 Cargando alertas desde la API...")
+      
+      // Preparar filtros para la API
+      const apiFilters = {
+        page: this.currentFilters.page,
+        limit: this.currentFilters.limit,
+        sortBy: this.currentFilters.sort,
+        sortOrder: this.currentFilters.sortOrder
+      }
 
-      // Apply filters and sorting
-      this.applyFiltersAndSort()
+      console.log("📋 Filtros para API:", apiFilters)
+
+      // Agregar filtros opcionales
+      if (this.currentFilters.startDate) apiFilters.startDate = this.currentFilters.startDate
+      if (this.currentFilters.endDate) apiFilters.endDate = this.currentFilters.endDate
+      if (this.currentFilters.priority) apiFilters.priority = this.currentFilters.priority
+      if (this.currentFilters.status) apiFilters.status = this.currentFilters.status
+
+      console.log("🚀 Llamando a alertsService.getAlerts con filtros:", apiFilters)
+
+      // Obtener alertas desde la API
+      const response = await this.alertsService.getAlerts(apiFilters)
+      
+      console.log("📋 Alertas obtenidas:", response)
+
+      // Extraer datos según la estructura de la API
+      this.alerts = response.data?.alerts || []
+      this.totalPages = response.data?.pagination?.totalPages || 1
+      this.totalAlerts = response.data?.pagination?.total || response.data?.pagination?.totalAlerts || 0
+      
+      console.log("📊 Alertas procesadas:", this.alerts.length)
+      console.log("📄 Páginas totales:", this.totalPages)
+      console.log("🔢 Total alertas:", this.totalAlerts)
 
       this.hideLoadingState()
       this.renderAlerts()
-      this.updatePagination()
+      this.updatePaginationControls()
       this.updateAlertsCount()
+
+      if (this.alerts.length === 0) {
+        this.showEmptyState()
+      } else {
+        this.hideEmptyState()
+      }
+
     } catch (error) {
-      console.error("Error al cargar alertas:", error)
+      console.error("❌ Error cargando alertas:", error)
+      console.error("❌ Stack trace:", error.stack)
       this.hideLoadingState()
-      this.showError("Error al cargar las alertas. Por favor, intenta de nuevo.")
+      
+      // Mostrar estado de error específico
+      this.showError("Error al cargar alertas: " + error.message)
+      
+      // También mostrar el estado vacío para que no se quede colgado
       this.showEmptyState()
     }
   }
 
-  async generateStockAlerts() {
-    try {
-      // Get all products from inventory
-      const products = await this.inventoryService.getProducts()
-      const productList = Array.isArray(products) ? products : products.products || []
-
-      // Get existing alerts from localStorage to maintain status
-      const existingAlerts = this.getStoredAlerts()
-
-      // Generate new alerts based on stock levels
-      const newAlerts = []
-
-      productList.forEach((product) => {
-        if (product.stock !== undefined && product.stock !== null) {
-          const priority = this.calculatePriority(product.stock)
-          if (priority) {
-            // Check if alert already exists
-            const existingAlert = existingAlerts.find(
-              (alert) => alert.productId === product.id && alert.type === "stock_low",
-            )
-
-            const alert = {
-              id: existingAlert?.id || this.generateAlertId(),
-              type: "stock_low",
-              priority: priority,
-              status: existingAlert?.status || "pendiente",
-              productId: product.id,
-              productName: product.name || "Producto sin nombre",
-              productCategory: product.category || "Sin categoría",
-              currentStock: product.stock,
-              message: this.generateStockMessage(product.name, product.category, product.stock),
-              createdAt: existingAlert?.createdAt || new Date().toISOString(),
-              updatedAt: new Date().toISOString(),
-            }
-
-            newAlerts.push(alert)
-          }
-        }
-      })
-
-      // Store alerts
-      this.storeAlerts(newAlerts)
-      this.alerts = newAlerts
-    } catch (error) {
-      console.error("Error generando alertas de stock:", error)
-      throw error
-    }
-  }
-
-  calculatePriority(stock) {
-    if (stock <= this.stockThresholds.urgente) return "urgente"
-    if (stock <= this.stockThresholds.alta) return "alta"
-    if (stock <= this.stockThresholds.media) return "media"
-    if (stock <= this.stockThresholds.baja) return "baja"
-    return null // No alert needed
-  }
-
-  generateStockMessage(productName, category, stock) {
-    if (stock === 0) {
-      return `Producto agotado: ${productName} en la sección de ${category}`
-    } else if (stock <= 5) {
-      return `Stock crítico: Solo quedan ${stock} unidades de ${productName} en ${category}`
-    } else if (stock <= 10) {
-      return `Stock bajo: ${stock} unidades restantes de ${productName} en ${category}`
-    } else {
-      return `Advertencia de stock: ${stock} unidades de ${productName} en ${category}`
-    }
-  }
-
-  generateAlertId() {
-    return "alert_" + Date.now() + "_" + Math.random().toString(36).substr(2, 9)
-  }
-
-  applyFiltersAndSort() {
-    let filteredAlerts = [...this.alerts]
-
-    // Apply filters
-    if (this.currentFilters.startDate) {
-      filteredAlerts = filteredAlerts.filter(
-        (alert) => new Date(alert.createdAt) >= new Date(this.currentFilters.startDate),
-      )
-    }
-
-    if (this.currentFilters.endDate) {
-      filteredAlerts = filteredAlerts.filter(
-        (alert) => new Date(alert.createdAt) <= new Date(this.currentFilters.endDate),
-      )
-    }
-
-    if (this.currentFilters.priority) {
-      filteredAlerts = filteredAlerts.filter((alert) => alert.priority === this.currentFilters.priority)
-    }
-
-    if (this.currentFilters.status) {
-      filteredAlerts = filteredAlerts.filter((alert) => alert.status === this.currentFilters.status)
-    }
-
-    // Apply sorting
-    filteredAlerts.sort((a, b) => {
-      switch (this.currentFilters.sort) {
-        case "date_desc":
-          return new Date(b.createdAt) - new Date(a.createdAt)
-        case "date_asc":
-          return new Date(a.createdAt) - new Date(b.createdAt)
-        case "priority_desc":
-          return this.getPriorityWeight(b.priority) - this.getPriorityWeight(a.priority)
-        case "priority_asc":
-          return this.getPriorityWeight(a.priority) - this.getPriorityWeight(b.priority)
-        case "product_name":
-          return a.productName.localeCompare(b.productName)
-        default:
-          return 0
-      }
-    })
-
-    // Apply pagination
-    this.totalAlerts = filteredAlerts.length
-    this.totalPages = Math.ceil(this.totalAlerts / this.currentFilters.limit)
-
-    const startIndex = (this.currentFilters.page - 1) * this.currentFilters.limit
-    const endIndex = startIndex + this.currentFilters.limit
-
-    this.filteredAlerts = filteredAlerts.slice(startIndex, endIndex)
-  }
-
-  getPriorityWeight(priority) {
-    const weights = { urgente: 4, alta: 3, media: 2, baja: 1 }
-    return weights[priority] || 0
-  }
-
   renderAlerts() {
-    const container = document.getElementById("alertsContainer")
-    if (!container) return
+    const alertsList = document.getElementById("alertsList")
+    if (!alertsList) return
 
-    // Clear existing alerts (keep loading and empty states)
-    const existingAlerts = container.querySelectorAll(".alert-item")
-    existingAlerts.forEach((alert) => alert.remove())
+    alertsList.innerHTML = ""
 
-    if (this.filteredAlerts.length === 0) {
+    // Filtrar alertas según la configuración
+    let visibleAlerts = this.alerts
+    
+    // Si showDiscarded es false, ocultar las alertas descartadas
+    if (!this.currentFilters.showDiscarded) {
+      visibleAlerts = visibleAlerts.filter(alert => alert.status !== 'descartado')
+    }
+    
+    if (visibleAlerts.length === 0) {
       this.showEmptyState()
       return
     }
 
-    this.hideEmptyState()
-
-    // Render each alert
-    this.filteredAlerts.forEach((alert) => {
-      const alertElement = this.createAlertElement(alert)
-      container.appendChild(alertElement)
+    visibleAlerts.forEach((alert) => {
+      const alertCard = this.createAlertCard(alert)
+      alertsList.appendChild(alertCard)
     })
   }
 
-  createAlertElement(alert) {
-    const alertDiv = document.createElement("div")
-    alertDiv.className = `alert-item rounded-lg p-4 transition-all hover:shadow-md ${this.getAlertBackgroundClass(alert.priority)}`
+  createAlertCard(alert) {
+    console.log("🏗️ Creando tarjeta para alerta:", alert)
+    
+    const card = document.createElement("div")
+    card.className = `alert-card bg-white rounded-lg shadow-sm border-l-4 p-4 mb-4 cursor-pointer hover:shadow-md transition-shadow ${this.getAlertBorderClass(alert.priority)}`
+    card.dataset.alertId = alert.id
 
-    alertDiv.innerHTML = `
-      <div class="flex items-center justify-between">
-        <div class="flex items-center space-x-3">
-          <div class="flex-shrink-0">
-            <i class="fas fa-exclamation-circle text-gray-600 text-lg"></i>
+    // Formatear fecha
+    const alertDate = new Date(alert.createdAt || alert.created_at).toLocaleDateString('es-ES', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    })
+
+    card.innerHTML = `
+      <div class="flex justify-between items-start">
+        <div class="flex-1">
+          <div class="flex items-center space-x-2 mb-2">
+            <span class="priority-badge px-2 py-1 text-xs font-medium rounded-full ${this.getPriorityClass(alert.priority)}">
+              ${this.getPriorityText(alert.priority)}
+            </span>
+            <span class="status-badge px-2 py-1 text-xs font-medium rounded-full ${this.getStatusClass(alert.status)}">
+              ${this.getStatusText(alert.status)}
+            </span>
           </div>
-          
-          <div class="flex-1">
-            <h3 class="font-semibold text-gray-900 mb-1">Alerta de stock bajo</h3>
-            <p class="text-gray-700 text-sm">${this.getSimpleMessage(alert)}</p>
+          <h4 class="font-semibold text-gray-900 mb-1">${alert.message || 'Sin título'}</h4>
+          <p class="text-gray-600 text-sm mb-2">Tipo: ${alert.type || 'N/A'}</p>
+          <div class="text-xs text-gray-500">
+            <span>${alertDate}</span>
+            ${alert.productName ? ` • Producto: ${alert.productName}` : ""}
+            ${alert.productCategory ? ` • ${alert.productCategory}` : ""}
+            ${alert.currentStock !== undefined ? ` • Stock: ${alert.currentStock}` : ""}
           </div>
         </div>
-        
-        <div class="flex items-center space-x-4">
-          <span class="text-sm text-gray-500">${this.formatSimpleDate(alert.createdAt)}</span>
-          <button 
-            onclick="alertsHandler.showActionModal('${alert.id}')"
-            class="p-1 text-gray-400 hover:text-gray-600 transition-colors"
-            title="Acciones"
-          >
-            <i class="fas fa-ellipsis-h"></i>
+        <div class="flex items-center space-x-2 ml-4">
+          <button class="alert-action-btn text-blue-600 hover:text-blue-800 text-sm font-medium" 
+                  onclick="alertsHandler.showActionModal('${alert.id}')">
+            Acciones
           </button>
         </div>
       </div>
     `
 
-    return alertDiv
+    return card
   }
 
-  getAlertBackgroundClass(priority) {
+  getAlertBorderClass(priority) {
     const classes = {
-      urgente: "bg-red-100 border border-red-200",
-      alta: "bg-red-100 border border-red-200",
-      media: "bg-yellow-100 border border-yellow-200",
-      baja: "bg-yellow-100 border border-yellow-200",
+      critica: "border-red-600",
+      urgente: "border-red-500",
+      alta: "border-orange-500",
+      media: "border-yellow-500",
+      baja: "border-green-500"
     }
-    return classes[priority] || classes.media
+    return classes[priority] || "border-gray-300"
   }
 
-  getSimpleMessage(alert) {
-    return `se detectó un decremento en la sección de ${alert.productCategory || "productos"}`
+  getPriorityClass(priority) {
+    const classes = {
+      critica: "bg-red-200 text-red-900",
+      urgente: "bg-red-100 text-red-800",
+      alta: "bg-orange-100 text-orange-800",
+      media: "bg-yellow-100 text-yellow-800",
+      baja: "bg-green-100 text-green-800"
+    }
+    return classes[priority] || "bg-gray-100 text-gray-800"
   }
 
-  formatSimpleDate(dateString) {
-    const date = new Date(dateString)
-    return date.toLocaleDateString("es-ES", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-    })
+  getPriorityText(priority) {
+    const texts = {
+      critica: "Crítica",
+      urgente: "Urgente",
+      alta: "Alta",
+      media: "Media",  
+      baja: "Baja"
+    }
+    return texts[priority] || priority || 'N/A'
+  }
+
+  getStatusClass(status) {
+    const classes = {
+      pendiente: "bg-yellow-100 text-yellow-800",
+      en_proceso: "bg-blue-100 text-blue-800",
+      atendido: "bg-green-100 text-green-800",
+      descartado: "bg-gray-100 text-gray-800"
+    }
+    return classes[status] || "bg-gray-100 text-gray-800"
+  }
+
+  getStatusText(status) {
+    const texts = {
+      pendiente: "Pendiente",
+      en_proceso: "En Proceso",
+      atendido: "Atendido", 
+      descartado: "Descartado"
+    }
+    return texts[status] || status
   }
 
   showActionModal(alertId) {
-    this.currentAlert = this.alerts.find((alert) => alert.id === alertId)
-    if (!this.currentAlert) return
+    const alert = this.alerts.find(a => a.id === alertId)
+    if (!alert) return
 
+    this.currentAlert = alert
     const modal = document.getElementById("alertActionModal")
-    if (modal) {
-      modal.classList.remove("hidden")
-    }
+    const alertTitle = document.getElementById("alertActionTitle")
+    const alertDetails = document.getElementById("alertActionDetails")
+
+    if (!modal || !alertTitle || !alertDetails) return
+
+    alertTitle.textContent = alert.message || 'Alerta sin título'
+    alertDetails.innerHTML = `
+      <p class="text-gray-600 mb-2">${alert.type || 'Sin descripción'}</p>
+      <div class="text-sm text-gray-500 space-y-1">
+        <p><strong>ID:</strong> ${alert.id}</p>
+        <p><strong>Tipo:</strong> ${alert.type || 'N/A'}</p>
+        <p><strong>Prioridad:</strong> ${this.getPriorityText(alert.priority)}</p>
+        <p><strong>Estado:</strong> ${this.getStatusText(alert.status)}</p>
+        <p><strong>Fecha:</strong> ${new Date(alert.createdAt || alert.created_at).toLocaleString('es-ES')}</p>
+        ${alert.productName ? `<p><strong>Producto:</strong> ${alert.productName}</p>` : ""}
+        ${alert.productCategory ? `<p><strong>Categoría:</strong> ${alert.productCategory}</p>` : ""}
+        ${alert.currentStock !== undefined ? `<p><strong>Stock actual:</strong> ${alert.currentStock}</p>` : ""}
+        ${alert.minThreshold !== undefined ? `<p><strong>Umbral mínimo:</strong> ${alert.minThreshold}</p>` : ""}
+      </div>
+    `
+
+    modal.classList.remove("hidden")
   }
 
   hideActionModal() {
@@ -352,180 +376,133 @@ class AlertsHandler {
     this.currentAlert = null
   }
 
-  async updateAlertStatus(alertId, newStatus) {
+  async updateAlertStatus(alertId, newStatus, reason = "") {
     try {
-      // Update alert in memory
-      const alertIndex = this.alerts.findIndex((alert) => alert.id === alertId)
+      console.log(`🔄 Actualizando estado de alerta ${alertId} a ${newStatus}`)
+      
+      // Llamar al servicio con los parámetros correctos
+      const notes = reason || `Estado cambiado a ${newStatus}`
+      const response = await this.alertsService.updateAlertStatus(alertId, newStatus, notes)
+      
+      console.log("✅ Estado actualizado:", response)
+      
+      // Update local alert
+      const alertIndex = this.alerts.findIndex(a => a.id === alertId)
       if (alertIndex !== -1) {
         this.alerts[alertIndex].status = newStatus
-        this.alerts[alertIndex].updatedAt = new Date().toISOString()
-
-        // Store updated alerts
-        this.storeAlerts(this.alerts)
-
-        // Refresh display
-        this.applyFiltersAndSort()
-        this.renderAlerts()
-        this.updateAlertsCount()
-
-        this.hideActionModal()
-        this.showSuccess(`Alerta marcada como ${this.getStatusLabel(newStatus).toLowerCase()}`)
+        this.alerts[alertIndex].updated_at = new Date().toISOString()
+        if (notes) {
+          this.alerts[alertIndex].notes = notes
+        }
       }
+      
+      // Refresh display
+      this.renderAlerts()
+      this.hideActionModal()
+      
+      // Mensaje especial para alertas descartadas
+      if (newStatus === 'descartado') {
+        this.showSuccess('Alerta descartada y ocultada de la vista')
+      } else {
+        this.showSuccess(`Alerta ${this.getStatusText(newStatus).toLowerCase()}`)
+      }
+      
     } catch (error) {
-      console.error("Error actualizando estado de alerta:", error)
-      this.showError("Error al actualizar la alerta")
+      console.error("❌ Error actualizando estado:", error)
+      this.showError("Error al actualizar el estado: " + error.message)
     }
   }
 
   async markAllAsRead() {
     try {
-      // Update all pending alerts to "atendido"
-      let updatedCount = 0
-      this.alerts.forEach((alert) => {
-        if (alert.status === "pendiente") {
-          alert.status = "atendido"
-          alert.updatedAt = new Date().toISOString()
-          updatedCount++
-        }
-      })
-
-      if (updatedCount > 0) {
-        this.storeAlerts(this.alerts)
-        this.applyFiltersAndSort()
-        this.renderAlerts()
-        this.updateAlertsCount()
-        this.showSuccess(`${updatedCount} alertas marcadas como atendidas`)
-      } else {
-        this.showInfo("No hay alertas pendientes para marcar")
-      }
+      console.log("🔄 Marcando todas las alertas como atendidas...")
+      
+      const response = await this.alertsService.markAllAsRead()
+      console.log("✅ Todas las alertas marcadas como atendidas:", response.data)
+      
+      // Reload alerts to get updated statuses
+      await this.loadAlerts()
+      
+      this.showSuccess(`${response.data.updated} alertas marcadas como atendidas`)
+      
     } catch (error) {
-      console.error("Error marcando todas las alertas:", error)
-      this.showError("Error al marcar las alertas")
+      console.error("❌ Error marcando alertas:", error)
+      this.showError("Error al marcar alertas: " + error.message)
     }
   }
 
   applyFilters() {
     // Get filter values
-    this.currentFilters.startDate = document.getElementById("startDate")?.value || ""
-    this.currentFilters.endDate = document.getElementById("endDate")?.value || ""
+    this.currentFilters.startDate = document.getElementById("startDateFilter")?.value || ""
+    this.currentFilters.endDate = document.getElementById("endDateFilter")?.value || ""
     this.currentFilters.priority = document.getElementById("priorityFilter")?.value || ""
     this.currentFilters.status = document.getElementById("statusFilter")?.value || ""
-    this.currentFilters.sort = document.getElementById("sortFilter")?.value || "date_desc"
-    this.currentFilters.page = 1 // Reset to first page
-
-    this.applyFiltersAndSort()
-    this.renderAlerts()
-    this.updatePagination()
-    this.updateAlertsCount()
+    this.currentFilters.sort = document.getElementById("sortFilter")?.value || "date"
+    this.currentFilters.sortOrder = document.getElementById("sortOrderFilter")?.value || "desc"
+    
+    // Reset to first page
+    this.currentFilters.page = 1
+    
+    console.log("🔍 Aplicando filtros:", this.currentFilters)
+    this.loadAlerts()
   }
 
   clearFilters() {
-    // Reset filter inputs
-    document.getElementById("startDate").value = ""
-    document.getElementById("endDate").value = ""
-    document.getElementById("priorityFilter").value = ""
-    document.getElementById("statusFilter").value = ""
-    document.getElementById("sortFilter").value = "date_desc"
+    // Reset filter form
+    const startDateFilter = document.getElementById("startDateFilter")
+    const endDateFilter = document.getElementById("endDateFilter")
+    const priorityFilter = document.getElementById("priorityFilter")
+    const statusFilter = document.getElementById("statusFilter")
+    const sortFilter = document.getElementById("sortFilter")
+    const sortOrderFilter = document.getElementById("sortOrderFilter")
 
-    // Reset filter state
+    if (startDateFilter) startDateFilter.value = ""
+    if (endDateFilter) endDateFilter.value = ""
+    if (priorityFilter) priorityFilter.value = ""
+    if (statusFilter) statusFilter.value = ""
+    if (sortFilter) sortFilter.value = "date"
+    if (sortOrderFilter) sortOrderFilter.value = "desc"
+    
+    // Reset internal filters
     this.currentFilters = {
       startDate: "",
       endDate: "",
       priority: "",
       status: "",
-      sort: "date_desc",
+      sort: "date",
+      sortOrder: "desc",
       page: 1,
       limit: 10,
     }
-
-    this.applyFiltersAndSort()
-    this.renderAlerts()
-    this.updatePagination()
-    this.updateAlertsCount()
+    
+    console.log("🧹 Filtros limpiados")
+    this.loadAlerts()
   }
 
-  updatePagination() {
-    const paginationNumbers = document.getElementById("paginationNumbers")
+  updatePaginationControls() {
     const prevBtn = document.getElementById("prevPageBtn")
     const nextBtn = document.getElementById("nextPageBtn")
+    const pageInfo = document.getElementById("pageInfo")
 
-    if (!paginationNumbers || !prevBtn || !nextBtn) return
-
-    // Update button states
-    prevBtn.disabled = this.currentFilters.page <= 1
-    nextBtn.disabled = this.currentFilters.page >= this.totalPages
-
-    // Generate page numbers
-    const pageNumbers = this.generatePageNumbers()
-    paginationNumbers.innerHTML = pageNumbers
-      .map((page) => {
-        if (page === "...") {
-          return `<span class="px-3 py-2 text-gray-500">...</span>`
-        }
-
-        const isActive = page === this.currentFilters.page
-        return `
-          <button 
-            onclick="alertsHandler.goToPage(${page})"
-            class="w-10 h-10 flex items-center justify-center rounded-lg text-sm font-medium transition-colors
-                   ${isActive ? "bg-[#8B7EC7] text-white" : "text-gray-600 hover:bg-gray-100"}"
-          >
-            ${page}
-          </button>
-        `
-      })
-      .join("")
-  }
-
-  generatePageNumbers() {
-    const current = this.currentFilters.page
-    const total = this.totalPages
-    const pages = []
-
-    if (total <= 7) {
-      for (let i = 1; i <= total; i++) {
-        pages.push(i)
-      }
-    } else {
-      pages.push(1)
-
-      if (current <= 4) {
-        for (let i = 2; i <= 5; i++) {
-          pages.push(i)
-        }
-        pages.push("...")
-        pages.push(total)
-      } else if (current >= total - 3) {
-        pages.push("...")
-        for (let i = total - 4; i <= total; i++) {
-          pages.push(i)
-        }
-      } else {
-        pages.push("...")
-        for (let i = current - 1; i <= current + 1; i++) {
-          pages.push(i)
-        }
-        pages.push("...")
-        pages.push(total)
-      }
+    if (prevBtn) {
+      prevBtn.disabled = this.currentFilters.page <= 1
+      prevBtn.classList.toggle("opacity-50", this.currentFilters.page <= 1)
     }
 
-    return pages
-  }
+    if (nextBtn) {
+      nextBtn.disabled = this.currentFilters.page >= this.totalPages
+      nextBtn.classList.toggle("opacity-50", this.currentFilters.page >= this.totalPages)
+    }
 
-  goToPage(page) {
-    if (page >= 1 && page <= this.totalPages && page !== this.currentFilters.page) {
-      this.currentFilters.page = page
-      this.applyFiltersAndSort()
-      this.renderAlerts()
-      this.updatePagination()
+    if (pageInfo) {
+      pageInfo.textContent = `Página ${this.currentFilters.page} de ${this.totalPages}`
     }
   }
 
   updateAlertsCount() {
-    const countElement = document.getElementById("alertsCount")
-    if (countElement) {
-      countElement.textContent = this.totalAlerts
+    const alertsCount = document.getElementById("alertsCount")
+    if (alertsCount) {
+      alertsCount.textContent = `${this.totalAlerts} alerta${this.totalAlerts !== 1 ? 's' : ''}`
     }
   }
 
@@ -537,25 +514,6 @@ class AlertsHandler {
       },
       5 * 60 * 1000,
     )
-  }
-
-  // Storage methods
-  getStoredAlerts() {
-    try {
-      const stored = localStorage.getItem("cemac_alerts")
-      return stored ? JSON.parse(stored) : []
-    } catch (error) {
-      console.error("Error reading stored alerts:", error)
-      return []
-    }
-  }
-
-  storeAlerts(alerts) {
-    try {
-      localStorage.setItem("cemac_alerts", JSON.stringify(alerts))
-    } catch (error) {
-      console.error("Error storing alerts:", error)
-    }
   }
 
   // UI State methods
