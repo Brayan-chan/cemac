@@ -7,14 +7,12 @@ import { UserMenuComponent } from '../components/userMenuComponent.js';
 
 export class UserMenuHandler {
     constructor(containerSelector = '#userMenuContainer') {
-        console.log('[v0] Inicializando UserMenuHandler...');
         
         this.component = new UserMenuComponent();
         this.elements = this.component.mount(containerSelector);
         
         if (this.elements) {
             this.initializeEventListeners();
-            console.log('[v0] UserMenuHandler inicializado correctamente');
         }
     }
 
@@ -27,7 +25,6 @@ export class UserMenuHandler {
         // Toggle dropdown al hacer clic en el botón
         if (userMenuBtn) {
             userMenuBtn.addEventListener('click', (e) => {
-                console.log('[v0] Click en userMenuBtn');
                 e.stopPropagation();
                 userDropdown.classList.toggle('hidden');
             });
@@ -37,7 +34,6 @@ export class UserMenuHandler {
         document.addEventListener('click', (e) => {
             if (userDropdown && !userDropdown.contains(e.target) && !userMenuBtn.contains(e.target)) {
                 userDropdown.classList.add('hidden');
-                console.log('[v0] Dropdown cerrado por click externo');
             }
         });
 
@@ -45,7 +41,6 @@ export class UserMenuHandler {
         if (viewProfileLink) {
             viewProfileLink.addEventListener('click', (e) => {
                 e.preventDefault();
-                console.log('[v0] Acción: Ver perfil');
                 // TODO: Implementar página de perfil
                 userDropdown.classList.add('hidden');
             });
@@ -56,7 +51,6 @@ export class UserMenuHandler {
             manageUsersLink.addEventListener('click', (e) => {
                 e.preventDefault();
                 const user = this.component.getCurrentUser();
-                console.log('[v0] Acción: Gestionar usuarios');
                 
                 // Solo administradores pueden gestionar usuarios
                 if (this.component.isAdmin()) {
@@ -72,7 +66,6 @@ export class UserMenuHandler {
         if (logoutLink) {
             logoutLink.addEventListener('click', (e) => {
                 e.preventDefault();
-                console.log('[v0] Acción: Cerrar sesión');
                 this.logout();
             });
         }
@@ -82,7 +75,6 @@ export class UserMenuHandler {
      * Cierra la sesión del usuario
      */
     logout() {
-        console.log('[v0] Cerrando sesión...');
         localStorage.removeItem('authToken');
         localStorage.removeItem('user');
         window.location.href = '/index.html';
@@ -111,7 +103,7 @@ export class UserMenuHandler {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('[v0] Inicializando UserMenuHandler desde el módulo...');
+    console.log('Inicializando UserMenuHandler desde el módulo...');
     
     // Verificar que no se haya inicializado ya
     if (!window.userMenuInitialized) {
