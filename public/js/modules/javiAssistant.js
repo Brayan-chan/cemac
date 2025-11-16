@@ -84,7 +84,7 @@ class JAVIAssistant {
     this.elements.removeApiKeyBtn?.addEventListener("click", () => this.removeApiKey())
 
     // Quick actions
-    this.elements.refreshRecommendationsBtn?.addEventListener("click", () => this.generateRecommendations())
+    this.elements.refreshRecommendationsBtn?.addEventListener("click", () => this.refreshRecommendations())
     this.elements.analyzeInventoryBtn?.addEventListener("click", () => this.analyzeInventory())
     this.elements.priceAnalysisBtn?.addEventListener("click", () => this.analyzePrices())
     this.elements.restockSuggestionsBtn?.addEventListener("click", () => this.generateRestockSuggestions())
@@ -1078,6 +1078,51 @@ Modo de consulta: Puedo ayudarte con análisis generales y recomendaciones basad
     } catch (error) {
       console.error("Error generating sample recommendations:", error)
       this.addMessage("system", "❌ Error al generar recomendaciones de ejemplo")
+    }
+  }
+
+  async refreshRecommendations() {
+    console.log('♾️ Actualizando recomendaciones - Limpiando datos anteriores...')
+    
+    try {
+      // Limpiar todas las recomendaciones del localStorage
+      localStorage.removeItem('javi_recommendations')
+      localStorage.removeItem('javi_home_recommendations')
+      
+      // Mostrar estado de carga en la UI
+      if (this.elements.recommendationsGrid) {
+        this.elements.recommendationsGrid.innerHTML = `
+          <div class="col-span-full text-center py-8">
+            <div class="flex flex-col items-center">
+              <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-[#8B7EC7] mb-4"></div>
+              <p class="text-gray-500 mb-2">Generando nuevas recomendaciones...</p>
+              <p class="text-xs text-gray-400">Analizando datos actualizados</p>
+            </div>
+          </div>
+        `
+      }
+      
+      // Actualizar estado
+      this.updateStatus("Generando recomendaciones...", "thinking")
+      
+      // Generar nuevas recomendaciones
+      await this.generateRecommendations()
+      
+      // Notificar al home para que actualice también
+      window.dispatchEvent(new CustomEvent('recommendationsUpdated'))
+      
+      this.addMessage(
+        "system",
+        "✨ ¡Recomendaciones actualizadas! Se han generado nuevos insights basados en tus datos más recientes."
+      )
+      
+    } catch (error) {
+      console.error('❌ Error actualizando recomendaciones:', error)
+      this.updateStatus("Error", "error")
+      this.addMessage(
+        "system",
+        "❌ Error al actualizar recomendaciones. Inténtalo de nuevo."
+      )
     }
   }
 

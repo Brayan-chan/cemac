@@ -284,48 +284,23 @@
 
                 <!-- Contenedor dinámico para recomendaciones de JAVI -->
                 <div id="javiRecommendationsContainer" class="space-y-4">
-                    <!-- Loading state -->
-                    <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-200">
-                        <div class="flex items-center">
-                            <div
-                                class="w-12 h-12 bg-gray-200 rounded-xl mr-4 flex items-center justify-center animate-pulse">
-                                <i class="fas fa-robot text-gray-400"></i>
+                    <!-- Loading state inicial -->
+                    <div id="loadingRecommendations" class="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
+                        <div class="flex items-center justify-center">
+                            <div class="w-16 h-16 bg-gradient-to-br from-[#8B7EC7] to-[#7A6DB8] rounded-full mr-4 flex items-center justify-center animate-pulse">
+                                <i class="fas fa-robot text-white text-xl"></i>
                             </div>
                             <div class="flex-1">
-                                <div class="h-4 bg-gray-200 rounded animate-pulse mb-2"></div>
-                                <div class="h-3 bg-gray-100 rounded animate-pulse mb-1"></div>
+                                <div class="h-5 bg-gray-200 rounded animate-pulse mb-3"></div>
+                                <div class="h-4 bg-gray-100 rounded animate-pulse mb-2"></div>
                                 <div class="h-3 bg-gray-100 rounded animate-pulse w-3/4"></div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Default message cuando no hay recomendaciones -->
-                    <div id="noRecommendationsMessage"
-                        class="bg-white rounded-2xl p-6 shadow-sm border border-gray-200 text-center hidden">
-                        <div
-                            class="w-16 h-16 bg-[#8B7EC7] bg-opacity-10 rounded-full mx-auto mb-4 flex items-center justify-center">
-                            <i class="fas fa-lightbulb text-[#8B7EC7] text-2xl"></i>
-                        </div>
-                        <h4 class="font-medium text-gray-900 mb-2">¡Genera recomendaciones inteligentes!</h4>
-                        <p class="text-sm text-gray-600 mb-4">JAVI puede analizar tu inventario y ventas para ofrecerte
-                            insights valiosos.</p>
-                        <a href="sugerencias.html"
-                            class="inline-flex items-center px-4 py-2 bg-[#8B7EC7] text-white text-sm rounded-lg hover:bg-[#7A6DB8] transition-colors">
-                            <i class="fas fa-magic mr-2"></i>
-                            Ir a Sugerencias
-                        </a>
-                    </div>
-                    <div class="flex items-center space-x-2 ml-4">
-                        <div class="flex text-yellow-400">
-                            <i class="fas fa-star text-xs"></i>
-                            <i class="fas fa-star text-xs"></i>
-                            <i class="fas fa-star text-xs"></i>
-                            <i class="fas fa-star text-xs"></i>
-                            <i class="fas fa-star text-xs"></i>
-                        </div>
-                        <button class="text-gray-400 hover:text-red-500">
-                            <i class="fas fa-heart"></i>
-                        </button>
+                    <!-- Mensaje dinámico cuando no hay recomendaciones -->
+                    <div id="noRecommendationsMessage" class="hidden">
+                        <!-- El contenido se generará dinámicamente por JavaScript -->
                     </div>
                 </div>
             </div>
