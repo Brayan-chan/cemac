@@ -7,6 +7,8 @@
     <link rel="stylesheet" href="/css/customsidebar.css">
     <link rel="stylesheet" href="/css/inicio.css">
     <link rel="stylesheet" href="/css/inventario.css">
+    <link rel="stylesheet" href="/css/categories.css">
+    <link rel="stylesheet" href="/css/search.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link rel="icon" type="image/png" sizes="32x32" href="https://res.cloudinary.com/dmyejrbs7/image/upload/v1757894655/CEMAC-LOGO_nrow82.png" />
     <script src="https://cdn.tailwindcss.com"></script>
@@ -24,12 +26,13 @@
                 
                 <div class="flex-1 flex justify-center">
                     <div class="relative w-full max-w-md mx-4">
-                        <input id="headerSearch" type="text" placeholder="Buscar producto..." class="w-full bg-gray-100 border-0 rounded-full px-4 py-2 pl-10 text-sm focus:outline-none focus:ring-2 focus:ring-[#8B7EC7]">
-                        <button class="absolute left-3 top-1/2 transform -translate-y-1/2">
-                            <i class="fas fa-search text-gray-400"></i>
-                        </button>
-                        <button class="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 bg-gray-200 rounded-full flex items-center justify-center">
-                            <i class="fas fa-times text-xs text-gray-500"></i>
+                        <input id="headerSearch" type="text" placeholder="Buscar producto..." class="w-full bg-gray-100 border-0 rounded-full px-4 py-2 pl-10 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-[#8B7EC7]">
+                        <div class="absolute left-3 top-1/2 transform -translate-y-1/2">
+                            <i id="searchIcon" class="fas fa-search text-gray-400"></i>
+                            <i id="searchLoading" class="fas fa-spinner fa-spin text-gray-400 hidden"></i>
+                        </div>
+                        <button id="clearSearch" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 hidden">
+                            <i class="fas fa-times"></i>
                         </button>
                     </div>
                 </div>
@@ -55,10 +58,16 @@
             <div class="flex-1 overflow-auto p-6">
                 <div class="flex items-center justify-between mb-6">
                     <h1 class="text-3xl font-bold text-gray-900">Inventario</h1>
-                    <button id="addProductBtn" class="px-6 py-2 bg-[#8B7EC7] text-white rounded-lg hover:bg-[#7A6DB4] transition-colors flex items-center gap-2">
-                        <i class="fas fa-plus"></i>
-                        <span>Agregar Producto</span>
-                    </button>
+                    <div class="flex items-center gap-3">
+                        <button id="manageCategoriesBtn" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors flex items-center gap-2">
+                            <i class="fas fa-tags"></i>
+                            <span>Categorías</span>
+                        </button>
+                        <button id="addProductBtn" class="px-6 py-2 bg-[#8B7EC7] text-white rounded-lg hover:bg-[#7A6DB4] transition-colors flex items-center gap-2">
+                            <i class="fas fa-plus"></i>
+                            <span>Agregar Producto</span>
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Filtros -->
@@ -120,6 +129,23 @@
                             </tbody>
                         </table>
                     </div>
+                    
+                    <!-- Loading State -->
+                    <div id="loadingState" class="hidden p-8 text-center">
+                        <div class="inline-flex items-center space-x-2">
+                            <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-[#8B7EC7]"></div>
+                            <span class="text-gray-600">Cargando productos...</span>
+                        </div>
+                    </div>
+
+                    <!-- Empty State -->
+                    <div id="emptyState" class="hidden p-8 text-center">
+                        <div class="text-gray-500">
+                            <i class="fas fa-box-open text-4xl mb-4"></i>
+                            <p class="text-lg font-medium">No hay productos</p>
+                            <p class="text-sm">Agrega tu primer producto para comenzar</p>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -147,43 +173,213 @@
     </div>
 
     <!-- Modal para agregar producto -->
-    <div id="createProductModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
+    <div id="productModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-lg max-w-4xl w-full max-h-screen overflow-y-auto">
+            <div class="px-6 py-4 border-b border-gray-200 bg-[#8B7EC7] text-white rounded-t-lg">
+                <div class="flex justify-between items-center">
+                    <h2 id="modalTitle" class="text-lg font-semibold">Añadir producto</h2>
+                    <button id="closeModal" class="text-white hover:text-gray-200">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+            </div>
+
+            <form id="productForm" class="p-6">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="space-y-4">
+                        <div>
+                            <label for="nombre" class="block text-sm font-medium text-gray-700 mb-2">
+                                Nombre del Producto
+                            </label>
+                            <input type="text" id="nombre" name="nombre" required
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8B7EC7] focus:border-transparent"
+                                placeholder="Libretas de cuadros chicos">
+                        </div>
+
+                        <div>
+                            <label for="descripcion" class="block text-sm font-medium text-gray-700 mb-2">
+                                Descripción
+                            </label>
+                            <textarea id="descripcion" name="descripcion" rows="4"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8B7EC7] focus:border-transparent"
+                                placeholder="Descripción detallada del producto..."></textarea>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Precio y Disponibilidad
+                            </label>
+                            <div class="grid grid-cols-3 gap-4">
+                                <div>
+                                    <label for="precio" class="block text-xs text-gray-500 mb-1">Precio</label>
+                                    <div class="relative">
+                                        <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">$</span>
+                                        <input type="number" id="precio" name="precio" step="0.01" min="0" required
+                                            class="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8B7EC7]"
+                                            placeholder="50.00">
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label for="precioPromocional" class="block text-xs text-gray-500 mb-1">Precio Promocional</label>
+                                    <div class="relative">
+                                        <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">$</span>
+                                        <input type="number" id="precioPromocional" name="precioPromocional" step="0.01" min="0"
+                                            class="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8B7EC7]"
+                                            placeholder="45.00">
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label for="stock" class="block text-xs text-gray-500 mb-1">Disponibilidad</label>
+                                    <div class="relative">
+                                        <input type="number" id="stock" name="stock" min="0" disabled
+                                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8B7EC7] disabled:bg-gray-100"
+                                            placeholder="∞">
+                                        <div class="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center">
+                                            <input type="checkbox" id="disponible" name="disponible" checked
+                                                class="text-[#8B7EC7] focus:ring-[#8B7EC7]">
+                                            <label for="disponible" class="ml-1 text-xs text-gray-500">Ilimitado</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Códigos del producto
+                            </label>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label for="barcode" class="block text-xs text-gray-500 mb-1">Código de barras</label>
+                                    <input type="text" id="barcode" name="barcode"
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8B7EC7]"
+                                        placeholder="7501234567890">
+                                </div>
+                                <div>
+                                    <label for="supplierCode" class="block text-xs text-gray-500 mb-1">Código proveedor</label>
+                                    <input type="text" id="supplierCode" name="supplierCode"
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8B7EC7]"
+                                        placeholder="PROV-2024-001">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Imagen del producto
+                            </label>
+                            <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-gray-400 transition-colors">
+                                <div class="space-y-2">
+                                    <input type="file" id="imageInput" name="image" accept="image/*" class="hidden" />
+                                    <div id="previewContainer" class="hidden mb-4">
+                                        <img id="imagePreview" src="" alt="Vista previa" class="mx-auto max-h-48 object-contain mb-2" />
+                                    </div>
+                                    <i class="fas fa-image text-gray-400 text-3xl"></i>
+                                    <p class="text-sm text-gray-500" id="uploadText">Cargar una imagen</p>
+                                    <button type="button" id="uploadButton"
+                                        class="px-4 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50">
+                                        <i class="fas fa-upload mr-2"></i>
+                                        Seleccionar imagen
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <h3 class="text-sm font-medium text-gray-700 mb-2">
+                                Selección de categorías
+                            </h3>
+                            <p class="text-xs text-gray-500 mb-3">
+                                Selecciona una categoría para organizar tu producto
+                            </p>
+                            <div class="category-selector">
+                                <select id="categoria" name="categoria"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8B7EC7] mb-2">
+                                    <option value="">Cargando categorías...</option>
+                                </select>
+                                <button type="button" id="addNewCategoryBtn" class="w-full px-3 py-2 border border-dashed border-gray-300 text-gray-600 rounded-lg hover:border-[#8B7EC7] hover:text-[#8B7EC7] transition-colors flex items-center justify-center gap-2">
+                                    <i class="fas fa-plus text-sm"></i>
+                                    <span>Agregar nueva categoría</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-end space-x-4 pt-6 border-t border-gray-200 mt-6">
+                    <button type="button" id="cancelBtn"
+                        class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="px-4 py-2 bg-[#8B7EC7] text-white rounded-lg hover:bg-[#7A6DB4]">
+                        Guardar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal para gestionar categorías -->
+    <div id="manageCategoriesModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 category-modal">
+        <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-hidden category-modal-content">
+            <div class="p-6 border-b border-gray-200">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-lg font-semibold text-gray-900">Gestión de Categorías</h3>
+                    <button id="closeCategoriesModal" class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="mt-4 flex items-center gap-3">
+                    <div class="flex-1">
+                        <input type="text" id="categoriesSearchInput" placeholder="Buscar categorías..." class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-[#8B7EC7] focus:border-[#8B7EC7] category-search-input">
+                    </div>
+                    <button id="createCategoryBtn" class="px-4 py-2 bg-[#8B7EC7] text-white rounded-lg hover:bg-[#7A6DB4] transition-colors flex items-center gap-2">
+                        <i class="fas fa-plus"></i>
+                        <span>Nueva</span>
+                    </button>
+                </div>
+            </div>
+            <div class="p-6 overflow-y-auto" style="max-height: calc(90vh - 180px);">
+                <div id="categoriesContainer">
+                    <div class="category-loading">
+                        <i class="fas fa-spinner"></i>
+                        <span>Cargando categorías...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para crear/editar categoría -->
+    <div id="categoryFormModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 category-modal">
+        <div class="bg-white rounded-lg shadow-xl max-w-md w-full category-modal-content">
             <div class="p-6">
                 <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-lg font-semibold text-gray-900">Agregar Producto</h3>
-                    <button id="closeCreateModal" class="text-gray-400 hover:text-gray-600">
+                    <h3 id="categoryFormTitle" class="text-lg font-semibold text-gray-900">Nueva Categoría</h3>
+                    <button id="closeCategoryFormModal" class="text-gray-400 hover:text-gray-600">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
                 
-                <form id="createProductForm" class="space-y-4">
+                <form id="categoryForm" class="space-y-4">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Nombre del Producto</label>
-                        <input type="text" id="productName" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-[#8B7EC7] focus:border-[#8B7EC7]">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Nombre de la Categoría</label>
+                        <input type="text" id="categoryName" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-[#8B7EC7] focus:border-[#8B7EC7]" placeholder="Ej: Electrónica, Papelería...">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
-                        <textarea id="productDescription" rows="3" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-[#8B7EC7] focus:border-[#8B7EC7]"></textarea>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Categoría</label>
-                        <input type="text" id="productCategory" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-[#8B7EC7] focus:border-[#8B7EC7]">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Precio</label>
-                        <input type="number" id="productPrice" step="0.01" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-[#8B7EC7] focus:border-[#8B7EC7]">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Stock</label>
-                        <input type="number" id="productStock" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-[#8B7EC7] focus:border-[#8B7EC7]">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Descripción (Opcional)</label>
+                        <textarea id="categoryDescription" rows="3" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-[#8B7EC7] focus:border-[#8B7EC7]" placeholder="Descripción de la categoría..."></textarea>
                     </div>
                     <div class="flex gap-2 pt-4">
-                        <button type="button" id="cancelCreateBtn" class="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                        <button type="button" id="cancelCategoryBtn" class="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
                             Cancelar
                         </button>
-                        <button type="submit" class="flex-1 px-4 py-2 bg-[#8B7EC7] text-white rounded-lg hover:bg-[#7A6DB4] transition-colors">
-                            Crear
+                        <button type="submit" id="saveCategoryBtn" class="flex-1 px-4 py-2 bg-[#8B7EC7] text-white rounded-lg hover:bg-[#7A6DB4] transition-colors">
+                            Guardar
                         </button>
                     </div>
                 </form>
@@ -191,14 +387,42 @@
         </div>
     </div>
 
+    <!-- Modal de confirmación para eliminar categoría -->
+    <div id="deleteCategoryModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 category-modal">
+        <div class="bg-white rounded-lg shadow-xl max-w-md w-full category-modal-content">
+            <div class="p-6">
+                <div class="flex items-center justify-center mb-4">
+                    <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                        <i class="fas fa-exclamation-triangle text-red-600 text-xl"></i>
+                    </div>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-900 text-center mb-2">¿Eliminar Categoría?</h3>
+                <p id="deleteCategoryMessage" class="text-gray-600 text-center mb-6">¿Estás seguro de que deseas eliminar esta categoría?</p>
+                <div class="flex gap-2">
+                    <button id="cancelDeleteCategoryBtn" class="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                        Cancelar
+                    </button>
+                    <button id="confirmDeleteCategoryBtn" class="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
+                        Eliminar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script type="module" src="/js/services/authService.js"></script>
     <script type="module" src="/js/utils/uiUtils.js"></script>
     <script type="module" src="/js/modules/dashboardHandler.js"></script>
+    <script type="module" src="/js/services/categoryService.js"></script>
+    <script type="module" src="/js/modules/categoryHandler.js"></script>
     <script type="module" src="/js/services/inventoryService.js"></script>
     <script type="module" src="/js/modules/inventoryHandler.js"></script>
     <script type="module" src="/js/components/userMenuComponent.js"></script>
     <script type="module" src="/js/modules/userMenuHandler.js"></script>
     <script type="module" src="/js/components/sidebarComponent.js"></script>
     <script type="module" src="/js/modules/sidebarHandler.js"></script>
+    
+    <!-- Script de pruebas para categorías (desarrollo) -->
+    <script src="/js/tests/categoryIntegrationTest.js"></script>
 </body>
 </html>
