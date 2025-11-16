@@ -1,4 +1,5 @@
 import { InventoryService } from "/js/services/inventoryService.js"
+import { CategoryHandler } from "/js/modules/categoryHandler.js"
 
 class InventoryHandler {
   constructor() {
@@ -10,42 +11,84 @@ class InventoryHandler {
     }
 
     this.inventoryService = new InventoryService()
+    this.categoryHandler = new CategoryHandler()
+    // Add filters
     this.currentFilters = {
-      search: "",
-      category: "",
-      price: "",
-      status: "",
-      sort: "name",
       page: 1,
-      limit: 5, // Changed from 10 to 5 items per page
+      limit: 10,
+      category: "",
+      minPrice: null,
+      maxPrice: null,
+      sortBy: "name",
+      sortOrder: "asc",
+      search: "",
     }
+
+    // Debounced search to avoid excessive API calls
+    this.searchTimeout = null
+    this.debouncedLoadProducts = this.debounce(() => {
+      this.loadProducts()
+    }, 300)
     this.totalPages = 1
     this.totalProducts = 0
     this.products = []
+    
+    // Variables para gestión de categorías
+    this.currentEditingCategoryId = null
+    this.categories = []
 
     this.initializeEventListeners()
+    this.loadCategories()
+    
+    // Restore search state if exists
+    this.restoreSearchState()
+    
     this.loadProducts()
   }
 
   initializeEventListeners() {
-    const searchInput = document.querySelector('input[placeholder="Search"]')
+    // Main search input in header
+    const searchInput = document.getElementById('headerSearch')
+    const clearSearchBtn = document.getElementById('clearSearch')
+    const searchIcon = document.getElementById('searchIcon')
+    const searchLoading = document.getElementById('searchLoading')
+    
     if (searchInput) {
       searchInput.addEventListener("input", (e) => {
         this.currentFilters.search = e.target.value
         this.currentFilters.page = 1 // Reset to first page
-        this.loadProducts()
+        
+        // Show/hide clear button
+        if (clearSearchBtn) {
+          if (e.target.value.trim()) {
+            clearSearchBtn.classList.remove('hidden')
+          } else {
+            clearSearchBtn.classList.add('hidden')
+          }
+        }
+        
+        // Show loading state
+        if (searchIcon && searchLoading) {
+          searchIcon.classList.add('hidden')
+          searchLoading.classList.remove('hidden')
+        }
+        
+        this.debouncedLoadProducts()
       })
 
-      // Clear button
-      const clearButton = document.querySelector('input[placeholder="Search"] ~ button:last-of-type')
-      if (clearButton) {
-        clearButton.addEventListener("click", () => {
-          searchInput.value = ""
-          this.currentFilters.search = ""
-          this.currentFilters.page = 1
-          this.loadProducts()
-        })
-      }
+      // Clear search on escape key
+      searchInput.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+          this.clearSearch()
+        }
+      })
+    }
+
+    // Clear search button
+    if (clearSearchBtn) {
+      clearSearchBtn.addEventListener("click", () => {
+        this.clearSearch()
+      })
     }
 
     // Manejo de imágenes
@@ -127,31 +170,75 @@ class InventoryHandler {
 
     // Modal event listeners
     document.getElementById("closeModal")?.addEventListener("click", () => {
-      this.hideModal()
+      this.hideAddProductModal()
     })
 
     document.getElementById("cancelBtn")?.addEventListener("click", () => {
-      this.hideModal()
+      this.hideAddProductModal()
     })
 
     // Form submission
     document.getElementById("productForm")?.addEventListener("submit", (e) => {
       e.preventDefault()
-      const formData = new FormData(e.target)
-      const productData = {
-        name: formData.get("nombre"),
-        description: formData.get("descripcion"),
-        category: formData.get("categoria"),
-        price: Number.parseFloat(formData.get("precio")),
-        stock: Number.parseInt(formData.get("stock")) || 0,
-        availability: formData.get("disponible") ? "unlimited" : "limited",
+      
+      // Usar FormData para manejar también la imagen
+      const formData = new FormData()
+      
+      // Obtener datos del formulario usando los nombres correctos
+      const nombre = document.getElementById("nombre")?.value?.trim()
+      const descripcion = document.getElementById("descripcion")?.value?.trim()
+      const categoria = document.getElementById("categoria")?.value?.trim()
+      const precio = parseFloat(document.getElementById("precio")?.value)
+      const precioPromocional = parseFloat(document.getElementById("precioPromocional")?.value) || null
+      const disponible = document.getElementById("disponible")?.checked
+      const stock = parseInt(document.getElementById("stock")?.value) || 0
+      const barcode = document.getElementById("barcode")?.value?.trim()
+      const supplierCode = document.getElementById("supplierCode")?.value?.trim()
+      const imageFile = document.getElementById("imageInput")?.files[0]
+
+      // Validaciones básicas
+      if (!nombre) {
+        this.showError("El nombre del producto es requerido")
+        return
+      }
+      if (!precio || precio <= 0) {
+        this.showError("El precio debe ser mayor a 0")
+        return
+      }
+      if (!disponible && (!stock || stock < 0)) {
+        this.showError("El stock debe ser 0 o mayor cuando no es ilimitado")
+        return
+      }
+
+      // Agregar datos al FormData
+      formData.append("name", nombre)
+      formData.append("description", descripcion || "")
+      formData.append("price", precio)
+      if (precioPromocional) {
+        formData.append("promotionalPrice", precioPromocional)
+      }
+      formData.append("availability", disponible ? "unlimited" : "limited")
+      if (!disponible) {
+        formData.append("stock", stock)
+      }
+      if (categoria) {
+        formData.append("category", categoria)
+      }
+      if (barcode) {
+        formData.append("barcode", barcode)
+      }
+      if (supplierCode) {
+        formData.append("supplierCode", supplierCode)
+      }
+      if (imageFile) {
+        formData.append("image", imageFile)
       }
 
       const productId = e.target.getAttribute("data-product-id")
       if (productId) {
-        this.updateProduct(productId, productData)
+        this.updateProduct(productId, formData)
       } else {
-        this.createProduct(productData)
+        this.createProduct(formData)
       }
     })
 
@@ -167,6 +254,89 @@ class InventoryHandler {
         stockInput.placeholder = "0"
       }
     })
+
+    // Event listeners para gestión de categorías
+    this.initializeCategoryEventListeners()
+  }
+
+  // ===== MÉTODOS PARA GESTIÓN DE CATEGORÍAS =====
+
+  initializeCategoryEventListeners() {
+    // Botón para gestionar categorías
+    document.getElementById("manageCategoriesBtn")?.addEventListener("click", () => {
+      this.showManageCategoriesModal()
+    })
+
+    // Modales de categorías
+    document.getElementById("closeCategoriesModal")?.addEventListener("click", () => {
+      this.hideManageCategoriesModal()
+    })
+
+    document.getElementById("closeCategoryFormModal")?.addEventListener("click", () => {
+      this.hideCategoryFormModal()
+    })
+
+    document.getElementById("cancelCategoryBtn")?.addEventListener("click", () => {
+      this.hideCategoryFormModal()
+    })
+
+    // Búsqueda de categorías
+    document.getElementById("categoriesSearchInput")?.addEventListener("input", (e) => {
+      this.searchCategories(e.target.value)
+    })
+
+    // Crear nueva categoría
+    document.getElementById("createCategoryBtn")?.addEventListener("click", () => {
+      this.showCreateCategoryModal()
+    })
+
+    // Botón para agregar nueva categoría desde el modal de producto
+    document.getElementById("addNewCategoryBtn")?.addEventListener("click", () => {
+      this.showCreateCategoryModal()
+    })
+
+    // Formulario de categoría
+    document.getElementById("categoryForm")?.addEventListener("submit", (e) => {
+      e.preventDefault()
+      this.saveCategoryForm()
+    })
+
+    // Modal de confirmación de eliminación
+    document.getElementById("cancelDeleteCategoryBtn")?.addEventListener("click", () => {
+      this.hideDeleteCategoryModal()
+    })
+
+    document.getElementById("confirmDeleteCategoryBtn")?.addEventListener("click", () => {
+      this.confirmDeleteCategory()
+    })
+  }
+
+  async loadCategories() {
+    try {
+      const categories = await this.categoryHandler.loadCategories()
+      this.categories = categories
+      await this.populateCategoryFilters()
+      await this.populateProductCategorySelect()
+    } catch (error) {
+      console.error("Error cargando categorías:", error)
+      // No mostrar error al usuario, categorías son opcionales
+    }
+  }
+
+  async populateCategoryFilters() {
+    const categoryFilter = document.getElementById("categoryFilter")
+    if (!categoryFilter) return
+
+    try {
+      await this.categoryHandler.populateCategorySelect(categoryFilter, true)
+      // Cambiar texto de la opción vacía
+      const emptyOption = categoryFilter.querySelector('option[value=""]')
+      if (emptyOption) {
+        emptyOption.textContent = "Todas las categorías"
+      }
+    } catch (error) {
+      console.error("Error poblando filtros de categoría:", error)
+    }
   }
 
   async loadProducts() {
@@ -225,6 +395,692 @@ class InventoryHandler {
     }
   }
 
+  // ===== MÉTODOS PARA GESTIÓN DE CATEGORÍAS =====
+
+  initializeCategoryEventListeners() {
+    // Botón para gestionar categorías
+    document.getElementById("manageCategoriesBtn")?.addEventListener("click", () => {
+      this.showManageCategoriesModal()
+    })
+
+    // Modales de categorías
+    document.getElementById("closeCategoriesModal")?.addEventListener("click", () => {
+      this.hideManageCategoriesModal()
+    })
+
+    document.getElementById("closeCategoryFormModal")?.addEventListener("click", () => {
+      this.hideCategoryFormModal()
+    })
+
+    document.getElementById("cancelCategoryBtn")?.addEventListener("click", () => {
+      this.hideCategoryFormModal()
+    })
+
+    // Búsqueda de categorías
+    document.getElementById("categoriesSearchInput")?.addEventListener("input", (e) => {
+      this.searchCategories(e.target.value)
+    })
+
+    // Crear nueva categoría
+    document.getElementById("createCategoryBtn")?.addEventListener("click", () => {
+      this.showCreateCategoryModal()
+    })
+
+    // Botón para agregar nueva categoría desde el modal de producto
+    document.getElementById("addNewCategoryBtn")?.addEventListener("click", () => {
+      this.showCreateCategoryModal()
+    })
+
+    // Formulario de categoría
+    document.getElementById("categoryForm")?.addEventListener("submit", (e) => {
+      e.preventDefault()
+      this.saveCategoryForm()
+    })
+
+    // Modal de confirmación de eliminación
+    document.getElementById("cancelDeleteCategoryBtn")?.addEventListener("click", () => {
+      this.hideDeleteCategoryModal()
+    })
+
+    document.getElementById("confirmDeleteCategoryBtn")?.addEventListener("click", () => {
+      this.confirmDeleteCategory()
+    })
+  }
+
+  async loadCategories() {
+    try {
+      const categories = await this.categoryHandler.loadCategories()
+      this.categories = categories
+      await this.populateCategoryFilters()
+      await this.populateProductCategorySelect()
+    } catch (error) {
+      console.error("Error cargando categorías:", error)
+      // No mostrar error al usuario, categorías son opcionales
+    }
+  }
+
+  async populateCategoryFilters() {
+    const categoryFilter = document.getElementById("categoryFilter")
+    if (!categoryFilter) return
+
+    try {
+      await this.categoryHandler.populateCategorySelect(categoryFilter, true)
+      // Cambiar texto de la opción vacía
+      const emptyOption = categoryFilter.querySelector('option[value=""]')
+      if (emptyOption) {
+        emptyOption.textContent = "Todas las categorías"
+      }
+    } catch (error) {
+      console.error("Error poblando filtros de categoría:", error)
+    }
+  }
+
+  async populateProductCategorySelect() {
+    const categorySelect = document.getElementById("categoria")
+    if (!categorySelect) return
+
+    try {
+      await this.categoryHandler.populateCategorySelect(categorySelect, true)
+      // Cambiar texto de la opción vacía
+      const emptyOption = categorySelect.querySelector('option[value=""]')
+      if (emptyOption) {
+        emptyOption.textContent = "Seleccionar categoría..."
+      }
+    } catch (error) {
+      console.error("Error poblando select de categoría del producto:", error)
+      // Mostrar estado de error en el select
+      categorySelect.innerHTML = '<option value="">Error al cargar categorías</option>'
+    }
+  }
+
+  async showManageCategoriesModal() {
+    const modal = document.getElementById("manageCategoriesModal")
+    if (!modal) return
+
+    modal.classList.remove("hidden")
+    await this.loadCategoriesInModal()
+  }
+
+  hideManageCategoriesModal() {
+    const modal = document.getElementById("manageCategoriesModal")
+    if (modal) {
+      modal.classList.add("hidden")
+    }
+  }
+
+  async loadCategoriesInModal() {
+    const container = document.getElementById("categoriesContainer")
+    if (!container) return
+
+    try {
+      // Mostrar loading
+      container.innerHTML = `
+        <div class="category-loading">
+          <i class="fas fa-spinner"></i>
+          <span>Cargando categorías...</span>
+        </div>
+      `
+
+      await this.categoryHandler.loadCategories()
+      this.categories = this.categoryHandler.categories
+
+      if (this.categories.length === 0) {
+        container.innerHTML = `
+          <div class="category-empty-state">
+            <i class="fas fa-tags"></i>
+            <h3 class="text-lg font-medium text-gray-900 mb-2">No hay categorías</h3>
+            <p class="text-gray-600">Crea tu primera categoría para organizar tus productos.</p>
+          </div>
+        `
+        return
+      }
+
+      // Renderizar categorías
+      container.innerHTML = this.categories.map(category => 
+        this.categoryHandler.createCategoryListItem(category)
+      ).join("")
+
+      // Agregar event listeners a los botones
+      this.bindCategoryActionButtons()
+
+    } catch (error) {
+      console.error("Error cargando categorías en modal:", error)
+      container.innerHTML = `
+        <div class="category-error-state">
+          <i class="fas fa-exclamation-triangle"></i>
+          <h3 class="text-lg font-medium mb-2">Error al cargar categorías</h3>
+          <p class="text-sm">${error.message}</p>
+        </div>
+      `
+    }
+  }
+
+  bindCategoryActionButtons() {
+    // Botones de editar
+    document.querySelectorAll(".edit-category-btn").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        const categoryId = e.currentTarget.dataset.categoryId
+        this.showEditCategoryModal(categoryId)
+      })
+    })
+
+    // Botones de eliminar
+    document.querySelectorAll(".delete-category-btn").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        const categoryId = e.currentTarget.dataset.categoryId
+        this.showDeleteCategoryModal(categoryId)
+      })
+    })
+  }
+
+  async searchCategories(searchTerm) {
+    const container = document.getElementById("categoriesContainer")
+    if (!container) return
+
+    try {
+      if (!searchTerm.trim()) {
+        await this.loadCategoriesInModal()
+        return
+      }
+
+      container.innerHTML = `
+        <div class="category-loading">
+          <i class="fas fa-spinner"></i>
+          <span>Buscando categorías...</span>
+        </div>
+      `
+
+      const categories = await this.categoryHandler.searchCategories(searchTerm)
+
+      if (categories.length === 0) {
+        container.innerHTML = `
+          <div class="category-empty-state">
+            <i class="fas fa-search"></i>
+            <h3 class="text-lg font-medium text-gray-900 mb-2">No se encontraron categorías</h3>
+            <p class="text-gray-600">No hay categorías que coincidan con "${searchTerm}".</p>
+          </div>
+        `
+        return
+      }
+
+      container.innerHTML = categories.map(category => 
+        this.categoryHandler.createCategoryListItem(category)
+      ).join("")
+
+      this.bindCategoryActionButtons()
+
+    } catch (error) {
+      console.error("Error buscando categorías:", error)
+      container.innerHTML = `
+        <div class="category-error-state">
+          <i class="fas fa-exclamation-triangle"></i>
+          <h3 class="text-lg font-medium mb-2">Error en la búsqueda</h3>
+          <p class="text-sm">${error.message}</p>
+        </div>
+      `
+    }
+  }
+
+  showCreateCategoryModal() {
+    this.currentEditingCategoryId = null
+    const modal = document.getElementById("categoryFormModal")
+    const title = document.getElementById("categoryFormTitle")
+    const nameInput = document.getElementById("categoryName")
+    const descriptionInput = document.getElementById("categoryDescription")
+
+    if (modal && title) {
+      title.textContent = "Nueva Categoría"
+      if (nameInput) nameInput.value = ""
+      if (descriptionInput) descriptionInput.value = ""
+      modal.classList.remove("hidden")
+      nameInput?.focus()
+    }
+  }
+
+  showEditCategoryModal(categoryId) {
+    this.currentEditingCategoryId = categoryId
+    const category = this.categoryHandler.getCategoryById(categoryId)
+    
+    if (!category) {
+      console.error("Categoría no encontrada:", categoryId)
+      return
+    }
+
+    const modal = document.getElementById("categoryFormModal")
+    const title = document.getElementById("categoryFormTitle")
+    const nameInput = document.getElementById("categoryName")
+    const descriptionInput = document.getElementById("categoryDescription")
+
+    if (modal && title) {
+      title.textContent = "Editar Categoría"
+      if (nameInput) nameInput.value = category.name
+      if (descriptionInput) descriptionInput.value = category.description || ""
+      modal.classList.remove("hidden")
+      nameInput?.focus()
+    }
+  }
+
+  hideCategoryFormModal() {
+    const modal = document.getElementById("categoryFormModal")
+    if (modal) {
+      modal.classList.add("hidden")
+      this.currentEditingCategoryId = null
+    }
+  }
+
+  async saveCategoryForm() {
+    const nameInput = document.getElementById("categoryName")
+    const descriptionInput = document.getElementById("categoryDescription")
+    const saveBtn = document.getElementById("saveCategoryBtn")
+
+    if (!nameInput || !saveBtn) return
+
+    const name = nameInput.value.trim()
+    if (!name) {
+      this.showError("El nombre de la categoría es requerido")
+      nameInput.focus()
+      return
+    }
+
+    // Validar nombre único
+    if (this.categoryHandler.categoryNameExists(name, this.currentEditingCategoryId)) {
+      this.showError("Ya existe una categoría con este nombre")
+      nameInput.focus()
+      return
+    }
+
+    const categoryData = {
+      name: name,
+      description: descriptionInput?.value.trim() || undefined
+    }
+
+    try {
+      saveBtn.disabled = true
+      saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...'
+
+      if (this.currentEditingCategoryId) {
+        await this.categoryHandler.updateCategory(this.currentEditingCategoryId, categoryData)
+        this.showSuccess("Categoría actualizada correctamente")
+      } else {
+        await this.categoryHandler.createCategory(categoryData)
+        this.showSuccess("Categoría creada correctamente")
+      }
+
+      this.hideCategoryFormModal()
+      await this.loadCategoriesInModal()
+      await this.populateCategoryFilters()
+      await this.populateProductCategorySelect()
+
+    } catch (error) {
+      console.error("Error guardando categoría:", error)
+      this.showError(error.message || "Error al guardar la categoría")
+    } finally {
+      saveBtn.disabled = false
+      saveBtn.innerHTML = "Guardar"
+    }
+  }
+
+  showDeleteCategoryModal(categoryId) {
+    const category = this.categoryHandler.getCategoryById(categoryId)
+    if (!category) {
+      console.error("Categoría no encontrada:", categoryId)
+      return
+    }
+
+    const modal = document.getElementById("deleteCategoryModal")
+    const message = document.getElementById("deleteCategoryMessage")
+    const confirmBtn = document.getElementById("confirmDeleteCategoryBtn")
+
+    if (modal && message && confirmBtn) {
+      if (category.productCount > 0) {
+        message.innerHTML = `
+          No se puede eliminar la categoría <strong>"${category.name}"</strong> porque tiene <strong>${category.productCount} producto(s)</strong> asociado(s).
+          <br><br>
+          Para eliminarla, primero debe cambiar la categoría de todos los productos o eliminarlos.
+        `
+        confirmBtn.style.display = "none"
+      } else {
+        message.innerHTML = `
+          ¿Estás seguro de que deseas eliminar la categoría <strong>"${category.name}"</strong>?
+          <br><br>
+          Esta acción no se puede deshacer.
+        `
+        confirmBtn.style.display = "block"
+        confirmBtn.dataset.categoryId = categoryId
+      }
+      
+      modal.classList.remove("hidden")
+    }
+  }
+
+  hideDeleteCategoryModal() {
+    const modal = document.getElementById("deleteCategoryModal")
+    if (modal) {
+      modal.classList.add("hidden")
+    }
+  }
+
+  async confirmDeleteCategory() {
+    const confirmBtn = document.getElementById("confirmDeleteCategoryBtn")
+    const categoryId = confirmBtn?.dataset.categoryId
+
+    if (!categoryId) return
+
+    try {
+      confirmBtn.disabled = true
+      confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Eliminando...'
+
+      await this.categoryHandler.deleteCategory(categoryId)
+      this.showSuccess("Categoría eliminada correctamente")
+      
+      this.hideDeleteCategoryModal()
+      await this.loadCategoriesInModal()
+      await this.populateCategoryFilters()
+      await this.populateProductCategorySelect()
+
+    } catch (error) {
+      console.error("Error eliminando categoría:", error)
+      this.showError(error.message || "Error al eliminar la categoría")
+    } finally {
+      confirmBtn.disabled = false
+      confirmBtn.innerHTML = "Eliminar"
+    }
+  }
+
+  async showManageCategoriesModal() {
+    const modal = document.getElementById("manageCategoriesModal")
+    if (!modal) return
+
+    modal.classList.remove("hidden")
+    await this.loadCategoriesInModal()
+  }
+
+  hideManageCategoriesModal() {
+    const modal = document.getElementById("manageCategoriesModal")
+    if (modal) {
+      modal.classList.add("hidden")
+    }
+  }
+
+  async loadCategoriesInModal() {
+    const container = document.getElementById("categoriesContainer")
+    if (!container) return
+
+    try {
+      // Mostrar loading
+      container.innerHTML = `
+        <div class="category-loading">
+          <i class="fas fa-spinner"></i>
+          <span>Cargando categorías...</span>
+        </div>
+      `
+
+      await this.categoryHandler.loadCategories()
+      this.categories = this.categoryHandler.categories
+
+      if (this.categories.length === 0) {
+        container.innerHTML = `
+          <div class="category-empty-state">
+            <i class="fas fa-tags"></i>
+            <h3 class="text-lg font-medium text-gray-900 mb-2">No hay categorías</h3>
+            <p class="text-gray-600">Crea tu primera categoría para organizar tus productos.</p>
+          </div>
+        `
+        return
+      }
+
+      // Renderizar categorías
+      container.innerHTML = this.categories.map(category => 
+        this.categoryHandler.createCategoryListItem(category)
+      ).join("")
+
+      // Agregar event listeners a los botones
+      this.bindCategoryActionButtons()
+
+    } catch (error) {
+      console.error("Error cargando categorías en modal:", error)
+      container.innerHTML = `
+        <div class="category-error-state">
+          <i class="fas fa-exclamation-triangle"></i>
+          <h3 class="text-lg font-medium mb-2">Error al cargar categorías</h3>
+          <p class="text-sm">${error.message}</p>
+        </div>
+      `
+    }
+  }
+
+  bindCategoryActionButtons() {
+    // Botones de editar
+    document.querySelectorAll(".edit-category-btn").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        const categoryId = e.currentTarget.dataset.categoryId
+        this.showEditCategoryModal(categoryId)
+      })
+    })
+
+    // Botones de eliminar
+    document.querySelectorAll(".delete-category-btn").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        const categoryId = e.currentTarget.dataset.categoryId
+        this.showDeleteCategoryModal(categoryId)
+      })
+    })
+  }
+
+  async searchCategories(searchTerm) {
+    const container = document.getElementById("categoriesContainer")
+    if (!container) return
+
+    try {
+      if (!searchTerm.trim()) {
+        await this.loadCategoriesInModal()
+        return
+      }
+
+      container.innerHTML = `
+        <div class="category-loading">
+          <i class="fas fa-spinner"></i>
+          <span>Buscando categorías...</span>
+        </div>
+      `
+
+      const categories = await this.categoryHandler.searchCategories(searchTerm)
+
+      if (categories.length === 0) {
+        container.innerHTML = `
+          <div class="category-empty-state">
+            <i class="fas fa-search"></i>
+            <h3 class="text-lg font-medium text-gray-900 mb-2">No se encontraron categorías</h3>
+            <p class="text-gray-600">No hay categorías que coincidan con "${searchTerm}".</p>
+          </div>
+        `
+        return
+      }
+
+      container.innerHTML = categories.map(category => 
+        this.categoryHandler.createCategoryListItem(category)
+      ).join("")
+
+      this.bindCategoryActionButtons()
+
+    } catch (error) {
+      console.error("Error buscando categorías:", error)
+      container.innerHTML = `
+        <div class="category-error-state">
+          <i class="fas fa-exclamation-triangle"></i>
+          <h3 class="text-lg font-medium mb-2">Error en la búsqueda</h3>
+          <p class="text-sm">${error.message}</p>
+        </div>
+      `
+    }
+  }
+
+  showCreateCategoryModal() {
+    this.currentEditingCategoryId = null
+    const modal = document.getElementById("categoryFormModal")
+    const title = document.getElementById("categoryFormTitle")
+    const nameInput = document.getElementById("categoryName")
+    const descriptionInput = document.getElementById("categoryDescription")
+
+    if (modal && title) {
+      title.textContent = "Nueva Categoría"
+      if (nameInput) nameInput.value = ""
+      if (descriptionInput) descriptionInput.value = ""
+      modal.classList.remove("hidden")
+      nameInput?.focus()
+    }
+  }
+
+  showEditCategoryModal(categoryId) {
+    this.currentEditingCategoryId = categoryId
+    const category = this.categoryHandler.getCategoryById(categoryId)
+    
+    if (!category) {
+      console.error("Categoría no encontrada:", categoryId)
+      return
+    }
+
+    const modal = document.getElementById("categoryFormModal")
+    const title = document.getElementById("categoryFormTitle")
+    const nameInput = document.getElementById("categoryName")
+    const descriptionInput = document.getElementById("categoryDescription")
+
+    if (modal && title) {
+      title.textContent = "Editar Categoría"
+      if (nameInput) nameInput.value = category.name
+      if (descriptionInput) descriptionInput.value = category.description || ""
+      modal.classList.remove("hidden")
+      nameInput?.focus()
+    }
+  }
+
+  hideCategoryFormModal() {
+    const modal = document.getElementById("categoryFormModal")
+    if (modal) {
+      modal.classList.add("hidden")
+      this.currentEditingCategoryId = null
+    }
+  }
+
+  async saveCategoryForm() {
+    const nameInput = document.getElementById("categoryName")
+    const descriptionInput = document.getElementById("categoryDescription")
+    const saveBtn = document.getElementById("saveCategoryBtn")
+
+    if (!nameInput || !saveBtn) return
+
+    const name = nameInput.value.trim()
+    if (!name) {
+      this.showError("El nombre de la categoría es requerido")
+      nameInput.focus()
+      return
+    }
+
+    // Validar nombre único
+    if (this.categoryHandler.categoryNameExists(name, this.currentEditingCategoryId)) {
+      this.showError("Ya existe una categoría con este nombre")
+      nameInput.focus()
+      return
+    }
+
+    const categoryData = {
+      name: name,
+      description: descriptionInput?.value.trim() || undefined
+    }
+
+    try {
+      saveBtn.disabled = true
+      saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...'
+
+      if (this.currentEditingCategoryId) {
+        await this.categoryHandler.updateCategory(this.currentEditingCategoryId, categoryData)
+        this.showSuccess("Categoría actualizada correctamente")
+      } else {
+        await this.categoryHandler.createCategory(categoryData)
+        this.showSuccess("Categoría creada correctamente")
+      }
+
+      this.hideCategoryFormModal()
+      await this.loadCategoriesInModal()
+      await this.populateCategoryFilters()
+      await this.populateProductCategorySelect()
+
+    } catch (error) {
+      console.error("Error guardando categoría:", error)
+      this.showError(error.message || "Error al guardar la categoría")
+    } finally {
+      saveBtn.disabled = false
+      saveBtn.innerHTML = "Guardar"
+    }
+  }
+
+  showDeleteCategoryModal(categoryId) {
+    const category = this.categoryHandler.getCategoryById(categoryId)
+    if (!category) {
+      console.error("Categoría no encontrada:", categoryId)
+      return
+    }
+
+    const modal = document.getElementById("deleteCategoryModal")
+    const message = document.getElementById("deleteCategoryMessage")
+    const confirmBtn = document.getElementById("confirmDeleteCategoryBtn")
+
+    if (modal && message && confirmBtn) {
+      if (category.productCount > 0) {
+        message.innerHTML = `
+          No se puede eliminar la categoría <strong>"${category.name}"</strong> porque tiene <strong>${category.productCount} producto(s)</strong> asociado(s).
+          <br><br>
+          Para eliminarla, primero debe cambiar la categoría de todos los productos o eliminarlos.
+        `
+        confirmBtn.style.display = "none"
+      } else {
+        message.innerHTML = `
+          ¿Estás seguro de que deseas eliminar la categoría <strong>"${category.name}"</strong>?
+          <br><br>
+          Esta acción no se puede deshacer.
+        `
+        confirmBtn.style.display = "block"
+        confirmBtn.dataset.categoryId = categoryId
+      }
+      
+      modal.classList.remove("hidden")
+    }
+  }
+
+  hideDeleteCategoryModal() {
+    const modal = document.getElementById("deleteCategoryModal")
+    if (modal) {
+      modal.classList.add("hidden")
+    }
+  }
+
+  async confirmDeleteCategory() {
+    const confirmBtn = document.getElementById("confirmDeleteCategoryBtn")
+    const categoryId = confirmBtn?.dataset.categoryId
+
+    if (!categoryId) return
+
+    try {
+      confirmBtn.disabled = true
+      confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Eliminando...'
+
+      await this.categoryHandler.deleteCategory(categoryId)
+      this.showSuccess("Categoría eliminada correctamente")
+      
+      this.hideDeleteCategoryModal()
+      await this.loadCategoriesInModal()
+      await this.populateCategoryFilters()
+      await this.populateProductCategorySelect()
+
+    } catch (error) {
+      console.error("Error eliminando categoría:", error)
+      this.showError(error.message || "Error al eliminar la categoría")
+    } finally {
+      confirmBtn.disabled = false
+      confirmBtn.innerHTML = "Eliminar"
+    }
+  }
+
   renderProducts() {
     const tableBody = document.getElementById("productsTableBody")
     if (!tableBody) return
@@ -235,6 +1091,9 @@ class InventoryHandler {
     }
 
     this.hideEmptyState()
+
+    // Show search results counter if searching
+    this.showSearchResultsInfo()
 
     tableBody.innerHTML = this.products
       .map((product) => {
@@ -252,13 +1111,13 @@ class InventoryHandler {
                             </div>
                             <div class="flex-1 min-w-0">
                                 <div class="text-sm font-medium text-gray-900 truncate">
-                                    ${product.name || "Sin nombre"}
+                                    ${this.highlightSearchTerm(product.name || "Sin nombre")}
                                 </div>
                                 <div class="text-xs text-gray-500 font-mono">
                                     ${product.code || product.id || "N/A"}
                                 </div>
                                 <div class="text-xs text-gray-600 truncate max-w-xs">
-                                    ${product.description || "Sin descripción"}
+                                    ${this.highlightSearchTerm(product.description || "Sin descripción")}
                                 </div>
                             </div>
                         </div>
@@ -431,13 +1290,46 @@ class InventoryHandler {
   hideLoadingState() {
     const loadingState = document.getElementById("loadingState")
     if (loadingState) loadingState.classList.add("hidden")
+    
+    // Also reset search visual state
+    this.resetSearchState()
   }
 
   showEmptyState() {
     const emptyState = document.getElementById("emptyState")
     const tableBody = document.getElementById("productsTableBody")
 
-    if (emptyState) emptyState.classList.remove("hidden")
+    if (emptyState) {
+      emptyState.classList.remove("hidden")
+      
+      // Check if there's an active search
+      const hasActiveSearch = this.currentFilters.search && this.currentFilters.search.trim()
+      const hasActiveFilters = this.currentFilters.category || this.currentFilters.price || this.currentFilters.status
+      
+      if (hasActiveSearch || hasActiveFilters) {
+        emptyState.innerHTML = `
+          <div class="text-gray-500">
+            <i class="fas fa-search text-4xl mb-4"></i>
+            <p class="text-lg font-medium">No se encontraron productos</p>
+            <p class="text-sm">
+              ${hasActiveSearch ? `No hay productos que coincidan con "${this.currentFilters.search}"` : 'No hay productos que coincidan con los filtros aplicados'}
+            </p>
+            <button onclick="inventoryHandler.clearAllFilters()" class="mt-4 px-4 py-2 bg-[#8B7EC7] text-white rounded-lg hover:bg-[#7A6DB4] transition-colors">
+              Limpiar ${hasActiveSearch ? 'búsqueda' : 'filtros'}
+            </button>
+          </div>
+        `
+      } else {
+        emptyState.innerHTML = `
+          <div class="text-gray-500">
+            <i class="fas fa-box-open text-4xl mb-4"></i>
+            <p class="text-lg font-medium">No hay productos</p>
+            <p class="text-sm">Agrega tu primer producto para comenzar</p>
+          </div>
+        `
+      }
+    }
+    
     if (tableBody) tableBody.innerHTML = ""
   }
 
@@ -446,40 +1338,134 @@ class InventoryHandler {
     if (emptyState) emptyState.classList.add("hidden")
   }
 
-  async createProduct(productData) {
-    try {
-      // Obtener el archivo de imagen
-      const imageInput = document.getElementById("imageInput")
-      const imageFile = imageInput.files[0]
-
-      // Si hay una imagen, añadirla a los datos del producto
-      if (imageFile) {
-        productData.image = imageFile
+  // Utility function for debouncing search
+  debounce(func, wait) {
+    return function executedFunction(...args) {
+      const later = () => {
+        clearTimeout(this.searchTimeout)
+        func(...args)
       }
+      clearTimeout(this.searchTimeout)
+      this.searchTimeout = setTimeout(later, wait)
+    }.bind(this)
+  }
 
-      const response = await this.inventoryService.createProduct(productData)
+  // Clear search functionality
+  clearSearch() {
+    const searchInput = document.getElementById('headerSearch')
+    const clearSearchBtn = document.getElementById('clearSearch')
+    
+    if (searchInput) {
+      searchInput.value = ""
+    }
+    if (clearSearchBtn) {
+      clearSearchBtn.classList.add('hidden')
+    }
+    
+    this.currentFilters.search = ""
+    this.currentFilters.page = 1
+    this.loadProducts()
+  }
+
+  // Clear all filters and search
+  clearAllFilters() {
+    // Clear search
+    this.clearSearch()
+    
+    // Clear other filters
+    const categoryFilter = document.getElementById('categoryFilter')
+    const priceFilter = document.getElementById('priceFilter')
+    const statusFilter = document.getElementById('statusFilter')
+    const sortFilter = document.getElementById('sortFilter')
+    
+    if (categoryFilter) categoryFilter.value = ""
+    if (priceFilter) priceFilter.value = ""
+    if (statusFilter) statusFilter.value = ""
+    if (sortFilter) sortFilter.value = "name"
+    
+    // Reset filters object
+    this.currentFilters = {
+      page: 1,
+      limit: 10,
+      category: "",
+      price: "",
+      status: "",
+      sort: "name",
+      search: "",
+    }
+    
+    // Reload products
+    this.loadProducts()
+  }
+
+  // Reset search visual state
+  resetSearchState() {
+    const searchIcon = document.getElementById('searchIcon')
+    const searchLoading = document.getElementById('searchLoading')
+    
+    if (searchIcon && searchLoading) {
+      searchIcon.classList.remove('hidden')
+      searchLoading.classList.add('hidden')
+    }
+  }
+
+  // Restore search state from filters
+  restoreSearchState() {
+    const searchInput = document.getElementById('headerSearch')
+    const clearSearchBtn = document.getElementById('clearSearch')
+    
+    if (searchInput && this.currentFilters.search) {
+      searchInput.value = this.currentFilters.search
+      
+      if (clearSearchBtn) {
+        clearSearchBtn.classList.remove('hidden')
+      }
+    }
+  }
+
+  // Highlight search terms in text
+  highlightSearchTerm(text) {
+    if (!this.currentFilters.search || !this.currentFilters.search.trim()) {
+      return text
+    }
+    
+    const searchTerm = this.currentFilters.search.trim()
+    const regex = new RegExp(`(${searchTerm})`, 'gi')
+    return text.replace(regex, '<span class="search-highlight">$1</span>')
+  }
+
+  // Show search results information
+  showSearchResultsInfo() {
+    const hasActiveSearch = this.currentFilters.search && this.currentFilters.search.trim()
+    const tableContainer = document.querySelector('.bg-white.rounded-lg.shadow-sm.border.border-gray-200.overflow-hidden')
+    
+    // Remove existing search info
+    const existingInfo = document.querySelector('.search-result-count')
+    if (existingInfo) {
+      existingInfo.remove()
+    }
+    
+    if (hasActiveSearch && tableContainer) {
+      const searchInfo = document.createElement('div')
+      searchInfo.className = 'search-result-count'
+      searchInfo.innerHTML = `
+        Se encontraron <span class="highlight">${this.totalProducts}</span> productos para 
+        "<span class="highlight">${this.currentFilters.search}"</span>
+      `
+      tableContainer.insertBefore(searchInfo, tableContainer.firstChild)
+    }
+  }
+
+  async createProduct(formData) {
+    try {
+      const response = await this.inventoryService.createProduct(formData)
       this.showSuccess("Producto creado exitosamente")
-      this.hideModal()
+      this.hideAddProductModal()
       await this.loadProducts()
 
-      // Limpiar la vista previa de la imagen
-      const previewContainer = document.getElementById("previewContainer")
-      const uploadText = document.getElementById("uploadText")
-      if (previewContainer) {
-        previewContainer.classList.add("hidden")
-      }
-      if (uploadText) {
-        uploadText.textContent = "Cargar una imagen"
-      }
-      if (imageInput) {
-        imageInput.value = ""
-      }
-
-      return response
     } catch (error) {
-      console.error("Error creating product:", error)
+      console.error("Error al crear producto:", error)
       this.showError(error.message || "Error al crear el producto")
-      throw error
     }
   }
 
@@ -510,10 +1496,20 @@ class InventoryHandler {
 
   showAddProductModal() {
     const user = JSON.parse(localStorage.getItem("user") || "{}")
+    const token = localStorage.getItem("authToken")
+    
+    // Debug logs para verificar información del usuario
+    console.log("Debug - Usuario actual:", user)
+    console.log("Debug - Token presente:", !!token)
+    console.log("Debug - Rol del usuario:", user.role)
+    
     if (user.role !== "admin") {
+      console.error("Acceso denegado - Usuario no es admin:", user)
       this.showError("No tienes permisos para agregar productos. Solo administradores pueden hacerlo.")
       return
     }
+
+    console.log("Usuario autorizado como admin, abriendo modal...")
 
     const modal = document.getElementById("productModal")
     const form = document.getElementById("productForm")
@@ -521,6 +1517,7 @@ class InventoryHandler {
 
     if (!modal || !form) return
 
+    // Limpiar formulario
     form.reset()
     form.removeAttribute("data-product-id")
     modalTitle.textContent = "Añadir producto"
@@ -535,7 +1532,24 @@ class InventoryHandler {
       stockInput.placeholder = "∞"
     }
 
+    // Reset image preview
+    const previewContainer = document.getElementById("previewContainer")
+    const uploadText = document.getElementById("uploadText")
+    if (previewContainer) {
+      previewContainer.classList.add("hidden")
+    }
+    if (uploadText) {
+      uploadText.textContent = "Cargar una imagen"
+    }
+
     modal.classList.remove("hidden")
+  }
+
+  hideAddProductModal() {
+    const modal = document.getElementById("productModal")
+    if (modal) {
+      modal.classList.add("hidden")
+    }
   }
 
   async showEditProductModal(productId) {
