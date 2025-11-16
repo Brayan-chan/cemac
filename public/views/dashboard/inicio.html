@@ -242,36 +242,35 @@
                 </div>
 
                 <div class="space-y-6">
+                    <!-- Productos más vendidos -->
                     <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-200">
                         <div class="flex items-center mb-3">
                             <i class="fas fa-chart-bar text-gray-600 mr-2"></i>
                             <h3 class="font-medium text-gray-900">Productos más vendidos</h3>
                         </div>
-                        <div class="space-y-2 text-sm text-gray-600">
-                            <div>-Paquete de 100 hojas.</div>
-                            <div>-Juego de Geometría.</div>
-                            <div>-Cuaderno de rayas scrip</div>
+                        <div id="topProductsContainer" class="space-y-2 text-sm text-gray-600">
+                            <!-- Loading state -->
+                            <div class="animate-pulse">
+                                <div class="h-4 bg-gray-200 rounded mb-2"></div>
+                                <div class="h-4 bg-gray-200 rounded mb-2 w-3/4"></div>
+                                <div class="h-4 bg-gray-200 rounded w-1/2"></div>
+                            </div>
                         </div>
-                        <button
-                            class="mt-3 text-sm text-purple-600 hover:text-purple-700 font-medium flex items-center">
+                        <button id="viewMoreProductsBtn"
+                            class="mt-3 text-sm text-purple-600 hover:text-purple-700 font-medium flex items-center transition-colors">
                             Ver más <i class="fas fa-external-link-alt ml-1 text-xs"></i>
                         </button>
                     </div>
 
-                    <div class="bg-red-50 border border-red-200 rounded-2xl p-4">
+                    <!-- Alerta crítica dinámica -->
+                    <div id="criticalAlertContainer" class="bg-red-50 border border-red-200 rounded-2xl p-4" style="display: none;">
+                        <!-- El contenido será generado dinámicamente por HomeAlertsHandler -->
                         <div class="flex items-start">
-                            <i class="fas fa-exclamation-triangle text-red-500 mt-0.5 mr-3"></i>
+                            <div class="w-6 h-6 border-2 border-gray-300 border-t-red-500 rounded-full animate-spin mt-0.5 mr-3"></div>
                             <div class="flex-1">
-                                <h4 class="font-medium text-red-800">Alerta de Stock Bajo</h4>
-                                <p class="text-sm text-red-700 mt-1">¡Cuidado!</p>
-                                <button
-                                    class="mt-2 px-3 py-1 bg-red-500 text-white text-sm rounded-lg hover:bg-red-600 transition-colors">
-                                    Revisar
-                                </button>
+                                <h4 class="font-medium text-gray-600">Cargando alertas...</h4>
+                                <p class="text-sm text-gray-500 mt-1">Verificando sistema de alertas...</p>
                             </div>
-                            <button id="closeAlertBtn" class="text-red-400 hover:text-red-600 ml-2">
-                                <i class="fas fa-times"></i>
-                            </button>
                         </div>
                     </div>
                 </div>
@@ -319,9 +318,11 @@
 
     <script type="module" src="/js/services/authService.js"></script>
     <script type="module" src="/js/services/analyticsService.js"></script>
+    <script type="module" src="/js/services/alertsService.js"></script>
     <script type="module" src="/js/utils/uiUtils.js"></script>
     <script type="module" src="/js/modules/dashboardHandler.js"></script>
     <script type="module" src="/js/modules/homeHandler.js"></script>
+    <script type="module" src="/js/modules/homeAlertsHandler.js"></script>
     <script type="module" src="/js/components/userMenuComponent.js"></script>
     <script type="module" src="/js/modules/userMenuHandler.js"></script>
     <script type="module" src="/js/components/sidebarComponent.js"></script>
@@ -330,26 +331,6 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             console.log('🚀 Inicializando dashboard de inicio...');
-
-            // Close alert functionality
-            const closeAlertBtn = document.getElementById('closeAlertBtn');
-            if (closeAlertBtn) {
-                console.log('✅ Inicializando botón de cerrar alerta');
-                closeAlertBtn.addEventListener('click', (e) => {
-                    console.log('🚨 Click en botón de cerrar alerta');
-                    e.preventDefault();
-                    e.stopPropagation();
-                    const alertContainer = closeAlertBtn.closest('.bg-red-50');
-                    if (alertContainer) {
-                        alertContainer.style.display = 'none';
-                        console.log('✅ Alerta cerrada');
-                    } else {
-                        console.error('❌ No se encontró el contenedor de la alerta');
-                    }
-                });
-            } else {
-                console.log('ℹ️ Botón de cerrar alerta no encontrado en esta vista');
-            }
 
             // Inicializar HomeHandler para gráficos interactivos
             const initHomeHandler = async () => {
@@ -363,8 +344,71 @@
                 }
             };
 
+            // Inicializar sistema de alertas dinámico
+            const initAlertsHandler = async () => {
+                try {
+                    console.log('🚨 Cargando HomeAlertsHandler...');
+                    const { HomeAlertsHandler } = await import('/js/modules/homeAlertsHandler.js');
+                    console.log('🚨 Inicializando sistema de alertas...');
+                    window.homeAlertsHandler = new HomeAlertsHandler();
+                } catch (error) {
+                    console.warn('⚠️ Error cargando sistema de alertas:', error);
+                }
+            };
+
+            // Inicializar productos más vendidos
+            const initTopProducts = () => {
+                try {
+                    console.log('📊 Inicializando productos más vendidos...');
+                    loadTopProducts();
+                } catch (error) {
+                    console.warn('⚠️ Error cargando productos más vendidos:', error);
+                }
+            };
+
+            // Función para cargar productos más vendidos (mock data por ahora)
+            const loadTopProducts = () => {
+                const container = document.getElementById('topProductsContainer');
+                if (!container) return;
+
+                // Simular datos de productos más vendidos
+                const topProducts = [
+                    { name: 'Paquete de 100 hojas A4', sales: 156 },
+                    { name: 'Juego de Geometría completo', sales: 89 },
+                    { name: 'Cuaderno de rayas Script 100 hojas', sales: 67 },
+                    { name: 'Bolígrafo BIC azul (caja 12 uds)', sales: 45 }
+                ];
+
+                setTimeout(() => {
+                    container.innerHTML = topProducts.map((product, index) => `
+                        <div class="flex items-center justify-between py-1">
+                            <div class="flex items-center">
+                                <span class="inline-flex items-center justify-center w-5 h-5 mr-2 text-xs font-bold text-purple-600 bg-purple-100 rounded-full">
+                                    ${index + 1}
+                                </span>
+                                <span class="text-gray-800">${product.name}</span>
+                            </div>
+                            <span class="text-xs text-gray-500 font-medium">${product.sales} ventas</span>
+                        </div>
+                    `).join('');
+                }, 1000);
+            };
+
+            // Event listener para ver más productos
+            document.addEventListener('click', (e) => {
+                if (e.target.id === 'viewMoreProductsBtn' || e.target.closest('#viewMoreProductsBtn')) {
+                    e.preventDefault();
+                    console.log('🔗 Navegando a análisis de ventas...');
+                    window.location.href = '/views/dashboard/analisis.html';
+                }
+            });
+
+            // Inicializar todos los módulos
             initHomeHandler();
-            console.log('✅ Dashboard de inicio inicializado');
+            initAlertsHandler();
+            initTopProducts();
+            
+            console.log('✅ Dashboard de inicio inicializado completamente');
         });
     </script>
 </body>
