@@ -12,88 +12,12 @@
     <!-- Chart.js para gráficos interactivos -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="/js/tailwind.config.js"></script>
+    <!-- Cargar sidebarPreloader INMEDIATAMENTE para evitar parpadeo -->
+    <script src="/js/utils/sidebarPreloader.js"></script>
 </head>
 <body class="h-full bg-gray-50">
-    <div id="sidebar" class="fixed left-0 top-0 bg-[#8B7EC7] sidebar-expanded sidebar-transition z-40 sidebar-flex">        
-        <nav class="sidebar-nav">
-            <!-- Botón toggle en la parte superior -->
-            <div class="px-4">
-                <button id="toggleSidebar" class="flex items-center justify-center w-10 h-10 rounded-lg hover:bg-white/10 transition-colors">
-                    <i class="fas fa-bars text-white text-lg"></i>
-                </button>
-            </div>
-            
-            <!-- Elementos de navegación distribuidos uniformemente -->
-            <div class="sidebar-top">
-                <div class="px-4">
-                    <!-- Inicio -->
-                    <a href="/views/dashboard/inicio.html" class="flex items-center px-3 py-2 bg-white/20 rounded-lg">
-                        <i class="fas fa-home text-white w-5"></i>
-                        <span class="sidebar-text ml-3 text-white font-medium">Inicio</span>
-                    </a>
-                </div>
-
-                <div class="px-4">
-                    <!-- Ventas -->
-                    <a href="/views/dashboard/ventas.html" class="flex items-center px-3 py-2 text-white/80 hover:bg-white/10 rounded-lg cursor-pointer transition-colors">
-                        <i class="fas fa-shopping-cart text-white w-5"></i>
-                        <span class="sidebar-text ml-3">Ventas</span>
-                    </a>
-                </div>
-
-                <div class="px-4">
-                    <!-- Inventario -->
-                    <a href="/views/dashboard/inventario.html" class="flex items-center px-3 py-2 text-white/80 hover:bg-white/10 rounded-lg cursor-pointer transition-colors">
-                        <i class="fas fa-boxes text-white w-5"></i>
-                        <span class="sidebar-text ml-3">Inventario</span>
-                    </a>
-                </div>
-                
-                <div class="px-4">
-                    <!-- Análisis -->
-                    <a href="/views/dashboard/analisis.html" class="flex items-center px-3 py-2 text-white/80 hover:bg-white/10 rounded-lg cursor-pointer transition-colors">
-                        <i class="fas fa-chart-line text-white w-5"></i>
-                        <span class="sidebar-text ml-3">Análisis</span>
-                    </a>
-                </div>
-                
-                <div class="px-4">
-                    <!-- Sugerencias -->
-                    <a href="/views/dashboard/sugerencias.html" class="flex items-center px-3 py-2 text-white/80 hover:bg-white/10 rounded-lg cursor-pointer transition-colors">
-                        <i class="fas fa-lightbulb text-white w-5"></i>
-                        <span class="sidebar-text ml-3">Sugerencias</span>
-                    </a>
-                </div>
-                
-                <div class="px-4">
-                    <!-- Alertas - Active -->
-                    <a href="/views/dashboard/alertas.html" class="flex items-center px-3 py-2 text-white/80 hover:bg-white/10 rounded-lg cursor-pointer transition-colors">
-                        <i class="fas fa-bell text-white w-5"></i>
-                        <span class="sidebar-text ml-3">Alertas</span>
-                    </a>
-                </div>
-                
-                <div class="px-4">
-                    <!-- Buscar -->
-                    <a href="/views/dashboard/buscar.html" class="flex items-center px-3 py-2 text-white/80 hover:bg-white/10 rounded-lg cursor-pointer transition-colors">
-                        <i class="fas fa-search text-white w-5"></i>
-                        <span class="sidebar-text ml-3">Buscar</span>
-                    </a>
-                </div>
-            </div>
-            
-            <!-- Parte inferior con Salir -->
-            <div class="sidebar-bottom">
-                <div class="px-4">
-                    <!-- Salir -->
-                    <a href="/index.html" class="flex items-center px-3 py-2 text-white/80 hover:bg-white/10 rounded-lg cursor-pointer transition-colors">
-                        <i class="fas fa-sign-out-alt text-white w-5"></i>
-                        <span class="sidebar-text ml-3">Salir</span>
-                    </a>
-                </div>
-            </div>
-        </nav>
-    </div>
+    <!-- Sidebar Container - Será poblado por SidebarComponent -->
+    <div id="sidebar" class="fixed left-0 top-0 bg-[#8B7EC7] sidebar-expanded sidebar-transition z-40 sidebar-flex"></div>
 
     <div id="mainContent" class="main-expanded sidebar-transition">
         <header class="bg-white h-16">
@@ -426,66 +350,14 @@
     <script type="module" src="/js/modules/homeHandler.js"></script>
     <script type="module" src="/js/components/userMenuComponent.js"></script>
     <script type="module" src="/js/modules/userMenuHandler.js"></script>
+    <script type="module" src="/js/components/sidebarComponent.js"></script>
+    <script type="module" src="/js/modules/sidebarHandler.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            console.log('🚀 Inicializando dashboard...');
+            console.log('🚀 Inicializando dashboard de inicio...');
             
-            // DOM Elements
-            const toggleBtn = document.getElementById('toggleSidebar');
-            const sidebar = document.getElementById('sidebar');
-            const mainContent = document.getElementById('mainContent');
-            const closeAlertBtn = document.getElementById('closeAlertBtn');
-
-            console.log('🔍 Elementos encontrados:', {
-                toggleBtn: !!toggleBtn,
-                sidebar: !!sidebar,
-                mainContent: !!mainContent,
-                closeAlertBtn: !!closeAlertBtn
-            });
-
-            // Initialize states
-            let isCollapsed = false;
-            
-            // Sidebar Toggle
-            if (toggleBtn) {
-                toggleBtn.addEventListener('click', () => {
-                    isCollapsed = !isCollapsed;
-                    if (isCollapsed) {
-                        sidebar.classList.remove('sidebar-expanded');
-                        sidebar.classList.add('sidebar-collapsed');
-                        mainContent.classList.remove('main-expanded');
-                        mainContent.classList.add('main-collapsed');
-                        // Ocultar textos del sidebar
-                        document.querySelectorAll('.sidebar-text').forEach(text => {
-                            text.classList.add('hidden');
-                        });
-                    } else {
-                        sidebar.classList.remove('sidebar-collapsed');
-                        sidebar.classList.add('sidebar-expanded');
-                        mainContent.classList.remove('main-collapsed');
-                        mainContent.classList.add('main-expanded');
-                        // Mostrar textos del sidebar
-                        document.querySelectorAll('.sidebar-text').forEach(text => {
-                            text.classList.remove('hidden');
-                        });
-                    }
-                });
-            }
-
-            // Navigation hover effects
-            const navItems = document.querySelectorAll('nav > div > a');
-            navItems.forEach(item => {
-                if (!item.classList.contains('bg-white/20')) {
-                    item.addEventListener('mouseenter', () => {
-                        item.classList.add('bg-white/10');
-                    });
-                    item.addEventListener('mouseleave', () => {
-                        item.classList.remove('bg-white/10');
-                    });
-                }
-            });
-
             // Close alert functionality
+            const closeAlertBtn = document.getElementById('closeAlertBtn');
             if (closeAlertBtn) {
                 console.log('✅ Inicializando botón de cerrar alerta');
                 closeAlertBtn.addEventListener('click', (e) => {
@@ -501,7 +373,7 @@
                     }
                 });
             } else {
-                console.error('❌ No se encontró el botón de cerrar alerta');
+                console.log('ℹ️ Botón de cerrar alerta no encontrado en esta vista');
             }
 
             // Inicializar HomeHandler para gráficos interactivos
@@ -517,6 +389,7 @@
             };
             
             initHomeHandler();
+            console.log('✅ Dashboard de inicio inicializado');
         });
     </script>
 </body>
