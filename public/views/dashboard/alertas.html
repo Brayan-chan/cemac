@@ -11,6 +11,74 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="/js/tailwind.config.js"></script>
     <script src="/js/utils/sidebarPreloader.js"></script>
+    <style>
+        /* From Uiverse.io by gharsh11032000 */
+        /* The switch - the box around the slider */
+        .switch {
+          font-size: 17px;
+          position: relative;
+          display: inline-block;
+          width: 3.5em;
+          height: 2em;
+        }
+
+        /* Hide default HTML checkbox */
+        .switch input {
+          opacity: 0;
+          width: 0;
+          height: 0;
+        }
+
+        /* The slider */
+        .slider {
+          position: absolute;
+          align-items: center;
+          cursor: pointer;
+          inset: 0;
+          background: white;
+          border-radius: 50px;
+          border: 1px solid #cccccc;
+          overflow: hidden;
+          transition: all 0.4s cubic-bezier(0.215, 0.610, 0.355, 1);
+        }
+
+        .slider:before {
+          position: absolute;
+          content: "";
+          height: 1.4em;
+          width: 1.4em;
+          right: 0.3em;
+          bottom: 0.3em;
+          transform: translateX(150%);
+          background-color: #59d102;
+          border-radius: inherit;
+          transition: all 0.4s cubic-bezier(0.215, 0.610, 0.355, 1);
+        }
+
+        .slider:after {
+          position: absolute;
+          content: "";
+          height: 1.4em;
+          width: 1.4em;
+          left: 0.3em;
+          bottom: 0.3em;
+          background-color: #cccccc;
+          border-radius: inherit;
+          transition: all 0.4s cubic-bezier(0.215, 0.610, 0.355, 1);
+        }
+
+        .switch input:focus + .slider {
+          box-shadow: 0 0 1px #59d102;
+        }
+
+        .switch input:checked + .slider:before {
+          transform: translateY(0);
+        }
+
+        .switch input:checked + .slider::after {
+          transform: translateX(-150%);
+        }
+    </style>
 </head>
 <body class="h-full bg-gray-50">
     <!-- Sidebar Container - Será poblado por SidebarComponent -->
@@ -60,13 +128,38 @@
                 </div>
 
                 <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center space-x-2">
+                    <div class="flex flex-wrap items-center justify-between gap-4">
+                        <div class="flex flex-wrap items-center space-x-4">
                             <div class="flex items-center border border-gray-300 rounded-lg px-3 py-2">
                                 <i class="fas fa-calendar text-gray-400 mr-2"></i>
-                                <input type="date" id="startDate" class="border-0 text-sm focus:outline-none" value="2025-08-11">
+                                <input type="date" id="startDateFilter" class="border-0 text-sm focus:outline-none" placeholder="Desde">
                                 <span class="mx-2 text-gray-400">-</span>
-                                <input type="date" id="endDate" class="border-0 text-sm focus:outline-none" value="2025-08-11">
+                                <input type="date" id="endDateFilter" class="border-0 text-sm focus:outline-none" placeholder="Hasta">
+                            </div>
+
+                            <select id="priorityFilter" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-[#8B7EC7] focus:border-[#8B7EC7]">
+                                <option value="">Todas las prioridades</option>
+                                <option value="critica">Crítica</option>
+                                <option value="urgente">Urgente</option>
+                                <option value="alta">Alta</option>
+                                <option value="media">Media</option>
+                                <option value="baja">Baja</option>
+                            </select>
+
+                            <select id="statusFilter" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-[#8B7EC7] focus:border-[#8B7EC7]">
+                                <option value="">Todos los estados</option>
+                                <option value="pendiente">Pendiente</option>
+                                <option value="en_proceso">En Proceso</option>
+                                <option value="atendido">Atendido</option>
+                                <option value="descartado">Descartado</option>
+                            </select>
+
+                            <div class="flex items-center space-x-3">
+                                <label class="switch">
+                                    <input type="checkbox" id="showDiscardedToggle">
+                                    <span class="slider"></span>
+                                </label>
+                                <span class="text-sm text-gray-600">Mostrar descartadas</span>
                             </div>
                         </div>
 
@@ -74,16 +167,34 @@
                             <div class="flex items-center space-x-2">
                                 <span class="text-sm text-gray-600">Ordenar por:</span>
                                 <select id="sortFilter" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-[#8B7EC7] focus:border-[#8B7EC7]">
-                                    <option value="date_desc">Defecto</option>
-                                    <option value="date_asc">Fecha (más antigua)</option>
-                                    <option value="priority_desc">Prioridad (alta a baja)</option>
-                                    <option value="priority_asc">Prioridad (baja a alta)</option>
+                                    <option value="date">Fecha</option>
+                                    <option value="priority">Prioridad</option>
+                                    <option value="status">Estado</option>
+                                </select>
+                                <select id="sortOrderFilter" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-[#8B7EC7] focus:border-[#8B7EC7]">
+                                    <option value="desc">Descendente</option>
+                                    <option value="asc">Ascendente</option>
                                 </select>
                             </div>
 
                             <button id="applyFiltersBtn" class="flex items-center px-4 py-2 bg-[#8B7EC7] text-white rounded-lg hover:bg-[#7A6DB4] transition-colors">
                                 <i class="fas fa-filter mr-2"></i>
                                 Filtrar
+                            </button>
+
+                            <button id="clearFiltersBtn" class="flex items-center px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                                <i class="fas fa-times mr-2"></i>
+                                Limpiar
+                            </button>
+
+                            <button id="refreshAlertsBtn" class="flex items-center px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                                <i class="fas fa-refresh mr-2"></i>
+                                Actualizar
+                            </button>
+
+                            <button id="markAllReadBtn" class="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+                                <i class="fas fa-check-double mr-2"></i>
+                                Marcar Todas
                             </button>
                         </div>
                     </div>
@@ -106,20 +217,36 @@
                             <p class="text-gray-600">No se encontraron alertas con los filtros aplicados.</p>
                         </div>
                     </div>
+
+                    <!-- Contenedor de alertas que será poblado por AlertsHandler -->
+                    <div id="alertsList"></div>
+
+                    <!-- Información de alertas -->
+                    <div class="flex items-center justify-between mt-4">
+                        <div id="alertsCount" class="text-sm text-gray-600">
+                            Cargando alertas...
+                        </div>
+                        <button id="generateAlertsBtn" class="hidden px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+                            <i class="fas fa-plus-circle mr-2"></i>
+                            Generar Alertas
+                        </button>
+                    </div>
                 </div>
             </div>
 
             <!-- Paginador fijo en la parte inferior -->
-            <div id="paginationContainer" class="flex items-center justify-center space-x-2 py-4 bg-white border-t border-gray-200">
+            <div class="flex items-center justify-center space-x-2 py-4 bg-white border-t border-gray-200">
                 <button id="prevPageBtn" class="flex items-center px-3 py-2 text-gray-500 hover:text-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
                     <i class="fas fa-chevron-left mr-2 text-sm"></i>
-                    Previous
+                    Anterior
                 </button>
                 
-                <div id="paginationNumbers" class="flex items-center space-x-1"></div>
+                <div id="pageInfo" class="px-4 py-2 text-sm text-gray-600">
+                    Página 1 de 1
+                </div>
                 
                 <button id="nextPageBtn" class="flex items-center px-3 py-2 text-gray-500 hover:text-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
-                    Next
+                    Siguiente
                     <i class="fas fa-chevron-right ml-2 text-sm"></i>
                 </button>
             </div>
@@ -130,10 +257,14 @@
         <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
             <div class="p-6">
                 <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-lg font-semibold text-gray-900">Acciones de Alerta</h3>
+                    <h3 id="alertActionTitle" class="text-lg font-semibold text-gray-900">Acciones de Alerta</h3>
                     <button id="closeActionModal" class="text-gray-400 hover:text-gray-600">
                         <i class="fas fa-times"></i>
                     </button>
+                </div>
+
+                <div id="alertActionDetails" class="mb-4">
+                    <!-- Detalles de la alerta serán agregados por JavaScript -->
                 </div>
                 
                 <div class="space-y-3">
@@ -175,12 +306,11 @@
 
     <script type="module" src="/js/services/authService.js"></script>
     <script type="module" src="/js/utils/uiUtils.js"></script>
-    <script type="module" src="/js/modules/dashboardHandler.js"></script>
-    <script type="module" src="/js/services/inventoryService.js"></script>
-    <script type="module" src="/js/modules/alertsHandler.js"></script>
     <script type="module" src="/js/components/userMenuComponent.js"></script>
     <script type="module" src="/js/modules/userMenuHandler.js"></script>
     <script type="module" src="/js/components/sidebarComponent.js"></script>
     <script type="module" src="/js/modules/sidebarHandler.js"></script>
+    <script type="module" src="/js/services/alertsService.js"></script>
+    <script type="module" src="/js/modules/alertsHandler.js"></script>
 </body>
 </html>
