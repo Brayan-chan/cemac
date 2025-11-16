@@ -50,6 +50,32 @@ export class SalesService {
   }
 
   /**
+   * Obtener lista de vendedores del sistema
+   */
+  async getVendedores(includeInactive = false) {
+    try {
+      const params = new URLSearchParams()
+      if (includeInactive) params.append("includeInactive", "true")
+
+      const response = await fetch(`${this.baseURL}/sales/users/vendedores?${params}`, {
+        method: "GET",
+        headers: this.getAuthHeaders(),
+      })
+
+      if (!response.ok) {
+        throw new Error(`Error ${response.status}: ${response.statusText}`)
+      }
+
+      const data = await response.json()
+      console.log("🔄 Vendedores obtenidos de la API:", data)
+      return data
+    } catch (error) {
+      console.error("Error obteniendo vendedores:", error)
+      throw error
+    }
+  }
+
+  /**
    * Crear nueva venta
    */
   async createSale(saleData) {

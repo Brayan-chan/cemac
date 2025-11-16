@@ -3,10 +3,12 @@
  * Gestiona la interacción del usuario con el sistema de ventas
  */
 import { SalesService } from "../services/salesService.js"
+import { UserService } from "../services/userService.js"
 
 export class SalesHandler {
   constructor(customerHandler = null) {
     this.salesService = new SalesService()
+    this.userService = new UserService()
     this.customerHandler = customerHandler
     this.currentSale = {
       cliente: "",
@@ -137,6 +139,9 @@ export class SalesHandler {
     try {
       console.log("🚀 Inicializando SalesHandler...")
       
+      // Inicializar vendedor con usuario actual
+      this.initializeCurrentUserAsVendor()
+      
       // Inicializar daily counter manager
       await this.initializeDailyCounterManager()
       
@@ -153,6 +158,50 @@ export class SalesHandler {
     } catch (error) {
       console.error("❌ Error inicializando SalesHandler:", error)
       this.showError("Error inicializando el sistema de ventas")
+    }
+  }
+
+  /**
+   * Inicializar usuario actual como vendedor por defecto
+   */
+  initializeCurrentUserAsVendor() {
+    try {
+      const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}')
+      
+      if (currentUser.uid || currentUser.id) {
+        const userName = currentUser.firstName 
+          ? `${currentUser.firstName}${currentUser.lastName ? ' ' + currentUser.lastName : ''}`.trim()
+          : currentUser.username || currentUser.email
+          
+        // Actualizar currentSale con usuario actual
+        this.currentSale.vendedor = userName
+        this.currentSale.vendedorInfo = {
+          id: currentUser.uid || currentUser.id, // Usar uid preferentemente
+          name: userName,
+          role: currentUser.role || 'user',
+          email: currentUser.email,
+          firstName: currentUser.firstName,
+          lastName: currentUser.lastName,
+          isFallback: false
+        }
+        
+        console.log('👤 Usuario actual inicializado como vendedor por defecto:', this.currentSale.vendedorInfo)
+        
+        // Actualizar display si existe
+        const selectedVendorDisplay = document.getElementById('selectedVendorDisplay')
+        if (selectedVendorDisplay) {
+          selectedVendorDisplay.textContent = userName
+          selectedVendorDisplay.classList.remove('text-gray-500')
+          selectedVendorDisplay.classList.add('text-gray-900')
+        }
+        
+        // Mostrar información del vendedor
+        this.displayVendorInfo(this.currentSale.vendedorInfo)
+      } else {
+        console.log('ℹ️ No se encontró información de usuario actual para vendedor')
+      }
+    } catch (error) {
+      console.error('❌ Error inicializando usuario actual como vendedor:', error)
     }
   }
 
@@ -176,6 +225,9 @@ export class SalesHandler {
    * Vincular eventos del DOM
    */
   bindEvents() {
+    // Interactive vendor selector
+    this.initializeVendorSelector()
+    
     // Búsqueda de productos
     const productSearchInput = document.querySelector('input[placeholder="Buscar producto..."]')
     if (productSearchInput) {
@@ -187,7 +239,32 @@ export class SalesHandler {
     const vendedorSelect = document.querySelector("select")
     if (vendedorSelect) {
       vendedorSelect.addEventListener("change", (e) => {
-        this.currentSale.vendedor = e.target.value
+        const selectedOption = e.target.selectedOptions[0]
+        const userName = e.target.value
+        const userId = selectedOption?.dataset?.userId
+        const userRole = selectedOption?.dataset?.role
+        const isFallback = selectedOption?.dataset?.fallback
+        
+        this.currentSale.vendedor = userName
+        
+        // Almacenar información adicional del vendedor
+        this.currentSale.vendedorInfo = {
+          id: userId,
+          name: userName,
+          role: userRole,
+          isFallback: isFallback === "true"
+        }
+        
+        // Logging para debugging
+        console.log("👤 Vendedor seleccionado:", {
+          nombre: userName,
+          id: userId,
+          rol: userRole,
+          esFallback: isFallback
+        })
+        
+        // Mostrar información del vendedor si está disponible
+        this.displayVendorInfo(this.currentSale.vendedorInfo)
       })
     }
 
@@ -783,10 +860,31 @@ export class SalesHandler {
         this.currentSale.cliente = clienteInput.value.replace(/\s+/g, ' ').trim()
       }
 
-      // Preparar datos de la venta
+      // Determinar vendedor para la venta
+      let vendedorId = null
+      let vendedorName = "No asignado"
+      
+      if (this.currentSale.vendedorInfo && this.currentSale.vendedorInfo.id && this.currentSale.vendedorInfo.name !== "No asignado") {
+        // Usar vendedor seleccionado
+        vendedorId = this.currentSale.vendedorInfo.id
+        vendedorName = this.currentSale.vendedorInfo.name
+        console.log('✅ Usando vendedor seleccionado:', { id: vendedorId, name: vendedorName })
+      } else {
+        // Intentar usar usuario actual autenticado como fallback
+        const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}')
+        if (currentUser.uid || currentUser.id) {
+          vendedorId = currentUser.uid || currentUser.id
+          vendedorName = currentUser.firstName 
+            ? `${currentUser.firstName}${currentUser.lastName ? ' ' + currentUser.lastName : ''}`.trim()
+            : currentUser.username || currentUser.email
+          console.log('🔄 Usando usuario actual como vendedor:', { id: vendedorId, name: vendedorName })
+        }
+      }
+
+      // Preparar datos de la venta según la nueva API
       const saleData = {
         cliente: this.currentSale.cliente.trim() || "Cliente General",
-        vendedor: this.currentSale.vendedor || "No asignado",
+        vendedorId: vendedorId, // Enviar UID del vendedor, no el nombre
         products: this.currentSale.products.map((product) => ({
           productId: product.productId,
           quantity: product.quantity,
@@ -796,6 +894,7 @@ export class SalesHandler {
         iva: this.currentSale.iva,
         paymentMethod: this.currentSale.paymentMethod,
         notes: this.currentSale.notes,
+        vendedorInfo: this.currentSale.vendedorInfo || null, // Info adicional del vendedor (solo para logging)
       }
 
       // Agregar customerId si hay un cliente seleccionado
@@ -807,7 +906,8 @@ export class SalesHandler {
         })
       }
 
-      console.log("Procesando venta:", saleData)
+      console.log("📤 Datos de venta a enviar:", saleData)
+      console.log("👤 Vendedor asignado:", { id: vendedorId, name: vendedorName })
 
       // Crear venta
       const response = await this.salesService.createSale(saleData)
@@ -852,6 +952,7 @@ export class SalesHandler {
     this.currentSale = {
       cliente: currentCustomer,
       vendedor: this.currentSale.vendedor, // Mantener vendedor seleccionado
+      vendedorInfo: this.currentSale.vendedorInfo, // Mantener info del vendedor
       products: [],
       descuento: 0,
       iva: 0,
@@ -866,7 +967,7 @@ export class SalesHandler {
       clienteInput.value = ""
     }
     
-    const vendedorSelect = document.querySelector("select")
+    // NO limpiar el select de vendedor - mantener selección
     const productSearchInput = document.querySelector('input[placeholder="Buscar producto..."]')
 
     // Limpiar campos de producto siempre
@@ -880,6 +981,11 @@ export class SalesHandler {
 
     this.updateProductTable()
     this.updateTotals()
+    
+    // Mantener información del vendedor visible
+    if (this.currentSale.vendedorInfo) {
+      this.displayVendorInfo(this.currentSale.vendedorInfo)
+    }
   }
 
   /**
@@ -1331,20 +1437,594 @@ export class SalesHandler {
   }
 
   /**
+   * Abrir dropdown de vendedores
+   */
+  openVendorDropdown() {
+    const vendorDropdown = document.getElementById('vendorDropdown')
+    const vendorSearchInput = document.getElementById('vendorSearchInput')
+    const vendorSelector = document.getElementById('vendorSelector')
+    
+    if (vendorDropdown) {
+      vendorDropdown.classList.remove('hidden')
+      
+      // Enfocar input de búsqueda
+      setTimeout(() => {
+        if (vendorSearchInput) {
+          vendorSearchInput.focus()
+        }
+      }, 100)
+      
+      // Cambiar ícono
+      const chevron = vendorSelector.querySelector('i')
+      if (chevron) {
+        chevron.classList.remove('fa-chevron-down')
+        chevron.classList.add('fa-chevron-up')
+      }
+    }
+  }
+  
+  /**
+   * Cerrar dropdown de vendedores
+   */
+  closeVendorDropdown() {
+    const vendorDropdown = document.getElementById('vendorDropdown')
+    const vendorSearchInput = document.getElementById('vendorSearchInput')
+    const vendorSelector = document.getElementById('vendorSelector')
+    
+    if (vendorDropdown) {
+      vendorDropdown.classList.add('hidden')
+      
+      // Limpiar búsqueda
+      if (vendorSearchInput) {
+        vendorSearchInput.value = ''
+        this.filterVendors('')
+      }
+      
+      // Cambiar ícono
+      const chevron = vendorSelector.querySelector('i')
+      if (chevron) {
+        chevron.classList.remove('fa-chevron-up')
+        chevron.classList.add('fa-chevron-down')
+      }
+    }
+  }
+  
+  /**
+   * Filtrar vendedores por término de búsqueda
+   */
+  filterVendors(searchTerm) {
+    const term = searchTerm.toLowerCase().trim()
+    
+    this.filteredVendorUsers = this.vendorUsers.filter(user => {
+      const name = (user.displayName || '').toLowerCase()
+      const role = (user.role || '').toLowerCase()
+      const email = (user.email || '').toLowerCase()
+      
+      return name.includes(term) || role.includes(term) || email.includes(term)
+    })
+    
+    this.renderVendorOptions()
+  }
+  
+  /**
+   * Seleccionar primer vendedor filtrado
+   */
+  selectFirstFilteredVendor() {
+    if (this.filteredVendorUsers.length > 0) {
+      this.selectVendor(this.filteredVendorUsers[0])
+    }
+  }
+  
+  /**
+   * Seleccionar vendedor
+   */
+  selectVendor(vendor) {
+    const selectedVendorDisplay = document.getElementById('selectedVendorDisplay')
+    
+    // Actualizar estado interno
+    this.currentSale.vendedor = vendor.displayName
+    this.currentSale.vendedorInfo = {
+      id: vendor.id,
+      name: vendor.displayName,
+      role: vendor.role,
+      email: vendor.email,
+      isFallback: vendor.isFallback || false
+    }
+    
+    // Actualizar display
+    if (selectedVendorDisplay) {
+      selectedVendorDisplay.textContent = vendor.displayName
+      selectedVendorDisplay.classList.remove('text-gray-500')
+      selectedVendorDisplay.classList.add('text-gray-900')
+    }
+    
+    // Mostrar información adicional
+    this.displayVendorInfo(this.currentSale.vendedorInfo)
+    
+    // Cerrar dropdown
+    this.closeVendorDropdown()
+    
+    console.log('👤 Vendedor seleccionado:', this.currentSale.vendedorInfo)
+  }
+  
+  /**
+   * Renderizar opciones de vendedores
+   */
+  renderVendorOptions() {
+    const vendorOptions = document.getElementById('vendorOptions')
+    
+    if (!vendorOptions) return
+    
+    if (this.filteredVendorUsers.length === 0) {
+      vendorOptions.innerHTML = `
+        <div class="p-4 text-center text-gray-500 text-sm">
+          <i class="fas fa-user-slash mb-2"></i><br>
+          No se encontraron vendedores
+        </div>
+      `
+      return
+    }
+    
+    vendorOptions.innerHTML = this.filteredVendorUsers.map(user => {
+      const roleClass = this.getRoleBadgeClass(user.role)
+      
+      return `
+        <div class="vendor-option ${user.id === this.currentSale.vendedorInfo?.id ? 'selected' : ''}" data-user-id="${user.id}">
+          <div class="flex items-center justify-between">
+            <div class="flex-1">
+              <div class="font-medium text-gray-900">${user.displayName}</div>
+              <div class="text-sm text-gray-500">${user.email || 'Sin email'}</div>
+            </div>
+            <div class="ml-3">
+              <span class="vendor-role-badge ${roleClass}">${user.role || 'empleado'}</span>
+              ${user.isFallback ? '<i class="fas fa-exclamation-triangle text-orange-500 ml-2 text-xs"></i>' : ''}
+            </div>
+          </div>
+        </div>
+      `
+    }).join('')
+    
+    // Agregar eventos de clic
+    vendorOptions.querySelectorAll('.vendor-option').forEach(option => {
+      option.addEventListener('click', () => {
+        const userId = option.dataset.userId
+        const user = this.filteredVendorUsers.find(u => u.id === userId)
+        if (user) {
+          this.selectVendor(user)
+        }
+      })
+    })
+  }
+  
+  /**
+   * Obtener clase CSS para badge de rol
+   */
+  getRoleBadgeClass(role) {
+    switch (role?.toLowerCase()) {
+      case 'admin':
+      case 'administrador':
+        return 'admin'
+      case 'manager':
+      case 'gerente':
+        return 'manager'
+      default:
+        return ''
+    }
+  }
+
+  /**
+   * Inicializar selector interactivo de vendedores
+   */
+  initializeVendorSelector() {
+    const vendorSelector = document.getElementById('vendorSelector')
+    const vendorDropdown = document.getElementById('vendorDropdown')
+    const vendorSearchInput = document.getElementById('vendorSearchInput')
+    const selectedVendorDisplay = document.getElementById('selectedVendorDisplay')
+    
+    this.vendorUsers = [] // Almacenar lista de usuarios
+    this.filteredVendorUsers = [] // Lista filtrada
+    
+    if (!vendorSelector || !vendorDropdown || !vendorSearchInput) {
+      console.warn('⚠️ Elementos del selector de vendedores no encontrados')
+      return
+    }
+    
+    console.log('🔧 Inicializando selector de vendedores...')
+    
+    // Abrir/cerrar dropdown
+    vendorSelector.addEventListener('click', (e) => {
+      e.stopPropagation()
+      const isOpen = !vendorDropdown.classList.contains('hidden')
+      console.log('👆 Click en selector, dropdown abierto:', isOpen)
+      
+      if (isOpen) {
+        this.closeVendorDropdown()
+      } else {
+        this.openVendorDropdown()
+      }
+    })
+    
+    // Búsqueda en tiempo real
+    vendorSearchInput.addEventListener('input', (e) => {
+      console.log('🔍 Búsqueda:', e.target.value)
+      this.filterVendors(e.target.value)
+    })
+    
+    // Prevenir cierre del dropdown al hacer clic dentro
+    vendorDropdown.addEventListener('click', (e) => {
+      e.stopPropagation()
+    })
+    
+    // Cerrar al hacer clic fuera
+    document.addEventListener('click', (e) => {
+      if (!vendorSelector.contains(e.target) && !vendorDropdown.contains(e.target)) {
+        this.closeVendorDropdown()
+      }
+    })
+    
+    // Navegación con teclado
+    vendorSearchInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        this.closeVendorDropdown()
+      } else if (e.key === 'Enter') {
+        e.preventDefault()
+        this.selectFirstFilteredVendor()
+      }
+    })
+  }
+  
+  /**
+   * Abrir dropdown de vendedores
+   */
+  openVendorDropdown() {
+    const vendorDropdown = document.getElementById('vendorDropdown')
+    const vendorSearchInput = document.getElementById('vendorSearchInput')
+    const vendorSelector = document.getElementById('vendorSelector')
+    
+    if (vendorDropdown) {
+      vendorDropdown.classList.remove('hidden')
+      
+      // Enfocar input de búsqueda
+      setTimeout(() => {
+        if (vendorSearchInput) {
+          vendorSearchInput.focus()
+        }
+      }, 100)
+      
+      // Cambiar ícono
+      const chevron = vendorSelector.querySelector('i')
+      if (chevron) {
+        chevron.classList.remove('fa-chevron-down')
+        chevron.classList.add('fa-chevron-up')
+      }
+    }
+  }
+  
+  /**
+   * Cerrar dropdown de vendedores
+   */
+  closeVendorDropdown() {
+    const vendorDropdown = document.getElementById('vendorDropdown')
+    const vendorSearchInput = document.getElementById('vendorSearchInput')
+    const vendorSelector = document.getElementById('vendorSelector')
+    
+    if (vendorDropdown) {
+      vendorDropdown.classList.add('hidden')
+      
+      // Limpiar búsqueda
+      if (vendorSearchInput) {
+        vendorSearchInput.value = ''
+        this.filterVendors('')
+      }
+      
+      // Cambiar ícono
+      const chevron = vendorSelector.querySelector('i')
+      if (chevron) {
+        chevron.classList.remove('fa-chevron-up')
+        chevron.classList.add('fa-chevron-down')
+      }
+    }
+  }
+  
+  /**
+   * Filtrar vendedores por término de búsqueda
+   */
+  filterVendors(searchTerm) {
+    const term = searchTerm.toLowerCase().trim()
+    
+    this.filteredVendorUsers = this.vendorUsers.filter(user => {
+      const name = (user.displayName || '').toLowerCase()
+      const role = (user.role || '').toLowerCase()
+      const email = (user.email || '').toLowerCase()
+      
+      return name.includes(term) || role.includes(term) || email.includes(term)
+    })
+    
+    this.renderVendorOptions()
+  }
+  
+  /**
+   * Seleccionar primer vendedor filtrado
+   */
+  selectFirstFilteredVendor() {
+    if (this.filteredVendorUsers.length > 0) {
+      this.selectVendor(this.filteredVendorUsers[0])
+    }
+  }
+  
+  /**
+   * Seleccionar vendedor
+   */
+  selectVendor(vendor) {
+    const selectedVendorDisplay = document.getElementById('selectedVendorDisplay')
+    
+    // Actualizar estado interno
+    this.currentSale.vendedor = vendor.displayName
+    this.currentSale.vendedorInfo = {
+      id: vendor.id,
+      name: vendor.displayName,
+      role: vendor.role,
+      email: vendor.email,
+      isFallback: vendor.isFallback || false
+    }
+    
+    // Actualizar display
+    if (selectedVendorDisplay) {
+      selectedVendorDisplay.textContent = vendor.displayName
+      selectedVendorDisplay.classList.remove('text-gray-500')
+      selectedVendorDisplay.classList.add('text-gray-900')
+    }
+    
+    // Mostrar información adicional
+    this.displayVendorInfo(this.currentSale.vendedorInfo)
+    
+    // Cerrar dropdown
+    this.closeVendorDropdown()
+    
+    console.log('👤 Vendedor seleccionado:', this.currentSale.vendedorInfo)
+  }
+  
+  /**
+   * Renderizar opciones de vendedores
+   */
+  renderVendorOptions() {
+    const vendorOptions = document.getElementById('vendorOptions')
+    
+    if (!vendorOptions) return
+    
+    if (this.filteredVendorUsers.length === 0) {
+      vendorOptions.innerHTML = `
+        <div class="p-4 text-center text-gray-500 text-sm">
+          <i class="fas fa-user-slash mb-2"></i><br>
+          No se encontraron vendedores
+        </div>
+      `
+      return
+    }
+    
+    vendorOptions.innerHTML = this.filteredVendorUsers.map(user => {
+      const roleClass = this.getRoleBadgeClass(user.role)
+      
+      return `
+        <div class="vendor-option ${user.id === this.currentSale.vendedorInfo?.id ? 'selected' : ''}" data-user-id="${user.id}">
+          <div class="flex items-center justify-between">
+            <div class="flex-1">
+              <div class="font-medium text-gray-900">${user.displayName}</div>
+              <div class="text-sm text-gray-500">${user.email || 'Sin email'}</div>
+            </div>
+            <div class="ml-3">
+              <span class="vendor-role-badge ${roleClass}">${user.role || 'empleado'}</span>
+              ${user.isFallback ? '<i class="fas fa-exclamation-triangle text-orange-500 ml-2 text-xs"></i>' : ''}
+            </div>
+          </div>
+        </div>
+      `
+    }).join('')
+    
+    // Agregar eventos de clic con mejor debugging
+    const options = vendorOptions.querySelectorAll('.vendor-option')
+    console.log('🔗 Agregando eventos a', options.length, 'opciones')
+    
+    options.forEach((option, index) => {
+      option.addEventListener('click', (e) => {
+        e.stopPropagation()
+        console.log('🖱️ Click en opción', index, 'elemento:', option)
+        
+        const userId = option.dataset.userId
+        const user = this.filteredVendorUsers.find(u => u.id === userId)
+        
+        console.log('👤 Usuario encontrado:', user)
+        
+        if (user) {
+          this.selectVendor(user)
+        } else {
+          console.error('❌ Usuario no encontrado para ID:', userId)
+        }
+      })
+    })
+  }
+  
+  /**
+   * Obtener clase CSS para badge de rol
+   */
+  getRoleBadgeClass(role) {
+    switch (role?.toLowerCase()) {
+      case 'admin':
+      case 'administrador':
+        return 'admin'
+      case 'manager':
+      case 'gerente':
+        return 'manager'
+      default:
+        return ''
+    }
+  }
+
+  /**
+   * Mostrar información del vendedor seleccionado
+   */
+  displayVendorInfo(vendorInfo) {
+    if (!vendorInfo || !vendorInfo.name) {
+      return
+    }
+    
+    // Buscar o crear contenedor para información del vendedor
+    let vendorInfoContainer = document.getElementById('vendorInfoDisplay')
+    
+    if (!vendorInfoContainer) {
+      // Crear contenedor si no existe
+      const vendorSelector = document.getElementById('vendorSelector')
+      if (vendorSelector && vendorSelector.parentElement) {
+        vendorInfoContainer = document.createElement('div')
+        vendorInfoContainer.id = 'vendorInfoDisplay'
+        vendorInfoContainer.className = 'mt-2 text-xs'
+        vendorSelector.parentElement.appendChild(vendorInfoContainer)
+      }
+    }
+    
+    if (vendorInfoContainer) {
+      if (vendorInfo.name === 'No asignado') {
+        vendorInfoContainer.innerHTML = ''
+      } else if (vendorInfo.isFallback) {
+        vendorInfoContainer.innerHTML = `
+          <div class="flex items-center gap-2 text-orange-600 bg-orange-50 px-2 py-1 rounded">
+            <i class="fas fa-exclamation-triangle text-xs"></i>
+            <span>Opción de respaldo - ${vendorInfo.name}</span>
+          </div>
+        `
+      } else if (vendorInfo.role) {
+        vendorInfoContainer.innerHTML = `
+          <div class="flex items-center gap-2 text-green-600 bg-green-50 px-2 py-1 rounded">
+            <i class="fas fa-user-check text-xs"></i>
+            <span>Usuario del sistema - Rol: ${vendorInfo.role}</span>
+          </div>
+        `
+      } else {
+        vendorInfoContainer.innerHTML = `
+          <div class="flex items-center gap-2 text-blue-600 bg-blue-50 px-2 py-1 rounded">
+            <i class="fas fa-user text-xs"></i>
+            <span>Usuario registrado</span>
+          </div>
+        `
+      }
+    }
+  }
+
+  /**
    * Cargar datos iniciales
    */
   async loadInitialData() {
-    // Cargar vendedores disponibles
-    const vendedorSelect = document.querySelector("select")
-    if (vendedorSelect) {
-      // Por ahora usar vendedores estáticos, se puede mejorar con endpoint de usuarios
-      vendedorSelect.innerHTML = `
-                <option value="">No asignado</option>
-                <option value="María García">María García</option>
-                <option value="Carlos López">Carlos López</option>
-                <option value="Ana Rodríguez">Ana Rodríguez</option>
-                <option value="Luis Martín">Luis Martín</option>
-            `
+    // Cargar vendedores disponibles desde la nueva API de vendedores
+    try {
+      console.log("🔄 Cargando vendedores desde la API de ventas...")
+      
+      // Mostrar estado de carga
+      this.showVendorLoadingState()
+      
+      // Obtener vendedores desde la API de ventas
+      const response = await this.salesService.getVendedores(false) // Solo activos
+      console.log("👥 Respuesta de vendedores:", response)
+      
+      // Extraer la lista de vendedores desde la respuesta
+      const vendedores = response.vendedores || []
+      console.log("📋 Vendedores encontrados:", vendedores.length)
+      
+      // Transformar vendedores para el selector
+      this.vendorUsers = vendedores.map(vendedor => ({
+        id: vendedor.uid, // Usar uid como ID principal
+        displayName: vendedor.fullName || `${vendedor.firstName} ${vendedor.lastName || ''}`.trim(),
+        role: vendedor.role || 'user',
+        email: vendedor.email,
+        firstName: vendedor.firstName,
+        lastName: vendedor.lastName,
+        isActive: vendedor.isActive,
+        isFallback: false
+      }))
+      
+      // Agregar opción "No asignado" al inicio
+      this.vendorUsers.unshift({
+        id: null,
+        displayName: 'No asignado',
+        role: '',
+        email: '',
+        firstName: '',
+        lastName: '',
+        isActive: true,
+        isFallback: false
+      })
+      
+      // Si hay error o no hay vendedores, agregar opciones de fallback
+      if (vendedores.length === 0) {
+        this.vendorUsers.push(
+          {
+            id: 'system',
+            displayName: 'Sistema CEMAC',
+            role: 'sistema',
+            email: '',
+            firstName: 'Sistema',
+            lastName: 'CEMAC',
+            isActive: true,
+            isFallback: true
+          }
+        )
+        console.log("⚠️ No se encontraron vendedores activos, usando opciones de fallback")
+      }
+      
+      // Establecer filtro inicial (todos los vendedores)
+      this.filteredVendorUsers = [...this.vendorUsers]
+      
+      // Renderizar opciones
+      this.renderVendorOptions()
+      
+      console.log("✅ Selector de vendedores inicializado:", this.vendorUsers.length, "opciones disponibles")
+      
+    } catch (error) {
+      console.error("❌ Error cargando vendedores:", error)
+      
+      // Fallback en caso de error
+      this.vendorUsers = [
+        {
+          id: null,
+          displayName: 'No asignado',
+          role: '',
+          email: '',
+          firstName: '',
+          lastName: '',
+          isActive: true,
+          isFallback: false
+        },
+        {
+          id: 'system',
+          displayName: 'Sistema CEMAC',
+          role: 'sistema',
+          email: '',
+          firstName: 'Sistema',
+          lastName: 'CEMAC',
+          isActive: true,
+          isFallback: true
+        }
+      ]
+      
+      this.filteredVendorUsers = [...this.vendorUsers]
+      this.renderVendorOptions()
+      
+      // Mostrar notificación de error al usuario
+      this.showError("No se pudieron cargar los vendedores. Usando opciones por defecto.")
+    }
+  }
+  
+  /**
+   * Mostrar estado de carga en el selector de vendedores
+   */
+  showVendorLoadingState() {
+    const vendorOptions = document.getElementById('vendorOptions')
+    if (vendorOptions) {
+      vendorOptions.innerHTML = `
+        <div class="p-4 text-center text-gray-500">
+          <i class="fas fa-spinner fa-spin mr-2"></i>
+          Cargando usuarios del sistema...
+        </div>
+      `
     }
   }
 
