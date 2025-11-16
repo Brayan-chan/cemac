@@ -137,16 +137,24 @@ export class HomeHandler {
   }
 
   createInventoryChart(inventoryData) {
-    const chartContainer = document.querySelector('.chart-container .donut-chart')?.parentElement
-    if (!chartContainer) return
+    const chartContainers = document.querySelectorAll('.bg-white.rounded-2xl.p-6.shadow-sm.border.border-gray-200')
+    if (!chartContainers || chartContainers.length === 0) return
 
-    // Crear canvas si no existe
-    let canvas = chartContainer.querySelector('canvas')
+    const firstContainer = chartContainers[0]
+    const canvasContainer = firstContainer.querySelector('.chart-container')
+    if (!canvasContainer) return
+
+    let canvas = canvasContainer.querySelector('canvas')
     if (!canvas) {
-      // Reemplazar el SVG con un canvas
-      chartContainer.innerHTML = '<canvas id="homeInventoryChart" width="200" height="200"></canvas>'
+      canvasContainer.innerHTML = '<canvas id="homeInventoryChart" width="200" height="200"></canvas>'
       canvas = document.getElementById('homeInventoryChart')
     }
+
+    const disponiblePct = inventoryData.disponible?.percentage || 0
+    const bajoPct = inventoryData.stockBajo?.percentage || 0
+    const agotadoPct = inventoryData.agotado?.percentage || 0
+
+    console.log("Inventario data:", { disponiblePct, bajoPct, agotadoPct })
 
     this.charts.inventory = new Chart(canvas, {
       type: "doughnut",
@@ -154,11 +162,7 @@ export class HomeHandler {
         labels: ["Stock disponible", "Stock bajo", "Agotado"],
         datasets: [
           {
-            data: [
-              inventoryData.disponible.percentage,
-              inventoryData.stockBajo.percentage,
-              inventoryData.agotado.percentage,
-            ],
+            data: [disponiblePct, bajoPct, agotadoPct],
             backgroundColor: ["#8B7EC7", "#A78BFA", "#E9D5FF"],
             borderColor: "#ffffff",
             borderWidth: 3,
@@ -170,7 +174,7 @@ export class HomeHandler {
         maintainAspectRatio: true,
         plugins: {
           legend: {
-            display: false // Ocultamos la leyenda ya que tenemos una custom
+            display: false
           },
           tooltip: {
             callbacks: {
@@ -183,39 +187,49 @@ export class HomeHandler {
       },
     })
 
-    // Actualizar leyenda personalizada
     this.updateInventoryLegend(inventoryData)
   }
 
   updateInventoryLegend(inventoryData) {
-    const legends = document.querySelectorAll('.chart-container ~ div .flex.items-center.justify-between')
-    
-    if (legends.length >= 2) {
-      // Actualizar primera leyenda (Stock disponible)
-      const firstLegend = legends[0]
-      const firstPercentage = firstLegend.querySelector('span:last-child')
-      if (firstPercentage) {
-        firstPercentage.textContent = `${inventoryData.disponible.percentage}%`
-      }
+    const disponiblePct = inventoryData.disponible?.percentage || 0
+    const bajoPct = inventoryData.stockBajo?.percentage || 0
 
-      // Actualizar segunda leyenda (Stock bajo)
-      const secondLegend = legends[1]
-      const secondPercentage = secondLegend.querySelector('span:last-child')
-      if (secondPercentage) {
-        secondPercentage.textContent = `${inventoryData.stockBajo.percentage}%`
+    const chartSections = document.querySelectorAll('.bg-white.rounded-2xl.p-6.shadow-sm.border.border-gray-200')
+    if (chartSections.length > 0) {
+      const inventorySection = chartSections[0]
+      const legendDivs = inventorySection.querySelectorAll('.space-y-2 > div')
+      
+      console.log("Legend divs encontrados:", legendDivs.length)
+
+      if (legendDivs.length >= 2) {
+        // Actualizar Stock disponible
+        const firstPercentageSpan = legendDivs[0].querySelector('span:last-child')
+        if (firstPercentageSpan) {
+          firstPercentageSpan.textContent = `${disponiblePct}%`
+          console.log("Actualizado Stock disponible a:", disponiblePct)
+        }
+
+        // Actualizar Stock bajo
+        const secondPercentageSpan = legendDivs[1].querySelector('span:last-child')
+        if (secondPercentageSpan) {
+          secondPercentageSpan.textContent = `${bajoPct}%`
+          console.log("Actualizado Stock bajo a:", bajoPct)
+        }
       }
     }
   }
 
   createMonthlyChart(executiveSummary) {
-    const monthlyChartContainers = document.querySelectorAll('.chart-container')
-    const monthlyChartContainer = monthlyChartContainers[1] // El segundo chart-container
-    if (!monthlyChartContainer) return
+    const chartContainers = document.querySelectorAll('.bg-white.rounded-2xl.p-6.shadow-sm.border.border-gray-200')
+    if (!chartContainers || chartContainers.length < 2) return
 
-    // Crear canvas si no existe
-    let canvas = monthlyChartContainer.querySelector('canvas')
+    const secondContainer = chartContainers[1]
+    const canvasContainer = secondContainer.querySelector('.chart-container')
+    if (!canvasContainer) return
+
+    let canvas = canvasContainer.querySelector('canvas')
     if (!canvas) {
-      monthlyChartContainer.innerHTML = '<canvas id="homeMonthlyChart" width="200" height="200"></canvas>'
+      canvasContainer.innerHTML = '<canvas id="homeMonthlyChart" width="200" height="200"></canvas>'
       canvas = document.getElementById('homeMonthlyChart')
     }
 
@@ -223,6 +237,8 @@ export class HomeHandler {
     const targetRevenue = 15000 // Meta mensual ejemplo
     const achieved = (currentMonth.revenue / targetRevenue) * 100
     const remaining = 100 - achieved
+
+    console.log("Monthly data:", { achieved, remaining, revenue: currentMonth.revenue })
 
     this.charts.monthly = new Chart(canvas, {
       type: "doughnut",
@@ -255,29 +271,31 @@ export class HomeHandler {
       },
     })
 
-    // Actualizar leyendas del mes
     this.updateMonthlyLegend(achieved, remaining)
   }
 
   updateMonthlyLegend(achieved, remaining) {
-    const monthlySection = document.querySelectorAll('.bg-white.rounded-2xl')[1] // Segunda sección de gráfico
-    if (!monthlySection) return
+    const chartSections = document.querySelectorAll('.bg-white.rounded-2xl.p-6.shadow-sm.border.border-gray-200')
+    if (chartSections.length > 1) {
+      const monthlySection = chartSections[1]
+      const legendDivs = monthlySection.querySelectorAll('.space-y-2 > div')
+      
+      console.log("Monthly legend divs encontrados:", legendDivs.length)
 
-    const legends = monthlySection.querySelectorAll('.flex.items-center.justify-between')
-    
-    if (legends.length >= 2) {
-      // Actualizar meta alcanzada
-      const achievedLegend = legends[0]
-      const achievedPercentage = achievedLegend.querySelector('span:last-child')
-      if (achievedPercentage) {
-        achievedPercentage.textContent = `${achieved.toFixed(1)}%`
-      }
+      if (legendDivs.length >= 2) {
+        // Actualizar meta alcanzada
+        const achievedPercentageSpan = legendDivs[0].querySelector('span:last-child')
+        if (achievedPercentageSpan) {
+          achievedPercentageSpan.textContent = `${achieved.toFixed(1)}%`
+          console.log("Actualizado Meta alcanzada a:", achieved.toFixed(1))
+        }
 
-      // Actualizar meta pendiente
-      const remainingLegend = legends[1]
-      const remainingPercentage = remainingLegend.querySelector('span:last-child')
-      if (remainingPercentage) {
-        remainingPercentage.textContent = `${remaining.toFixed(1)}%`
+        // Actualizar meta pendiente
+        const remainingPercentageSpan = legendDivs[1].querySelector('span:last-child')
+        if (remainingPercentageSpan) {
+          remainingPercentageSpan.textContent = `${remaining.toFixed(1)}%`
+          console.log("Actualizado Meta pendiente a:", remaining.toFixed(1))
+        }
       }
     }
   }
@@ -364,7 +382,7 @@ export class HomeHandler {
   }
 
   showError(message) {
-    console.error(message)
+    console.error("[v0]", message)
     
     // Crear notificación de error
     const errorDiv = document.createElement('div')
@@ -397,9 +415,4 @@ export class HomeHandler {
     }
     return num.toString()
   }
-}
-
-// Auto-inicializar cuando el DOM esté listo
-if (typeof window !== 'undefined') {
-  window.HomeHandler = HomeHandler
 }
