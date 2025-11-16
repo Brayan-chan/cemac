@@ -12,16 +12,17 @@ class InventoryHandler {
 
     this.inventoryService = new InventoryService()
     this.categoryHandler = new CategoryHandler()
-    // Add filters
+    // Add filters según la documentación de la API
     this.currentFilters = {
       page: 1,
       limit: 10,
+      search: "",
       category: "",
+      availability: "", // limited, unlimited, out-of-stock
       minPrice: null,
       maxPrice: null,
-      sortBy: "name",
-      sortOrder: "asc",
-      search: "",
+      sortBy: "name", // name, price, createdAt, stock
+      sortOrder: "asc", // asc, desc
     }
 
     // Debounced search to avoid excessive API calls
@@ -126,19 +127,29 @@ class InventoryHandler {
     })
 
     document.getElementById("priceFilter")?.addEventListener("change", (e) => {
-      this.currentFilters.price = e.target.value
+      const priceRange = e.target.value
+      if (priceRange) {
+        const [min, max] = this.parsePriceRange(priceRange)
+        this.currentFilters.minPrice = min
+        this.currentFilters.maxPrice = max
+      } else {
+        this.currentFilters.minPrice = null
+        this.currentFilters.maxPrice = null
+      }
       this.currentFilters.page = 1
       this.loadProducts()
     })
 
     document.getElementById("statusFilter")?.addEventListener("change", (e) => {
-      this.currentFilters.status = e.target.value
+      this.currentFilters.availability = e.target.value
       this.currentFilters.page = 1
       this.loadProducts()
     })
 
     document.getElementById("sortFilter")?.addEventListener("change", (e) => {
-      this.currentFilters.sort = e.target.value
+      const [sortBy, sortOrder] = e.target.value.split("-")
+      this.currentFilters.sortBy = sortBy
+      this.currentFilters.sortOrder = sortOrder || "asc"
       this.currentFilters.page = 1
       this.loadProducts()
     })
@@ -146,6 +157,11 @@ class InventoryHandler {
     // Apply filters button
     document.getElementById("applyFiltersBtn")?.addEventListener("click", () => {
       this.loadProducts()
+    })
+
+    // Clear filters button
+    document.getElementById("clearFiltersBtn")?.addEventListener("click", () => {
+      this.clearFilters()
     })
 
     // Add product button
@@ -195,6 +211,11 @@ class InventoryHandler {
       const barcode = document.getElementById("barcode")?.value?.trim()
       const supplierCode = document.getElementById("supplierCode")?.value?.trim()
       const imageFile = document.getElementById("imageInput")?.files[0]
+      
+      // Nuevos campos para gestión por cajas
+      const enableBoxes = document.getElementById("enableBoxes")?.checked
+      const unitsPerBox = parseInt(document.getElementById("unitsPerBox")?.value) || null
+      const boxStock = parseInt(document.getElementById("boxStock")?.value) || null
 
       // Validaciones básicas
       if (!nombre) {
@@ -208,6 +229,18 @@ class InventoryHandler {
       if (!disponible && (!stock || stock < 0)) {
         this.showError("El stock debe ser 0 o mayor cuando no es ilimitado")
         return
+      }
+      
+      // Validaciones para gestión por cajas
+      if (enableBoxes) {
+        if (!unitsPerBox || unitsPerBox < 1) {
+          this.showError("Las piezas por caja debe ser mayor a 0")
+          return
+        }
+        if (boxStock === null || boxStock < 0) {
+          this.showError("El stock de cajas debe ser 0 o mayor")
+          return
+        }
       }
 
       // Agregar datos al FormData
@@ -233,6 +266,12 @@ class InventoryHandler {
       if (imageFile) {
         formData.append("image", imageFile)
       }
+      
+      // Agregar datos de gestión por cajas si están habilitados
+      if (enableBoxes && unitsPerBox && boxStock !== null) {
+        formData.append("unitsPerBox", unitsPerBox)
+        formData.append("boxStock", boxStock)
+      }
 
       const productId = e.target.getAttribute("data-product-id")
       if (productId) {
@@ -255,8 +294,129 @@ class InventoryHandler {
       }
     })
 
+    // Event listeners para gestión por cajas
+    document.getElementById("enableBoxes")?.addEventListener("change", (e) => {
+      const boxFields = document.getElementById("boxManagementFields")
+      const stockCalculation = document.getElementById("stockCalculation")
+      
+      if (e.target.checked) {
+        boxFields?.classList.remove("hidden")
+        stockCalculation?.classList.remove("hidden")
+        this.updateStockCalculation()
+      } else {
+        boxFields?.classList.add("hidden")
+        stockCalculation?.classList.add("hidden")
+        // Limpiar campos
+        document.getElementById("unitsPerBox").value = ""
+        document.getElementById("boxStock").value = ""
+      }
+    })
+
+    // Event listeners para calcular stock automáticamente
+    document.getElementById("unitsPerBox")?.addEventListener("input", () => {
+      this.updateStockCalculation()
+    })
+
+    document.getElementById("boxStock")?.addEventListener("input", () => {
+      this.updateStockCalculation()
+    })
+
+    document.getElementById("stock")?.addEventListener("input", () => {
+      this.updateStockCalculation()
+    })
+
     // Event listeners para gestión de categorías
     this.initializeCategoryEventListeners()
+  }
+
+  // Método para calcular y mostrar el stock total
+  updateStockCalculation() {
+    const enableBoxes = document.getElementById("enableBoxes")?.checked
+    if (!enableBoxes) return
+
+    const unitsPerBox = parseInt(document.getElementById("unitsPerBox")?.value) || 0
+    const boxStock = parseInt(document.getElementById("boxStock")?.value) || 0
+    const looseStock = parseInt(document.getElementById("stock")?.value) || 0
+    
+    const totalFromBoxes = boxStock * unitsPerBox
+    const totalStock = totalFromBoxes + looseStock
+    
+    // Actualizar displays
+    document.getElementById("calculatedStock").textContent = `${totalStock} piezas`
+    document.getElementById("boxDisplay").textContent = boxStock
+    document.getElementById("unitsDisplay").textContent = unitsPerBox
+    document.getElementById("looseDisplay").textContent = looseStock
+  }
+
+  // Método para parsear rangos de precios
+  parsePriceRange(range) {
+    switch (range) {
+      case "0-50":
+        return [0, 50]
+      case "50-100":
+        return [50, 100]
+      case "100-500":
+        return [100, 500]
+      case "500+":
+        return [500, null]
+      default:
+        return [null, null]
+    }
+  }
+
+  // Método para limpiar todos los filtros
+  clearFilters() {
+    // Resetear filtros a valores predeterminados
+    this.currentFilters = {
+      page: 1,
+      limit: 10,
+      search: "",
+      category: "",
+      availability: "",
+      minPrice: null,
+      maxPrice: null,
+      sortBy: "name",
+      sortOrder: "asc",
+    }
+
+    // Resetear elementos del DOM
+    document.getElementById("categoryFilter").value = ""
+    document.getElementById("priceFilter").value = ""
+    document.getElementById("statusFilter").value = ""
+    document.getElementById("sortFilter").value = "name-asc"
+
+    // También limpiar la búsqueda si existe
+    const searchInput = document.getElementById("searchInput")
+    if (searchInput) {
+      searchInput.value = ""
+    }
+
+    // Ocultar indicador de filtros aplicados
+    this.updateFiltersIndicator()
+
+    // Recargar productos
+    this.loadProducts()
+  }
+
+  // Método para mostrar/ocultar indicador de filtros aplicados
+  updateFiltersIndicator() {
+    const filtersApplied = document.getElementById("filtersApplied")
+    if (!filtersApplied) return
+
+    const hasFilters = 
+      this.currentFilters.search ||
+      this.currentFilters.category ||
+      this.currentFilters.availability ||
+      this.currentFilters.minPrice !== null ||
+      this.currentFilters.maxPrice !== null ||
+      this.currentFilters.sortBy !== "name" ||
+      this.currentFilters.sortOrder !== "asc"
+
+    if (hasFilters) {
+      filtersApplied.classList.remove("hidden")
+    } else {
+      filtersApplied.classList.add("hidden")
+    }
   }
 
   // ===== MÉTODOS PARA GESTIÓN DE CATEGORÍAS =====
@@ -343,30 +503,41 @@ class InventoryHandler {
     try {
       this.showLoadingState()
 
-      // Build query parameters - Include search parameter
+      // Build query parameters según la documentación de la API
       const queryParams = {}
       if (this.currentFilters.search) queryParams.search = this.currentFilters.search
       if (this.currentFilters.category) queryParams.category = this.currentFilters.category
-      if (this.currentFilters.price) queryParams.price = this.currentFilters.price
-      if (this.currentFilters.status) queryParams.status = this.currentFilters.status
-      if (this.currentFilters.sort) queryParams.sort = this.currentFilters.sort
+      if (this.currentFilters.availability) queryParams.availability = this.currentFilters.availability
+      if (this.currentFilters.minPrice !== null) queryParams.minPrice = this.currentFilters.minPrice
+      if (this.currentFilters.maxPrice !== null) queryParams.maxPrice = this.currentFilters.maxPrice
       queryParams.page = this.currentFilters.page
       queryParams.limit = this.currentFilters.limit
+      queryParams.sortBy = this.currentFilters.sortBy
+      queryParams.sortOrder = this.currentFilters.sortOrder
 
       console.log("Loading products with filters:", queryParams)
 
       const response = await this.inventoryService.getProducts(queryParams)
+      console.log("API response received:", response)
 
-      // Handle different response structures
-      if (Array.isArray(response)) {
-        this.products = response
-        this.totalProducts = response.length
-        this.totalPages = Math.ceil(this.totalProducts / this.currentFilters.limit)
+      // Manejar la estructura de respuesta de la API según la documentación
+      if (response.success && response.products) {
+        // Respuesta con estructura completa de la API
+        this.products = response.products
+        this.totalProducts = response.pagination?.totalProducts || response.pagination?.total || 0
+        this.totalPages = response.pagination?.totalPages || 1
       } else if (response.products) {
+        // Respuesta directa con productos
         this.products = response.products
         this.totalProducts = response.total || response.products.length
         this.totalPages = response.totalPages || Math.ceil(this.totalProducts / this.currentFilters.limit)
+      } else if (Array.isArray(response)) {
+        // Respuesta directa como array
+        this.products = response
+        this.totalProducts = response.length
+        this.totalPages = 1
       } else {
+        // Respuesta vacía o inválida
         this.products = []
         this.totalProducts = 0
         this.totalPages = 1
@@ -376,11 +547,14 @@ class InventoryHandler {
         count: this.products.length,
         total: this.totalProducts,
         totalPages: this.totalPages,
+        currentPage: this.currentFilters.page,
+        limit: this.currentFilters.limit
       })
 
       this.hideLoadingState()
       this.renderProducts()
       this.updatePagination()
+      this.updateFiltersIndicator() // Actualizar indicador de filtros
     } catch (error) {
       console.error("Error al cargar productos:", error)
       this.hideLoadingState()
@@ -1136,9 +1310,17 @@ class InventoryHandler {
                         }
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
-                        <span class="text-sm text-gray-900">
+                        <div class="text-sm text-gray-900">
                             ${product.stock !== undefined ? `${product.stock} unidades` : "N/A"}
-                        </span>
+                        </div>
+                        ${
+                          product.unitsPerBox && product.boxStock !== undefined
+                            ? `<div class="text-xs text-blue-600 flex items-center gap-1">
+                                 <i class="fas fa-boxes text-xs"></i>
+                                 ${product.boxStock} caja${product.boxStock !== 1 ? 's' : ''} × ${product.unitsPerBox} piezas
+                               </div>`
+                            : ""
+                        }
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
                         <span class="inline-flex px-2 py-1 text-xs font-medium rounded-full ${statusClass}">
@@ -1458,25 +1640,38 @@ class InventoryHandler {
 
   async createProduct(formData) {
     try {
+      console.log("🔄 Creando producto")
       const response = await this.inventoryService.createProduct(formData)
-      this.showSuccess("Producto creado exitosamente")
+      console.log("✅ Producto creado:", response)
+      
+      // Cerrar modal primero
       this.hideAddProductModal()
+      
+      // Recargar productos para mostrar el nuevo producto
       await this.loadProducts()
-
+      
+      this.showSuccess("Producto creado exitosamente")
     } catch (error) {
-      console.error("Error al crear producto:", error)
+      console.error("❌ Error al crear producto:", error)
       this.showError(error.message || "Error al crear el producto")
     }
   }
 
   async updateProduct(productId, productData) {
     try {
-      await this.inventoryService.updateProduct(productId, productData)
-      this.loadProducts()
-      this.hideModal()
+      console.log(`🔄 Actualizando producto ${productId}`)
+      const result = await this.inventoryService.updateProduct(productId, productData)
+      console.log("✅ Producto actualizado:", result)
+      
+      // Cerrar modal primero
+      this.hideAddProductModal()
+      
+      // Recargar productos para mostrar cambios
+      await this.loadProducts()
+      
       this.showSuccess("Producto actualizado exitosamente")
     } catch (error) {
-      console.error("Error al actualizar producto:", error)
+      console.error("❌ Error al actualizar producto:", error)
       this.showError(error.message || "Error al actualizar el producto")
     }
   }
@@ -1532,6 +1727,19 @@ class InventoryHandler {
       stockInput.placeholder = "∞"
     }
 
+    // Reset box management
+    const enableBoxesCheckbox = document.getElementById("enableBoxes")
+    const boxManagementFields = document.getElementById("boxManagementFields")
+    const stockCalculation = document.getElementById("stockCalculation")
+    
+    if (enableBoxesCheckbox) {
+      enableBoxesCheckbox.checked = false
+      boxManagementFields?.classList.add("hidden")
+      stockCalculation?.classList.add("hidden")
+      document.getElementById("unitsPerBox").value = ""
+      document.getElementById("boxStock").value = ""
+    }
+
     // Reset image preview
     const previewContainer = document.getElementById("previewContainer")
     const uploadText = document.getElementById("uploadText")
@@ -1575,6 +1783,19 @@ class InventoryHandler {
     form.elements.precio.value = product.price || ""
     form.elements.stock.value = product.stock || ""
 
+    // Handle promotional price
+    if (form.elements.precioPromocional) {
+      form.elements.precioPromocional.value = product.promotionalPrice || ""
+    }
+
+    // Handle barcodes
+    if (form.elements.barcode) {
+      form.elements.barcode.value = product.barcode || ""
+    }
+    if (form.elements.supplierCode) {
+      form.elements.supplierCode.value = product.supplierCode || ""
+    }
+
     // Handle unlimited availability
     const unlimitedCheckbox = document.getElementById("disponible")
     const stockInput = document.getElementById("stock")
@@ -1584,6 +1805,31 @@ class InventoryHandler {
       stockInput.disabled = isUnlimited
       if (!isUnlimited) {
         stockInput.placeholder = "0"
+      }
+    }
+
+    // Handle box management
+    const enableBoxesCheckbox = document.getElementById("enableBoxes")
+    const boxManagementFields = document.getElementById("boxManagementFields")
+    const stockCalculation = document.getElementById("stockCalculation")
+    const unitsPerBoxInput = document.getElementById("unitsPerBox")
+    const boxStockInput = document.getElementById("boxStock")
+
+    if (enableBoxesCheckbox && boxManagementFields) {
+      const hasBoxes = product.unitsPerBox && product.boxStock !== undefined
+      enableBoxesCheckbox.checked = hasBoxes
+      
+      if (hasBoxes) {
+        boxManagementFields.classList.remove("hidden")
+        stockCalculation?.classList.remove("hidden")
+        unitsPerBoxInput.value = product.unitsPerBox || ""
+        boxStockInput.value = product.boxStock || ""
+        this.updateStockCalculation()
+      } else {
+        boxManagementFields.classList.add("hidden")
+        stockCalculation?.classList.add("hidden")
+        unitsPerBoxInput.value = ""
+        boxStockInput.value = ""
       }
     }
 
