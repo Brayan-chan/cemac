@@ -34,3 +34,56 @@
     flex-shrink: 0;
     padding-bottom: 1rem;
 }
+
+/* Estados del sidebar - MEJORADOS para evitar parpadeo */
+.sidebar-expanded {
+    width: 256px; /* w-64 en Tailwind */
+    transition: width 0.3s ease-in-out;
+}
+
+.sidebar-collapsed {
+    width: 64px; /* w-16 en Tailwind */
+    transition: width 0.3s ease-in-out;
+}
+
+/* Estados del contenido principal - MEJORADOS */
+.main-expanded {
+    margin-left: 256px; /* ml-64 en Tailwind */
+    transition: margin-left 0.3s ease-in-out;
+}
+
+.main-collapsed {
+    margin-left: 64px; /* ml-16 en Tailwind */
+    transition: margin-left 0.3s ease-in-out;
+}
+
+/* Transiciones suaves para texto del sidebar */
+.sidebar-text {
+    transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
+}
+
+.sidebar-text.hidden {
+    opacity: 0;
+    visibility: hidden;
+}
+
+/* Mejorar transición general */
+.sidebar-transition {
+    transition: all 0.3s ease-in-out;
+}
+
+/* Prevenir parpadeo inicial */
+.sidebar-no-transition {
+    transition: none !important;
+}
+
+/* Estados responsive para pantallas pequeñas */
+@media (max-width: 768px) {
+    .sidebar-expanded {
+        width: 200px;
+    }
+    
+    .main-expanded {
+        margin-left: 200px;
+    }
+}
