@@ -74,6 +74,14 @@
                 <div class="flex items-center justify-between mb-6">
                     <h1 class="text-3xl font-bold text-gray-900">Inventario</h1>
                     <div class="flex items-center gap-3">
+                        <button id="manageSuppliersBtn" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors flex items-center gap-2">
+                            <i class="fas fa-solid fa-users"></i>
+                            <span>Proveedores</span>
+                        </button>
+                        <button id="manageBrandsBtn" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors flex items-center gap-2">
+                            <i class="fas fa-tags"></i>
+                            <span>Marcas</span>
+                        </button>
                         <button id="manageCategoriesBtn" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors flex items-center gap-2">
                             <i class="fas fa-tags"></i>
                             <span>Categorías</span>
@@ -87,11 +95,23 @@
 
                 <!-- Filtros -->
                 <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Categoría</label>
                             <select id="categoryFilter" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-[#8B7EC7] focus:border-[#8B7EC7]">
                                 <option value="">Todas las categorías</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Marca</label>
+                            <select id="brandFilter" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-[#8B7EC7] focus:border-[#8B7EC7]">
+                                <option value="">Todas las marcas</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Proveedor</label>
+                            <select id="supplierFilter" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-[#8B7EC7] focus:border-[#8B7EC7]">
+                                <option value="">Todos los proveedores</option>
                             </select>
                         </div>
                         <div>
@@ -148,12 +168,14 @@
                         <table class="w-full">
                             <thead class="bg-gray-50 border-b border-gray-200">
                                 <tr>
-                                    <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Producto</th>
-                                    <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Categoría</th>
-                                    <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Precio</th>
-                                    <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Stock</th>
-                                    <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Estado</th>
-                                    <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Acciones</th>
+                                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Producto</th>
+                                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Categoría</th>
+                                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Marca</th>
+                                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Proveedor</th>
+                                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Precio</th>
+                                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Stock</th>
+                                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Estado</th>
+                                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody id="productsTableBody" class="divide-y divide-gray-200">
@@ -382,6 +404,46 @@
                                 </button>
                             </div>
                         </div>
+
+                        <!-- Sección de Marca -->
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <h3 class="text-sm font-medium text-gray-700 mb-2">
+                                Marca del producto
+                            </h3>
+                            <p class="text-xs text-gray-500 mb-3">
+                                Selecciona la marca del producto
+                            </p>
+                            <div class="brand-selector">
+                                <select id="marca" name="marca"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8B7EC7] mb-2">
+                                    <option value="">Cargando marcas...</option>
+                                </select>
+                                <button type="button" id="addNewBrandBtn" class="w-full px-3 py-2 border border-dashed border-gray-300 text-gray-600 rounded-lg hover:border-[#8B7EC7] hover:text-[#8B7EC7] transition-colors flex items-center justify-center gap-2">
+                                    <i class="fas fa-plus text-sm"></i>
+                                    <span>Agregar nueva marca</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Sección de Proveedor -->
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <h3 class="text-sm font-medium text-gray-700 mb-2">
+                                Proveedor del producto
+                            </h3>
+                            <p class="text-xs text-gray-500 mb-3">
+                                Selecciona el proveedor del producto
+                            </p>
+                            <div class="supplier-selector">
+                                <select id="proveedor" name="proveedor"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8B7EC7] mb-2">
+                                    <option value="">Cargando proveedores...</option>
+                                </select>
+                                <button type="button" id="addNewSupplierBtn" class="w-full px-3 py-2 border border-dashed border-gray-300 text-gray-600 rounded-lg hover:border-[#8B7EC7] hover:text-[#8B7EC7] transition-colors flex items-center justify-center gap-2">
+                                    <i class="fas fa-plus text-sm"></i>
+                                    <span>Agregar nuevo proveedor</span>
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -485,12 +547,280 @@
         </div>
     </div>
 
+    <!-- Modal para gestionar marcas -->
+    <div id="manageBrandsModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 brand-modal">
+        <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-hidden brand-modal-content">
+            <div class="p-6 border-b border-gray-200">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-lg font-semibold text-gray-900">Gestión de Marcas</h3>
+                    <button id="closeBrandsModal" class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="mt-4 flex items-center gap-3">
+                    <div class="flex-1">
+                        <input type="text" id="brandsSearchInput" placeholder="Buscar marcas..." class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-[#8B7EC7] focus:border-[#8B7EC7] brand-search-input">
+                    </div>
+                    <button id="createBrandModalBtn" class="px-4 py-2 bg-[#8B7EC7] text-white rounded-lg hover:bg-[#7A6DB4] transition-colors flex items-center gap-2">
+                        <i class="fas fa-plus"></i>
+                        <span>Nueva</span>
+                    </button>
+                </div>
+            </div>
+            <div class="p-6 overflow-y-auto" style="max-height: calc(90vh - 180px);">
+                <div id="brandsContainer">
+                    <div class="brand-loading text-center py-8">
+                        <i class="fas fa-spinner fa-spin text-[#8B7EC7] text-2xl mb-2"></i>
+                        <div class="text-gray-600">Cargando marcas...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para gestionar proveedores -->
+    <div id="manageSuppliersModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 supplier-modal">
+        <div class="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-hidden supplier-modal-content">
+            <div class="p-6 border-b border-gray-200">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-lg font-semibold text-gray-900">Gestión de Proveedores</h3>
+                    <button id="closeSuppliersModal" class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="mt-4 flex items-center gap-3">
+                    <div class="flex-1">
+                        <input type="text" id="suppliersSearchInput" placeholder="Buscar proveedores..." class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-[#8B7EC7] focus:border-[#8B7EC7] supplier-search-input">
+                    </div>
+                    <button id="createSupplierModalBtn" class="px-4 py-2 bg-[#8B7EC7] text-white rounded-lg hover:bg-[#7A6DB4] transition-colors flex items-center gap-2">
+                        <i class="fas fa-plus"></i>
+                        <span>Nuevo</span>
+                    </button>
+                </div>
+            </div>
+            <div class="p-6 overflow-y-auto" style="max-height: calc(90vh - 180px);">
+                <div id="suppliersContainer">
+                    <div class="supplier-loading text-center py-8">
+                        <i class="fas fa-spinner fa-spin text-[#8B7EC7] text-2xl mb-2"></i>
+                        <div class="text-gray-600">Cargando proveedores...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para crear/editar marca (versión gestión) -->
+    <div id="brandManageFormModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 brand-modal">
+        <div class="bg-white rounded-lg shadow-xl max-w-md w-full brand-modal-content">
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 id="brandManageFormTitle" class="text-lg font-semibold text-gray-900">Nueva Marca</h3>
+                    <button id="closeBrandManageFormModal" class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <form id="brandManageForm" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Nombre de la Marca</label>
+                        <input type="text" id="brandManageName" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-[#8B7EC7] focus:border-[#8B7EC7]" placeholder="Ej: Nike, Apple, Samsung...">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Descripción (Opcional)</label>
+                        <textarea id="brandManageDescription" rows="3" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-[#8B7EC7] focus:border-[#8B7EC7]" placeholder="Descripción de la marca..."></textarea>
+                    </div>
+                    <div class="flex items-center">
+                        <input type="checkbox" id="brandManageIsActive" checked class="h-4 w-4 text-[#8B7EC7] focus:ring-[#8B7EC7] border-gray-300 rounded">
+                        <label for="brandManageIsActive" class="ml-2 block text-sm text-gray-700">Marca activa</label>
+                    </div>
+                    <div class="flex gap-2 pt-4">
+                        <button type="button" id="cancelBrandManageBtn" class="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                            Cancelar
+                        </button>
+                        <button type="submit" id="saveBrandManageBtn" class="flex-1 px-4 py-2 bg-[#8B7EC7] text-white rounded-lg hover:bg-[#7A6DB4] transition-colors">
+                            Guardar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para crear/editar proveedor (versión gestión) -->
+    <div id="supplierManageFormModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 supplier-modal">
+        <div class="bg-white rounded-lg shadow-xl max-w-lg w-full supplier-modal-content">
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 id="supplierManageFormTitle" class="text-lg font-semibold text-gray-900">Nuevo Proveedor</h3>
+                    <button id="closeSupplierManageFormModal" class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <form id="supplierManageForm" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Nombre del Proveedor</label>
+                        <input type="text" id="supplierManageName" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-[#8B7EC7] focus:border-[#8B7EC7]" placeholder="Ej: Distribuidora ABC, Proveedor XYZ...">
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Email de Contacto</label>
+                            <input type="email" id="supplierManageEmail" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-[#8B7EC7] focus:border-[#8B7EC7]" placeholder="contacto@proveedor.com">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
+                            <input type="tel" id="supplierManagePhone" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-[#8B7EC7] focus:border-[#8B7EC7]" placeholder="+52 55 1234 5678">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Dirección</label>
+                        <textarea id="supplierManageAddress" rows="2" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-[#8B7EC7] focus:border-[#8B7EC7]" placeholder="Dirección del proveedor..."></textarea>
+                    </div>
+                    <div class="flex items-center">
+                        <input type="checkbox" id="supplierManageIsActive" checked class="h-4 w-4 text-[#8B7EC7] focus:ring-[#8B7EC7] border-gray-300 rounded">
+                        <label for="supplierManageIsActive" class="ml-2 block text-sm text-gray-700">Proveedor activo</label>
+                    </div>
+                    <div class="flex gap-2 pt-4">
+                        <button type="button" id="cancelSupplierManageBtn" class="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                            Cancelar
+                        </button>
+                        <button type="submit" id="saveSupplierManageBtn" class="flex-1 px-4 py-2 bg-[#8B7EC7] text-white rounded-lg hover:bg-[#7A6DB4] transition-colors">
+                            Guardar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de confirmación para eliminar marca -->
+    <div id="deleteBrandModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 brand-modal">
+        <div class="bg-white rounded-lg shadow-xl max-w-md w-full brand-modal-content">
+            <div class="p-6">
+                <div class="flex items-center justify-center mb-4">
+                    <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                        <i class="fas fa-exclamation-triangle text-red-600 text-xl"></i>
+                    </div>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-900 text-center mb-2">¿Eliminar Marca?</h3>
+                <p id="deleteBrandMessage" class="text-gray-600 text-center mb-6">¿Estás seguro de que deseas eliminar esta marca?</p>
+                <div class="flex gap-2">
+                    <button id="cancelDeleteBrandBtn" class="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                        Cancelar
+                    </button>
+                    <button id="confirmDeleteBrandBtn" class="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
+                        Eliminar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de confirmación para eliminar proveedor -->
+    <div id="deleteSupplierModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 supplier-modal">
+        <div class="bg-white rounded-lg shadow-xl max-w-md w-full supplier-modal-content">
+            <div class="p-6">
+                <div class="flex items-center justify-center mb-4">
+                    <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                        <i class="fas fa-exclamation-triangle text-red-600 text-xl"></i>
+                    </div>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-900 text-center mb-2">¿Eliminar Proveedor?</h3>
+                <p id="deleteSupplierMessage" class="text-gray-600 text-center mb-6">¿Estás seguro de que deseas eliminar este proveedor?</p>
+                <div class="flex gap-2">
+                    <button id="cancelDeleteSupplierBtn" class="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                        Cancelar
+                    </button>
+                    <button id="confirmDeleteSupplierBtn" class="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
+                        Eliminar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para crear/editar marca (desde modal de producto) -->
+    <div id="brandFormModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 brand-modal">
+        <div class="bg-white rounded-lg shadow-xl max-w-md w-full brand-modal-content">
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 id="brandFormTitle" class="text-lg font-semibold text-gray-900">Nueva Marca</h3>
+                    <button id="closeBrandFormModal" class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <form id="brandForm" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Nombre de la Marca</label>
+                        <input type="text" id="brandName" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-[#8B7EC7] focus:border-[#8B7EC7]" placeholder="Ej: Nike, Apple, Samsung...">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Descripción (Opcional)</label>
+                        <textarea id="brandDescription" rows="3" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-[#8B7EC7] focus:border-[#8B7EC7]" placeholder="Descripción de la marca..."></textarea>
+                    </div>
+                    <div class="flex gap-2 pt-4">
+                        <button type="button" id="cancelBrandBtn" class="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                            Cancelar
+                        </button>
+                        <button type="submit" id="saveBrandBtn" class="flex-1 px-4 py-2 bg-[#8B7EC7] text-white rounded-lg hover:bg-[#7A6DB4] transition-colors">
+                            Guardar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para crear/editar proveedor -->
+    <div id="supplierFormModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 supplier-modal">
+        <div class="bg-white rounded-lg shadow-xl max-w-md w-full supplier-modal-content">
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 id="supplierFormTitle" class="text-lg font-semibold text-gray-900">Nuevo Proveedor</h3>
+                    <button id="closeSupplierFormModal" class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <form id="supplierForm" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Nombre del Proveedor</label>
+                        <input type="text" id="supplierName" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-[#8B7EC7] focus:border-[#8B7EC7]" placeholder="Ej: Distribuidora ABC, Proveedor XYZ...">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Email de Contacto</label>
+                        <input type="email" id="supplierEmail" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-[#8B7EC7] focus:border-[#8B7EC7]" placeholder="contacto@proveedor.com">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
+                        <input type="tel" id="supplierPhone" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-[#8B7EC7] focus:border-[#8B7EC7]" placeholder="+52 55 1234 5678">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Dirección (Opcional)</label>
+                        <textarea id="supplierAddress" rows="2" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-[#8B7EC7] focus:border-[#8B7EC7]" placeholder="Dirección del proveedor..."></textarea>
+                    </div>
+                    <div class="flex gap-2 pt-4">
+                        <button type="button" id="cancelSupplierBtn" class="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                            Cancelar
+                        </button>
+                        <button type="submit" id="saveSupplierBtn" class="flex-1 px-4 py-2 bg-[#8B7EC7] text-white rounded-lg hover:bg-[#7A6DB4] transition-colors">
+                            Guardar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <script type="module" src="/js/services/authService.js"></script>
     <script type="module" src="/js/utils/uiUtils.js"></script>
     <script type="module" src="/js/modules/dashboardHandler.js"></script>
     <script type="module" src="/js/services/categoryService.js"></script>
     <script type="module" src="/js/modules/categoryHandler.js"></script>
     <script type="module" src="/js/services/inventoryService.js"></script>
+    <script type="module" src="/js/services/brandsService.js"></script>
+    <script type="module" src="/js/services/suppliersService.js"></script>
     <script type="module" src="/js/modules/inventoryHandler.js"></script>
     <script type="module" src="/js/components/userMenuComponent.js"></script>
     <script type="module" src="/js/modules/userMenuHandler.js"></script>

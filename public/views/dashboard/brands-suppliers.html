@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CEMAC - Marcas y Proveedores</title>
+    <link rel="stylesheet" href="/css/customsidebar.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="icon" type="image/png" sizes="32x32"
+        href="https://res.cloudinary.com/dmyejrbs7/image/upload/v1757894655/CEMAC-LOGO_nrow82.png" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="/js/tailwind.config.js"></script>
+    <script src="/js/utils/sidebarPreloader.js"></script>
+</head>
+
+<body class="h-full bg-gray-50">
+    <!-- Sidebar Container -->
+    <div id="sidebar" class="fixed left-0 top-0 bg-[#8B7EC7] sidebar-expanded sidebar-transition z-40 sidebar-flex">
+    </div>
+
+    <div id="mainContent" class="main-expanded sidebar-transition">
+        <header class="bg-white h-16 border-b border-gray-200">
+            <div class="flex items-center justify-between h-full px-6">
+                <div class="flex items-center space-x-4">
+                    <h1 class="text-xl font-semibold text-gray-900">Marcas y Proveedores</h1>
+                </div>
+                
+                <!-- Header Actions -->
+                <div class="flex items-center space-x-3">
+                    <button id="refreshDataBtn" 
+                        class="flex items-center px-3 py-2 text-sm text-white bg-[#8B7EC7] border border-[#8B7EC7] rounded-lg hover:bg-[#7A6DB8] transition-colors">
+                        <i class="fas fa-sync-alt mr-2"></i>
+                        Actualizar
+                    </button>
+                    
+                    <!-- User Menu Container -->
+                    <div id="userMenuContainer"></div>
+                </div>
+            </div>
+        </header>
+
+        <main class="p-6 bg-gray-50 min-h-screen">
+            <!-- Tabs de Navegación -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 mb-6">
+                <div class="border-b border-gray-200">
+                    <nav class="flex space-x-8 px-6">
+                        <button 
+                            data-tab="brands" 
+                            class="py-4 text-sm font-medium text-purple-600 border-b-2 border-purple-600 active">
+                            <i class="fas fa-tags mr-2"></i>
+                            Marcas
+                        </button>
+                        <button 
+                            data-tab="suppliers" 
+                            class="py-4 text-sm font-medium text-gray-500 border-b-2 border-transparent hover:text-gray-700">
+                            <i class="fas fa-truck mr-2"></i>
+                            Proveedores
+                        </button>
+                    </nav>
+                </div>
+
+                <!-- Contenido de Marcas -->
+                <div data-content="brands" class="p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <div class="flex-1 max-w-md">
+                            <div class="relative">
+                                <input 
+                                    type="text" 
+                                    data-search="brands"
+                                    placeholder="Buscar marcas..." 
+                                    class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent">
+                                <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <div id="brandsStats" class="text-sm text-gray-600"></div>
+                            <button id="addBrandBtn" 
+                                class="flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
+                                <i class="fas fa-plus mr-2"></i>
+                                Nueva Marca
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Contenedor de Marcas -->
+                    <div id="brandsContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <!-- Loading state inicial -->
+                        <div class="col-span-full flex items-center justify-center p-12">
+                            <div class="text-center">
+                                <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+                                <p class="text-gray-600">Cargando marcas...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contenido de Proveedores -->
+                <div data-content="suppliers" class="p-6" style="display: none;">
+                    <div class="flex items-center justify-between mb-6">
+                        <div class="flex-1 max-w-md">
+                            <div class="relative">
+                                <input 
+                                    type="text" 
+                                    data-search="suppliers"
+                                    placeholder="Buscar proveedores..." 
+                                    class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent">
+                                <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <div class="flex items-center space-x-4">
+                                <label class="flex items-center text-sm">
+                                    <input type="checkbox" id="showInactiveSuppliers" class="mr-2">
+                                    Incluir inactivos
+                                </label>
+                                <div id="suppliersStats" class="text-sm text-gray-600"></div>
+                            </div>
+                            <button id="addSupplierBtn" 
+                                class="flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
+                                <i class="fas fa-plus mr-2"></i>
+                                Nuevo Proveedor
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Contenedor de Proveedores -->
+                    <div id="suppliersContainer" class="space-y-6">
+                        <!-- Loading state inicial -->
+                        <div class="flex items-center justify-center p-12">
+                            <div class="text-center">
+                                <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+                                <p class="text-gray-600">Cargando proveedores...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal para Marcas -->
+    <div id="brandModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-xl p-6 max-w-md w-full mx-4">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-semibold" id="brandModalTitle">Nueva Marca</h3>
+                <button class="text-gray-500 hover:text-gray-700" onclick="document.getElementById('brandModal').classList.add('hidden')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <form id="brandForm">
+                <input type="hidden" id="brandId" name="brandId">
+                
+                <div class="mb-4">
+                    <label for="brandName" class="block text-sm font-medium text-gray-700 mb-2">
+                        Nombre de la Marca *
+                    </label>
+                    <input 
+                        type="text" 
+                        id="brandName" 
+                        name="name" 
+                        required 
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent"
+                        placeholder="Ej: Samsung, Apple, HP...">
+                </div>
+                
+                <div class="mb-6">
+                    <label for="brandDescription" class="block text-sm font-medium text-gray-700 mb-2">
+                        Descripción
+                    </label>
+                    <textarea 
+                        id="brandDescription" 
+                        name="description" 
+                        rows="3" 
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent"
+                        placeholder="Descripción opcional de la marca..."></textarea>
+                </div>
+                
+                <div class="flex space-x-3">
+                    <button 
+                        type="button" 
+                        onclick="document.getElementById('brandModal').classList.add('hidden')"
+                        class="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                        Cancelar
+                    </button>
+                    <button 
+                        type="submit" 
+                        class="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
+                        Guardar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal para Proveedores -->
+    <div id="supplierModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-xl p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-semibold" id="supplierModalTitle">Nuevo Proveedor</h3>
+                <button class="text-gray-500 hover:text-gray-700" onclick="document.getElementById('supplierModal').classList.add('hidden')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <form id="supplierForm">
+                <input type="hidden" id="supplierId" name="supplierId">
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div class="md:col-span-2">
+                        <label for="supplierName" class="block text-sm font-medium text-gray-700 mb-2">
+                            Nombre del Proveedor *
+                        </label>
+                        <input 
+                            type="text" 
+                            id="supplierName" 
+                            name="name" 
+                            required 
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent"
+                            placeholder="Ej: Distribuidora Tecnología S.A.">
+                    </div>
+                    
+                    <div>
+                        <label for="contactName" class="block text-sm font-medium text-gray-700 mb-2">
+                            Persona de Contacto
+                        </label>
+                        <input 
+                            type="text" 
+                            id="contactName" 
+                            name="contactName" 
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent"
+                            placeholder="Juan Pérez">
+                    </div>
+                    
+                    <div>
+                        <label for="supplierEmail" class="block text-sm font-medium text-gray-700 mb-2">
+                            Email
+                        </label>
+                        <input 
+                            type="email" 
+                            id="supplierEmail" 
+                            name="email" 
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent"
+                            placeholder="ventas@proveedor.com">
+                    </div>
+                    
+                    <div>
+                        <label for="supplierPhone" class="block text-sm font-medium text-gray-700 mb-2">
+                            Teléfono
+                        </label>
+                        <input 
+                            type="tel" 
+                            id="supplierPhone" 
+                            name="phone" 
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent"
+                            placeholder="+52 55 1234 5678">
+                    </div>
+                    
+                    <div class="md:col-span-2">
+                        <label for="supplierAddress" class="block text-sm font-medium text-gray-700 mb-2">
+                            Dirección
+                        </label>
+                        <input 
+                            type="text" 
+                            id="supplierAddress" 
+                            name="address" 
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent"
+                            placeholder="Av. Principal 123, Col. Centro, CDMX">
+                    </div>
+                </div>
+                
+                <div class="mb-6">
+                    <label for="supplierDescription" class="block text-sm font-medium text-gray-700 mb-2">
+                        Descripción
+                    </label>
+                    <textarea 
+                        id="supplierDescription" 
+                        name="description" 
+                        rows="3" 
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent"
+                        placeholder="Descripción del proveedor, especialidades, etc..."></textarea>
+                </div>
+                
+                <div class="mb-6">
+                    <label class="flex items-center">
+                        <input type="checkbox" id="supplierIsActive" name="isActive" checked class="mr-2">
+                        <span class="text-sm font-medium text-gray-700">Proveedor activo</span>
+                    </label>
+                </div>
+                
+                <div class="flex space-x-3">
+                    <button 
+                        type="button" 
+                        onclick="document.getElementById('supplierModal').classList.add('hidden')"
+                        class="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                        Cancelar
+                    </button>
+                    <button 
+                        type="submit" 
+                        class="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
+                        Guardar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script type="module" src="/js/services/authService.js"></script>
+    <script type="module" src="/js/services/brandsService.js"></script>
+    <script type="module" src="/js/services/suppliersService.js"></script>
+    <script type="module" src="/js/modules/brandsProvidersHandler.js"></script>
+    <script type="module" src="/js/components/userMenuComponent.js"></script>
+    <script type="module" src="/js/modules/userMenuHandler.js"></script>
+    <script type="module" src="/js/components/sidebarComponent.js"></script>
+    <script type="module" src="/js/modules/sidebarHandler.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            console.log('🏭 Inicializando gestión de marcas y proveedores...');
+            
+            try {
+                // Inicializar el manejador principal
+                const { BrandsProvidersHandler } = await import('/js/modules/brandsProvidersHandler.js');
+                window.brandsProvidersHandler = new BrandsProvidersHandler();
+                
+                console.log('✅ Sistema de marcas y proveedores inicializado');
+            } catch (error) {
+                console.error('❌ Error inicializando sistema:', error);
+            }
+        });
+    </script>
+</body>
+</html>
