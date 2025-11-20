@@ -2009,7 +2009,7 @@ class InventoryHandler {
 
       // Recargar la pantalla para mostrar los cambios
       // En un futuro podemos reemplazar esto con una alerta y obtener los datos en tiempo real de los filtros
-      window.location.reload()
+      // window.location.reload()
 
     } catch (error) {
       console.error("❌ Error al actualizar producto:", error)
