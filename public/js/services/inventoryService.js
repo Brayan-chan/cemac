@@ -20,6 +20,8 @@ export class InventoryService {
       
       if (filters.search) queryParams.append("search", filters.search)
       if (filters.category) queryParams.append("category", filters.category)
+      if (filters.brand) queryParams.append("brand", filters.brand)
+      if (filters.supplier) queryParams.append("supplier", filters.supplier)
       if (filters.availability) queryParams.append("availability", filters.availability)
       if (filters.minPrice !== null && filters.minPrice !== undefined) queryParams.append("minPrice", filters.minPrice)
       if (filters.maxPrice !== null && filters.maxPrice !== undefined) queryParams.append("maxPrice", filters.maxPrice)
