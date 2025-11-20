@@ -1,5 +1,7 @@
 import { InventoryService } from "/js/services/inventoryService.js"
 import { CategoryHandler } from "/js/modules/categoryHandler.js"
+import { BrandsService } from "/js/services/brandsService.js"
+import { SuppliersService } from "/js/services/suppliersService.js"
 
 class InventoryHandler {
   constructor() {
@@ -12,12 +14,19 @@ class InventoryHandler {
 
     this.inventoryService = new InventoryService()
     this.categoryHandler = new CategoryHandler()
+    this.brandsService = new BrandsService()
+    this.suppliersService = new SuppliersService()
+    this.categories = []
+    this.brands = []
+    this.suppliers = []
     // Add filters según la documentación de la API
     this.currentFilters = {
       page: 1,
       limit: 10,
       search: "",
       category: "",
+      brand: "",
+      supplier: "",
       availability: "", // limited, unlimited, out-of-stock
       minPrice: null,
       maxPrice: null,
@@ -40,6 +49,10 @@ class InventoryHandler {
 
     this.initializeEventListeners()
     this.loadCategories()
+    this.loadBrands()
+    this.loadSuppliers()
+    this.populateBrandModal()
+    this.populateSupplierModal()
     
     // Restore search state if exists
     this.restoreSearchState()
@@ -126,6 +139,18 @@ class InventoryHandler {
       this.loadProducts()
     })
 
+    document.getElementById("brandFilter")?.addEventListener("change", (e) => {
+      this.currentFilters.brand = e.target.value
+      this.currentFilters.page = 1 // Reset to first page
+      this.loadProducts()
+    })
+
+    document.getElementById("supplierFilter")?.addEventListener("change", (e) => {
+      this.currentFilters.supplier = e.target.value
+      this.currentFilters.page = 1 // Reset to first page
+      this.loadProducts()
+    })
+
     document.getElementById("priceFilter")?.addEventListener("change", (e) => {
       const priceRange = e.target.value
       if (priceRange) {
@@ -204,6 +229,8 @@ class InventoryHandler {
       const nombre = document.getElementById("nombre")?.value?.trim()
       const descripcion = document.getElementById("descripcion")?.value?.trim()
       const categoria = document.getElementById("categoria")?.value?.trim()
+      const marca = document.getElementById("marca")?.value?.trim()
+      const proveedor = document.getElementById("proveedor")?.value?.trim()
       const precio = parseFloat(document.getElementById("precio")?.value)
       const precioPromocional = parseFloat(document.getElementById("precioPromocional")?.value) || null
       const disponible = document.getElementById("disponible")?.checked
@@ -256,6 +283,12 @@ class InventoryHandler {
       }
       if (categoria) {
         formData.append("category", categoria)
+      }
+      if (marca) {
+        formData.append("brand", marca)
+      }
+      if (proveedor) {
+        formData.append("supplier", proveedor)
       }
       if (barcode) {
         formData.append("barcode", barcode)
@@ -327,6 +360,187 @@ class InventoryHandler {
 
     // Event listeners para gestión de categorías
     this.initializeCategoryEventListeners()
+
+    // Event listeners para gestión de marcas y proveedores en modal
+    document.getElementById("addNewBrandBtn")?.addEventListener("click", () => {
+      this.showCreateBrandModal()
+    })
+
+    document.getElementById("addNewSupplierBtn")?.addEventListener("click", () => {
+      this.showCreateSupplierModal()
+    })
+
+    // Event listeners para botones de gestión
+    document.getElementById("manageBrandsBtn")?.addEventListener("click", () => {
+      this.showManageBrandsModal()
+    })
+
+    document.getElementById("manageSuppliersBtn")?.addEventListener("click", () => {
+      this.showManageSuppliersModal()
+    })
+
+    // Event listeners para modales de gestión de marcas
+    document.getElementById("closeBrandsModal")?.addEventListener("click", () => {
+      this.hideManageBrandsModal()
+    })
+
+    document.getElementById("createBrandModalBtn")?.addEventListener("click", () => {
+      this.showCreateBrandManageModal()
+    })
+
+    document.getElementById("brandsSearchInput")?.addEventListener("input", (e) => {
+      this.searchBrands(e.target.value)
+    })
+
+    // Event listeners para modales de gestión de proveedores
+    document.getElementById("closeSuppliersModal")?.addEventListener("click", () => {
+      this.hideManageSuppliersModal()
+    })
+
+    document.getElementById("createSupplierModalBtn")?.addEventListener("click", () => {
+      this.showCreateSupplierManageModal()
+    })
+
+    document.getElementById("suppliersSearchInput")?.addEventListener("input", (e) => {
+      this.searchSuppliers(e.target.value)
+    })
+
+    // Event listeners para modales de marca
+    document.getElementById("closeBrandFormModal")?.addEventListener("click", () => {
+      this.hideBrandModal()
+    })
+
+    document.getElementById("cancelBrandBtn")?.addEventListener("click", () => {
+      this.hideBrandModal()
+    })
+
+    document.getElementById("brandForm")?.addEventListener("submit", (e) => {
+      e.preventDefault()
+      const formData = new FormData(e.target)
+      const brandData = {
+        name: formData.get("brandName") || document.getElementById("brandName")?.value,
+        description: formData.get("brandDescription") || document.getElementById("brandDescription")?.value
+      }
+      
+      if (brandData.name && brandData.name.trim()) {
+        this.createBrand({
+          name: brandData.name.trim(),
+          description: brandData.description?.trim() || ""
+        })
+      }
+    })
+
+    // Event listeners para modales de proveedor
+    document.getElementById("closeSupplierFormModal")?.addEventListener("click", () => {
+      this.hideSupplierModal()
+    })
+
+    document.getElementById("cancelSupplierBtn")?.addEventListener("click", () => {
+      this.hideSupplierModal()
+    })
+
+    document.getElementById("supplierForm")?.addEventListener("submit", (e) => {
+      e.preventDefault()
+      const formData = new FormData(e.target)
+      const supplierData = {
+        name: formData.get("supplierName") || document.getElementById("supplierName")?.value,
+        email: formData.get("supplierEmail") || document.getElementById("supplierEmail")?.value,
+        phone: formData.get("supplierPhone") || document.getElementById("supplierPhone")?.value,
+        address: formData.get("supplierAddress") || document.getElementById("supplierAddress")?.value
+      }
+      
+      if (supplierData.name && supplierData.name.trim()) {
+        this.createSupplier({
+          name: supplierData.name.trim(),
+          email: supplierData.email?.trim() || "",
+          phone: supplierData.phone?.trim() || "",
+          address: supplierData.address?.trim() || ""
+        })
+      }
+    })
+
+    // Event listeners para cerrar modales al hacer clic fuera de ellos
+    document.getElementById("brandFormModal")?.addEventListener("click", (e) => {
+      if (e.target.id === "brandFormModal") {
+        this.hideBrandModal()
+      }
+    })
+
+    document.getElementById("supplierFormModal")?.addEventListener("click", (e) => {
+      if (e.target.id === "supplierFormModal") {
+        this.hideSupplierModal()
+      }
+    })
+
+    // Event listeners para formularios de gestión de marcas
+    document.getElementById("closeBrandManageFormModal")?.addEventListener("click", () => {
+      this.hideBrandManageFormModal()
+    })
+
+    document.getElementById("cancelBrandManageBtn")?.addEventListener("click", () => {
+      this.hideBrandManageFormModal()
+    })
+
+    document.getElementById("brandManageForm")?.addEventListener("submit", (e) => {
+      e.preventDefault()
+      this.handleBrandManageFormSubmit(e)
+    })
+
+    // Event listeners para formularios de gestión de proveedores
+    document.getElementById("closeSupplierManageFormModal")?.addEventListener("click", () => {
+      this.hideSupplierManageFormModal()
+    })
+
+    document.getElementById("cancelSupplierManageBtn")?.addEventListener("click", () => {
+      this.hideSupplierManageFormModal()
+    })
+
+    document.getElementById("supplierManageForm")?.addEventListener("submit", (e) => {
+      e.preventDefault()
+      this.handleSupplierManageFormSubmit(e)
+    })
+
+    // Event listeners para modales de confirmación de eliminación
+    document.getElementById("cancelDeleteBrandBtn")?.addEventListener("click", () => {
+      this.hideDeleteBrandModal()
+    })
+
+    document.getElementById("confirmDeleteBrandBtn")?.addEventListener("click", () => {
+      this.confirmDeleteBrand()
+    })
+
+    document.getElementById("cancelDeleteSupplierBtn")?.addEventListener("click", () => {
+      this.hideDeleteSupplierModal()
+    })
+
+    document.getElementById("confirmDeleteSupplierBtn")?.addEventListener("click", () => {
+      this.confirmDeleteSupplier()
+    })
+
+    // Event listeners para cerrar modales al hacer clic fuera de ellos
+    document.getElementById("manageBrandsModal")?.addEventListener("click", (e) => {
+      if (e.target.id === "manageBrandsModal") {
+        this.hideManageBrandsModal()
+      }
+    })
+
+    document.getElementById("manageSuppliersModal")?.addEventListener("click", (e) => {
+      if (e.target.id === "manageSuppliersModal") {
+        this.hideManageSuppliersModal()
+      }
+    })
+
+    document.getElementById("brandManageFormModal")?.addEventListener("click", (e) => {
+      if (e.target.id === "brandManageFormModal") {
+        this.hideBrandManageFormModal()
+      }
+    })
+
+    document.getElementById("supplierManageFormModal")?.addEventListener("click", (e) => {
+      if (e.target.id === "supplierManageFormModal") {
+        this.hideSupplierManageFormModal()
+      }
+    })
   }
 
   // Método para calcular y mostrar el stock total
@@ -372,6 +586,8 @@ class InventoryHandler {
       limit: 10,
       search: "",
       category: "",
+      brand: "",
+      supplier: "",
       availability: "",
       minPrice: null,
       maxPrice: null,
@@ -381,6 +597,8 @@ class InventoryHandler {
 
     // Resetear elementos del DOM
     document.getElementById("categoryFilter").value = ""
+    document.getElementById("brandFilter").value = ""
+    document.getElementById("supplierFilter").value = ""
     document.getElementById("priceFilter").value = ""
     document.getElementById("statusFilter").value = ""
     document.getElementById("sortFilter").value = "name-asc"
@@ -499,6 +717,116 @@ class InventoryHandler {
     }
   }
 
+  async loadBrands() {
+    try {
+      const response = await this.brandsService.getBrands()
+      if (response.success && response.brands) {
+        this.brands = response.brands
+        await this.populateBrandFilters()
+        await this.populateBrandModal()
+      }
+    } catch (error) {
+      console.error("Error cargando marcas:", error)
+      // Las marcas son opcionales, no mostrar error al usuario
+    }
+  }
+
+  async populateBrandFilters() {
+    const brandFilter = document.getElementById("brandFilter")
+    if (!brandFilter || !this.brands.length) return
+
+    try {
+      // Limpiar opciones existentes excepto la primera
+      const emptyOption = brandFilter.querySelector('option[value=""]')
+      brandFilter.innerHTML = ''
+      if (emptyOption) brandFilter.appendChild(emptyOption)
+
+      // Agregar opciones de marcas
+      this.brands.forEach(brand => {
+        const option = document.createElement('option')
+        option.value = brand.name
+        option.textContent = `${brand.name} (${brand.productCount || 0} productos)`
+        brandFilter.appendChild(option)
+      })
+    } catch (error) {
+      console.error("Error poblando filtros de marca:", error)
+    }
+  }
+
+  async loadSuppliers() {
+    try {
+      const response = await this.suppliersService.getSuppliers({ isActive: true })
+      if (response.success && response.suppliers) {
+        this.suppliers = response.suppliers.filter(supplier => supplier.isActive)
+        await this.populateSupplierFilters()
+        await this.populateSupplierModal()
+      }
+    } catch (error) {
+      console.error("Error cargando proveedores:", error)
+      // Los proveedores son opcionales, no mostrar error al usuario
+    }
+  }
+
+  async populateSupplierFilters() {
+    const supplierFilter = document.getElementById("supplierFilter")
+    if (!supplierFilter || !this.suppliers.length) return
+
+    try {
+      // Limpiar opciones existentes excepto la primera
+      const emptyOption = supplierFilter.querySelector('option[value=""]')
+      supplierFilter.innerHTML = ''
+      if (emptyOption) supplierFilter.appendChild(emptyOption)
+
+      // Agregar opciones de proveedores
+      this.suppliers.forEach(supplier => {
+        const option = document.createElement('option')
+        option.value = supplier.name
+        option.textContent = `${supplier.name} (${supplier.productCount || 0} productos)`
+        supplierFilter.appendChild(option)
+      })
+    } catch (error) {
+      console.error("Error poblando filtros de proveedor:", error)
+    }
+  }
+
+  async populateBrandModal() {
+    const brandSelect = document.getElementById("marca")
+    if (!brandSelect) return
+
+    try {
+      brandSelect.innerHTML = '<option value="">Seleccionar marca...</option>'
+      
+      this.brands.forEach(brand => {
+        const option = document.createElement('option')
+        option.value = brand.name
+        option.textContent = brand.name
+        brandSelect.appendChild(option)
+      })
+    } catch (error) {
+      console.error("Error poblando marcas en modal:", error)
+      brandSelect.innerHTML = '<option value="">Error cargando marcas</option>'
+    }
+  }
+
+  async populateSupplierModal() {
+    const supplierSelect = document.getElementById("proveedor")
+    if (!supplierSelect) return
+
+    try {
+      supplierSelect.innerHTML = '<option value="">Seleccionar proveedor...</option>'
+      
+      this.suppliers.forEach(supplier => {
+        const option = document.createElement('option')
+        option.value = supplier.name
+        option.textContent = supplier.name
+        supplierSelect.appendChild(option)
+      })
+    } catch (error) {
+      console.error("Error poblando proveedores en modal:", error)
+      supplierSelect.innerHTML = '<option value="">Error cargando proveedores</option>'
+    }
+  }
+
   async loadProducts() {
     try {
       this.showLoadingState()
@@ -507,6 +835,8 @@ class InventoryHandler {
       const queryParams = {}
       if (this.currentFilters.search) queryParams.search = this.currentFilters.search
       if (this.currentFilters.category) queryParams.category = this.currentFilters.category
+      if (this.currentFilters.brand) queryParams.brand = this.currentFilters.brand
+      if (this.currentFilters.supplier) queryParams.supplier = this.currentFilters.supplier
       if (this.currentFilters.availability) queryParams.availability = this.currentFilters.availability
       if (this.currentFilters.minPrice !== null) queryParams.minPrice = this.currentFilters.minPrice
       if (this.currentFilters.maxPrice !== null) queryParams.maxPrice = this.currentFilters.maxPrice
@@ -1276,12 +1606,12 @@ class InventoryHandler {
 
         return `
                 <tr class="hover:bg-gray-50 transition-colors">
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        <div class="flex items-center space-x-4">
-                            <div class="flex-shrink-0 w-12 h-12">
+                    <td class="px-4 py-4 whitespace-nowrap">
+                        <div class="flex items-center space-x-3">
+                            <div class="flex-shrink-0 w-10 h-10">
                                 <img src="${product.imageUrl || "/diverse-products-still-life.png"}" 
                                      alt="${product.name}" 
-                                     class="w-12 h-12 object-cover rounded-lg bg-gray-100">
+                                     class="w-10 h-10 object-cover rounded-lg bg-gray-100">
                             </div>
                             <div class="flex-1 min-w-0">
                                 <div class="text-sm font-medium text-gray-900 truncate">
@@ -1296,10 +1626,16 @@ class InventoryHandler {
                             </div>
                         </div>
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap">
+                    <td class="px-4 py-4 whitespace-nowrap">
                         <span class="text-sm text-gray-900">${product.category || "Sin categoría"}</span>
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap">
+                    <td class="px-4 py-4 whitespace-nowrap">
+                        <span class="text-sm text-gray-900">${product.brand || "Sin marca"}</span>
+                    </td>
+                    <td class="px-4 py-4 whitespace-nowrap">
+                        <span class="text-sm text-gray-900">${product.supplier || "Sin proveedor"}</span>
+                    </td>
+                    <td class="px-4 py-4 whitespace-nowrap">
                         <div class="text-sm text-gray-900">
                             $${(product.price || 0).toFixed(2)}
                         </div>
@@ -1309,7 +1645,7 @@ class InventoryHandler {
                             : ""
                         }
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap">
+                    <td class="px-4 py-4 whitespace-nowrap">
                         <div class="text-sm text-gray-900">
                             ${product.stock !== undefined ? `${product.stock} unidades` : "N/A"}
                         </div>
@@ -1322,12 +1658,12 @@ class InventoryHandler {
                             : ""
                         }
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap">
+                    <td class="px-4 py-4 whitespace-nowrap">
                         <span class="inline-flex px-2 py-1 text-xs font-medium rounded-full ${statusClass}">
                             ${statusText}
                         </span>
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <td class="px-4 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <div class="flex items-center space-x-2">
                             <button onclick="inventoryHandler.showEditProductModal('${product.id}')" 
                                     class="text-[#8B7EC7] hover:text-[#7A6DB8] transition-colors"
@@ -1670,6 +2006,11 @@ class InventoryHandler {
       await this.loadProducts()
       
       this.showSuccess("Producto actualizado exitosamente")
+
+      // Recargar la pantalla para mostrar los cambios
+      // En un futuro podemos reemplazar esto con una alerta y obtener los datos en tiempo real de los filtros
+      window.location.reload()
+
     } catch (error) {
       console.error("❌ Error al actualizar producto:", error)
       this.showError(error.message || "Error al actualizar el producto")
@@ -1783,6 +2124,14 @@ class InventoryHandler {
     form.elements.precio.value = product.price || ""
     form.elements.stock.value = product.stock || ""
 
+    // Handle brand and supplier
+    if (form.elements.marca) {
+      form.elements.marca.value = product.brand || ""
+    }
+    if (form.elements.proveedor) {
+      form.elements.proveedor.value = product.supplier || ""
+    }
+
     // Handle promotional price
     if (form.elements.precioPromocional) {
       form.elements.precioPromocional.value = product.promotionalPrice || ""
@@ -1843,6 +2192,600 @@ class InventoryHandler {
     if (modal) {
       modal.classList.add("hidden")
     }
+  }
+
+  // Método para mostrar modal de crear marca
+  showCreateBrandModal() {
+    const modal = document.getElementById("brandFormModal")
+    const form = document.getElementById("brandForm")
+    const title = document.getElementById("brandFormTitle")
+    const nameInput = document.getElementById("brandName")
+    const descriptionInput = document.getElementById("brandDescription")
+    
+    if (modal && form && title) {
+      // Limpiar formulario
+      form.reset()
+      title.textContent = "Nueva Marca"
+      form.removeAttribute("data-brand-id")
+      
+      // Mostrar modal
+      modal.classList.remove("hidden")
+      nameInput?.focus()
+    }
+  }
+
+  // Método para mostrar modal de crear proveedor  
+  showCreateSupplierModal() {
+    const modal = document.getElementById("supplierFormModal")
+    const form = document.getElementById("supplierForm")
+    const title = document.getElementById("supplierFormTitle")
+    const nameInput = document.getElementById("supplierName")
+    
+    if (modal && form && title) {
+      // Limpiar formulario
+      form.reset()
+      title.textContent = "Nuevo Proveedor"
+      form.removeAttribute("data-supplier-id")
+      
+      // Mostrar modal
+      modal.classList.remove("hidden")
+      nameInput?.focus()
+    }
+  }
+
+  // Crear nueva marca
+  async createBrand(brandData) {
+    try {
+      const response = await this.brandsService.createBrand({
+        name: brandData.name,
+        description: brandData.description || `Marca ${brandData.name}`,
+        isActive: true
+      })
+      
+      if (response.success) {
+        this.showSuccess("Marca creada exitosamente")
+        await this.loadBrands() // Recargar marcas
+        
+        // Seleccionar la nueva marca en el dropdown
+        const brandSelect = document.getElementById("marca")
+        if (brandSelect) {
+          brandSelect.value = brandData.name
+        }
+        
+        // Cerrar modal
+        this.hideBrandModal()
+      } else {
+        this.showError("Error al crear la marca")
+      }
+    } catch (error) {
+      console.error("Error creando marca:", error)
+      this.showError("Error al crear la marca")
+    }
+  }
+
+  // Crear nuevo proveedor
+  async createSupplier(supplierData) {
+    try {
+      const response = await this.suppliersService.createSupplier({
+        name: supplierData.name,
+        contactInfo: {
+          email: supplierData.email || "",
+          phone: supplierData.phone || "",
+          address: supplierData.address || ""
+        },
+        isActive: true
+      })
+      
+      if (response.success) {
+        this.showSuccess("Proveedor creado exitosamente")
+        await this.loadSuppliers() // Recargar proveedores
+        
+        // Seleccionar el nuevo proveedor en el dropdown
+        const supplierSelect = document.getElementById("proveedor")
+        if (supplierSelect) {
+          supplierSelect.value = supplierData.name
+        }
+        
+        // Cerrar modal
+        this.hideSupplierModal()
+      } else {
+        this.showError("Error al crear el proveedor")
+      }
+    } catch (error) {
+      console.error("Error creando proveedor:", error)
+      this.showError("Error al crear el proveedor")
+    }
+  }
+
+  // Métodos para manejar modales de marca
+  hideBrandModal() {
+    const modal = document.getElementById("brandFormModal")
+    if (modal) {
+      modal.classList.add("hidden")
+    }
+  }
+
+  // Métodos para manejar modales de proveedor
+  hideSupplierModal() {
+    const modal = document.getElementById("supplierFormModal")
+    if (modal) {
+      modal.classList.add("hidden")
+    }
+  }
+
+  // Métodos para gestión de marcas
+  showManageBrandsModal() {
+    const modal = document.getElementById("manageBrandsModal")
+    if (modal) {
+      modal.classList.remove("hidden")
+      this.loadBrandsForManagement()
+    }
+  }
+
+  hideManageBrandsModal() {
+    const modal = document.getElementById("manageBrandsModal")
+    if (modal) {
+      modal.classList.add("hidden")
+    }
+  }
+
+  showCreateBrandManageModal() {
+    const modal = document.getElementById("brandManageFormModal")
+    const form = document.getElementById("brandManageForm")
+    const title = document.getElementById("brandManageFormTitle")
+    
+    if (modal && form && title) {
+      form.reset()
+      title.textContent = "Nueva Marca"
+      form.removeAttribute("data-brand-id")
+      document.getElementById("brandManageIsActive").checked = true
+      modal.classList.remove("hidden")
+      document.getElementById("brandManageName")?.focus()
+    }
+  }
+
+  hideBrandManageFormModal() {
+    const modal = document.getElementById("brandManageFormModal")
+    if (modal) {
+      modal.classList.add("hidden")
+    }
+  }
+
+  // Métodos para gestión de proveedores
+  showManageSuppliersModal() {
+    const modal = document.getElementById("manageSuppliersModal")
+    if (modal) {
+      modal.classList.remove("hidden")
+      this.loadSuppliersForManagement()
+    }
+  }
+
+  hideManageSuppliersModal() {
+    const modal = document.getElementById("manageSuppliersModal")
+    if (modal) {
+      modal.classList.add("hidden")
+    }
+  }
+
+  showCreateSupplierManageModal() {
+    const modal = document.getElementById("supplierManageFormModal")
+    const form = document.getElementById("supplierManageForm")
+    const title = document.getElementById("supplierManageFormTitle")
+    
+    if (modal && form && title) {
+      form.reset()
+      title.textContent = "Nuevo Proveedor"
+      form.removeAttribute("data-supplier-id")
+      document.getElementById("supplierManageIsActive").checked = true
+      modal.classList.remove("hidden")
+      document.getElementById("supplierManageName")?.focus()
+    }
+  }
+
+  hideSupplierManageFormModal() {
+    const modal = document.getElementById("supplierManageFormModal")
+    if (modal) {
+      modal.classList.add("hidden")
+    }
+  }
+
+  // Métodos para modales de confirmación de eliminación
+  hideDeleteBrandModal() {
+    const modal = document.getElementById("deleteBrandModal")
+    if (modal) {
+      modal.classList.add("hidden")
+    }
+  }
+
+  hideDeleteSupplierModal() {
+    const modal = document.getElementById("deleteSupplierModal")
+    if (modal) {
+      modal.classList.add("hidden")
+    }
+  }
+
+  // Métodos para cargar y renderizar marcas en gestión
+  async loadBrandsForManagement() {
+    const container = document.getElementById("brandsContainer")
+    if (!container) return
+
+    try {
+      container.innerHTML = '<div class="text-center py-8"><i class="fas fa-spinner fa-spin text-[#8B7EC7] text-2xl mb-2"></i><div class="text-gray-600">Cargando marcas...</div></div>'
+      
+      const response = await this.brandsService.getBrands()
+      if (response.success && response.brands) {
+        this.renderBrandsManagement(response.brands)
+      } else {
+        container.innerHTML = '<div class="text-center text-gray-500 py-8">No se pudieron cargar las marcas</div>'
+      }
+    } catch (error) {
+      console.error("Error cargando marcas para gestión:", error)
+      container.innerHTML = '<div class="text-center text-red-500 py-8">Error al cargar las marcas</div>'
+    }
+  }
+
+  renderBrandsManagement(brands) {
+    const container = document.getElementById("brandsContainer")
+    if (!container) return
+
+    if (!brands || brands.length === 0) {
+      container.innerHTML = '<div class="text-center text-gray-500 py-8">No hay marcas registradas</div>'
+      return
+    }
+
+    const brandsHTML = brands.map(brand => `
+      <div class="brand-item p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors" data-brand-id="${brand.id}">
+        <div class="flex items-center justify-between">
+          <div class="flex-1">
+            <h3 class="font-medium text-gray-900">${brand.name}</h3>
+            <p class="text-sm text-gray-600 mt-1">${brand.description || 'Sin descripción'}</p>
+            <div class="flex items-center gap-4 mt-2">
+              <p class="text-xs text-gray-500">${brand.productCount || 0} producto(s)</p>
+            </div>
+          </div>
+          <div class="flex items-center space-x-2">
+            <button class="edit-brand-btn p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-colors" data-brand-id="${brand.id}" title="Editar marca">
+              <i class="fas fa-edit"></i>
+            </button>
+            <button class="delete-brand-btn p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors" data-brand-id="${brand.id}" title="Eliminar marca">
+              <i class="fas fa-trash"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    `).join('')
+
+    container.innerHTML = brandsHTML
+
+    // Agregar event listeners para botones de editar y eliminar
+    container.querySelectorAll('.edit-brand-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const brandId = e.target.closest('.edit-brand-btn').dataset.brandId
+        this.showEditBrandModal(brandId, brands)
+      })
+    })
+
+    container.querySelectorAll('.delete-brand-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const brandId = e.target.closest('.delete-brand-btn').dataset.brandId
+        this.showDeleteBrandModal(brandId, brands)
+      })
+    })
+  }
+
+  // Métodos para cargar y renderizar proveedores en gestión
+  async loadSuppliersForManagement() {
+    const container = document.getElementById("suppliersContainer")
+    if (!container) return
+
+    try {
+      container.innerHTML = '<div class="text-center py-8"><i class="fas fa-spinner fa-spin text-[#8B7EC7] text-2xl mb-2"></i><div class="text-gray-600">Cargando proveedores...</div></div>'
+      
+      const response = await this.suppliersService.getSuppliers()
+      if (response.success && response.suppliers) {
+        this.renderSuppliersManagement(response.suppliers)
+      } else {
+        container.innerHTML = '<div class="text-center text-gray-500 py-8">No se pudieron cargar los proveedores</div>'
+      }
+    } catch (error) {
+      console.error("Error cargando proveedores para gestión:", error)
+      container.innerHTML = '<div class="text-center text-red-500 py-8">Error al cargar los proveedores</div>'
+    }
+  }
+
+  renderSuppliersManagement(suppliers) {
+    const container = document.getElementById("suppliersContainer")
+    if (!container) return
+
+    if (!suppliers || suppliers.length === 0) {
+      container.innerHTML = '<div class="text-center text-gray-500 py-8">No hay proveedores registrados</div>'
+      return
+    }
+
+    const suppliersHTML = suppliers.map(supplier => `
+      <div class="supplier-item p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors" data-supplier-id="${supplier.id}">
+        <div class="flex items-center justify-between">
+          <div class="flex-1">
+            <h3 class="font-medium text-gray-900">${supplier.name}</h3>
+            <div class="text-sm text-gray-600 mt-1 space-y-1">
+              ${supplier.contactInfo?.email ? `<div><i class="fas fa-envelope text-gray-400 mr-2"></i>${supplier.contactInfo.email}</div>` : ''}
+              ${supplier.contactInfo?.phone ? `<div><i class="fas fa-phone text-gray-400 mr-2"></i>${supplier.contactInfo.phone}</div>` : ''}
+              ${supplier.contactInfo?.address ? `<div><i class="fas fa-map-marker-alt text-gray-400 mr-2"></i>${supplier.contactInfo.address}</div>` : ''}
+            </div>
+            <div class="flex items-center gap-4 mt-2">
+              <p class="text-xs text-gray-500">${supplier.productCount || 0} producto(s)</p>
+              <span class="inline-flex px-2 py-1 text-xs font-medium rounded-full ${supplier.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
+                ${supplier.isActive ? 'Activo' : 'Inactivo'}
+              </span>
+            </div>
+          </div>
+          <div class="flex items-center space-x-2">
+            <button class="edit-supplier-btn p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-colors" data-supplier-id="${supplier.id}" title="Editar proveedor">
+              <i class="fas fa-edit"></i>
+            </button>
+            <button class="delete-supplier-btn p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors" data-supplier-id="${supplier.id}" title="Eliminar proveedor">
+              <i class="fas fa-trash"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    `).join('')
+
+    container.innerHTML = suppliersHTML
+
+    // Agregar event listeners para botones de editar y eliminar
+    container.querySelectorAll('.edit-supplier-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const supplierId = e.target.closest('.edit-supplier-btn').dataset.supplierId
+        this.showEditSupplierModal(supplierId, suppliers)
+      })
+    })
+
+    container.querySelectorAll('.delete-supplier-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const supplierId = e.target.closest('.delete-supplier-btn').dataset.supplierId
+        this.showDeleteSupplierModal(supplierId, suppliers)
+      })
+    })
+  }
+
+  // Métodos para manejar formularios de marcas
+  async handleBrandManageFormSubmit(e) {
+    const form = e.target
+    const brandId = form.getAttribute("data-brand-id")
+    
+    const brandData = {
+      name: document.getElementById("brandManageName")?.value?.trim(),
+      description: document.getElementById("brandManageDescription")?.value?.trim(),
+      isActive: document.getElementById("brandManageIsActive")?.checked
+    }
+
+    if (!brandData.name) {
+      this.showError("El nombre de la marca es requerido")
+      return
+    }
+
+    try {
+      let response
+      if (brandId) {
+        // Actualizar marca existente
+        response = await this.brandsService.updateBrand(brandId, brandData)
+      } else {
+        // Crear nueva marca
+        response = await this.brandsService.createBrand(brandData)
+      }
+
+      if (response.success) {
+        this.showSuccess(brandId ? "Marca actualizada exitosamente" : "Marca creada exitosamente")
+        this.hideBrandManageFormModal()
+        this.loadBrandsForManagement()
+        this.loadBrands() // Actualizar dropdowns
+      } else {
+        this.showError("Error al guardar la marca")
+      }
+    } catch (error) {
+      console.error("Error en formulario de marca:", error)
+      this.showError("Error al guardar la marca")
+    }
+  }
+
+  // Métodos para manejar formularios de proveedores
+  async handleSupplierManageFormSubmit(e) {
+    const form = e.target
+    const supplierId = form.getAttribute("data-supplier-id")
+    
+    const supplierData = {
+      name: document.getElementById("supplierManageName")?.value?.trim(),
+      contactInfo: {
+        email: document.getElementById("supplierManageEmail")?.value?.trim() || "",
+        phone: document.getElementById("supplierManagePhone")?.value?.trim() || "",
+        address: document.getElementById("supplierManageAddress")?.value?.trim() || ""
+      },
+      isActive: document.getElementById("supplierManageIsActive")?.checked
+    }
+
+    if (!supplierData.name) {
+      this.showError("El nombre del proveedor es requerido")
+      return
+    }
+
+    // Validar email si se proporciona
+    if (supplierData.contactInfo.email && !this.isValidEmail(supplierData.contactInfo.email)) {
+      this.showError("Por favor ingresa un email válido")
+      return
+    }
+
+    try {
+      let response
+      if (supplierId) {
+        // Actualizar proveedor existente
+        response = await this.suppliersService.updateSupplier(supplierId, supplierData)
+      } else {
+        // Crear nuevo proveedor
+        response = await this.suppliersService.createSupplier(supplierData)
+      }
+
+      if (response.success) {
+        this.showSuccess(supplierId ? "Proveedor actualizado exitosamente" : "Proveedor creado exitosamente")
+        this.hideSupplierManageFormModal()
+        this.loadSuppliersForManagement()
+        this.loadSuppliers() // Actualizar dropdowns
+      } else {
+        this.showError("Error al guardar el proveedor")
+      }
+    } catch (error) {
+      console.error("Error en formulario de proveedor:", error)
+      this.showError("Error al guardar el proveedor")
+    }
+  }
+
+  // Métodos para editar marcas
+  showEditBrandModal(brandId, brands) {
+    const brand = brands.find(b => b.id === brandId)
+    if (!brand) return
+
+    const modal = document.getElementById("brandManageFormModal")
+    const form = document.getElementById("brandManageForm")
+    const title = document.getElementById("brandManageFormTitle")
+
+    if (modal && form && title) {
+      // Llenar formulario con datos de la marca
+      document.getElementById("brandManageName").value = brand.name || ""
+      document.getElementById("brandManageDescription").value = brand.description || ""
+      document.getElementById("brandManageIsActive").checked = brand.isActive !== false
+
+      title.textContent = "Editar Marca"
+      form.setAttribute("data-brand-id", brandId)
+      modal.classList.remove("hidden")
+      document.getElementById("brandManageName")?.focus()
+    }
+  }
+
+  // Métodos para editar proveedores
+  showEditSupplierModal(supplierId, suppliers) {
+    const supplier = suppliers.find(s => s.id === supplierId)
+    if (!supplier) return
+
+    const modal = document.getElementById("supplierManageFormModal")
+    const form = document.getElementById("supplierManageForm")
+    const title = document.getElementById("supplierManageFormTitle")
+
+    if (modal && form && title) {
+      // Llenar formulario con datos del proveedor
+      document.getElementById("supplierManageName").value = supplier.name || ""
+      document.getElementById("supplierManageEmail").value = supplier.contactInfo?.email || ""
+      document.getElementById("supplierManagePhone").value = supplier.contactInfo?.phone || ""
+      document.getElementById("supplierManageAddress").value = supplier.contactInfo?.address || ""
+      document.getElementById("supplierManageIsActive").checked = supplier.isActive !== false
+
+      title.textContent = "Editar Proveedor"
+      form.setAttribute("data-supplier-id", supplierId)
+      modal.classList.remove("hidden")
+      document.getElementById("supplierManageName")?.focus()
+    }
+  }
+
+  // Métodos para eliminar marcas
+  showDeleteBrandModal(brandId, brands) {
+    const brand = brands.find(b => b.id === brandId)
+    if (!brand) return
+
+    const modal = document.getElementById("deleteBrandModal")
+    const message = document.getElementById("deleteBrandMessage")
+    
+    if (modal && message) {
+      message.textContent = `¿Estás seguro de que deseas eliminar la marca "${brand.name}"?`
+      modal.setAttribute("data-brand-id", brandId)
+      modal.classList.remove("hidden")
+    }
+  }
+
+  async confirmDeleteBrand() {
+    const modal = document.getElementById("deleteBrandModal")
+    const brandId = modal?.getAttribute("data-brand-id")
+    
+    if (!brandId) return
+
+    try {
+      const response = await this.brandsService.deleteBrand(brandId)
+      
+      if (response.success) {
+        this.showSuccess("Marca eliminada exitosamente")
+        this.hideDeleteBrandModal()
+        this.loadBrandsForManagement()
+        this.loadBrands() // Actualizar dropdowns
+      } else {
+        this.showError("Error al eliminar la marca")
+      }
+    } catch (error) {
+      console.error("Error eliminando marca:", error)
+      this.showError("Error al eliminar la marca")
+    }
+  }
+
+  // Métodos para eliminar proveedores
+  showDeleteSupplierModal(supplierId, suppliers) {
+    const supplier = suppliers.find(s => s.id === supplierId)
+    if (!supplier) return
+
+    const modal = document.getElementById("deleteSupplierModal")
+    const message = document.getElementById("deleteSupplierMessage")
+    
+    if (modal && message) {
+      message.textContent = `¿Estás seguro de que deseas eliminar el proveedor "${supplier.name}"?`
+      modal.setAttribute("data-supplier-id", supplierId)
+      modal.classList.remove("hidden")
+    }
+  }
+
+  async confirmDeleteSupplier() {
+    const modal = document.getElementById("deleteSupplierModal")
+    const supplierId = modal?.getAttribute("data-supplier-id")
+    
+    if (!supplierId) return
+
+    try {
+      const response = await this.suppliersService.deleteSupplier(supplierId)
+      
+      if (response.success) {
+        this.showSuccess("Proveedor eliminado exitosamente")
+        this.hideDeleteSupplierModal()
+        this.loadSuppliersForManagement()
+        this.loadSuppliers() // Actualizar dropdowns
+      } else {
+        this.showError("Error al eliminar el proveedor")
+      }
+    } catch (error) {
+      console.error("Error eliminando proveedor:", error)
+      this.showError("Error al eliminar el proveedor")
+    }
+  }
+
+  // Métodos de búsqueda
+  searchBrands(query) {
+    const brands = document.querySelectorAll('.brand-item')
+    brands.forEach(item => {
+      const name = item.querySelector('h3')?.textContent.toLowerCase() || ''
+      const description = item.querySelector('.text-sm')?.textContent.toLowerCase() || ''
+      const matches = name.includes(query.toLowerCase()) || description.includes(query.toLowerCase())
+      item.style.display = matches ? 'block' : 'none'
+    })
+  }
+
+  searchSuppliers(query) {
+    const suppliers = document.querySelectorAll('.supplier-item')
+    suppliers.forEach(item => {
+      const name = item.querySelector('h3')?.textContent.toLowerCase() || ''
+      const email = item.querySelector('.fa-envelope')?.parentNode.textContent.toLowerCase() || ''
+      const matches = name.includes(query.toLowerCase()) || email.includes(query.toLowerCase())
+      item.style.display = matches ? 'block' : 'none'
+    })
+  }
+
+  // Método de validación de email
+  isValidEmail(email) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    return emailRegex.test(email)
   }
 
   showSuccess(message) {
